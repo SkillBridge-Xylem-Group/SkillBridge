@@ -2,25 +2,82 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
 
-  function handleSubmit(e: FormEvent) {
+  async function handleGoogleSignIn() {
+    setError("");
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) {
+      setError(error.message);
+    }
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError("Password and confirm password do not match.");
       return;
     }
     setError("");
-    // TODO: hubungkan ke API auth
-    console.log({ fullName, email, password });
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, email, password, confirmPassword }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        const fieldError = data?.details?.confirmPassword?.[0] ?? data?.details?.email?.[0];
+        setError(fieldError ?? data?.error ?? "Registration failed. Please try again.");
+        return;
+      }
+
+      if (data.requiresConfirmation) {
+        setConfirmationMessage(data.message);
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  if (confirmationMessage) {
+    return (
+      <>
+        <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">Check your email</h1>
+        <p className="mt-4 text-slate-600">{confirmationMessage}</p>
+        <p className="mt-6 text-sm text-slate-600">
+          <Link href="/login" className="font-bold text-brand hover:underline">
+            Back to Sign In
+          </Link>
+        </p>
+      </>
+    );
   }
 
   return (
@@ -86,15 +143,16 @@ export default function RegisterForm() {
 
         <button
           type="submit"
-          className="btn-pill w-full bg-brand py-4 text-base text-white shadow-lg shadow-brand/30 hover:bg-brand-dark"
+          disabled={isSubmitting}
+          className="btn-pill w-full bg-brand py-4 text-base text-white shadow-lg shadow-brand/30 hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Sign Up
+          {isSubmitting ? "Signing Up..." : "Sign Up"}
         </button>
       </form>
 
       <div className="mt-7 flex items-center gap-3">
         <span className="text-sm font-bold text-slate-900">Sign Up with</span>
-        <GoogleButton label="Sign up with Google" />
+        <GoogleButton label="Sign up with Google" onClick={handleGoogleSignIn} />
       </div>
 
       <p className="mt-6 text-sm text-slate-600">
