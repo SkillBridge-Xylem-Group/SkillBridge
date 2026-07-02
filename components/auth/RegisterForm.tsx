@@ -6,13 +6,21 @@ import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
 
 export default function RegisterForm() {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      setError("Password and confirm password do not match.");
+      return;
+    }
+    setError("");
     // TODO: hubungkan ke API auth
-    console.log({ email, password });
+    console.log({ fullName, email, password });
   }
 
   return (
@@ -23,6 +31,23 @@ export default function RegisterForm() {
       <p className="mt-2 text-slate-500">Create your account</p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <div>
+          <label htmlFor="fullName" className="text-sm font-bold text-slate-900">
+            Full Name
+          </label>
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            required
+            autoComplete="name"
+            placeholder="Enter your full name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          />
+        </div>
+
         <div>
           <label htmlFor="email" className="text-sm font-bold text-slate-900">
             Email
@@ -47,6 +72,17 @@ export default function RegisterForm() {
           onChange={setPassword}
           autoComplete="new-password"
         />
+
+        <PasswordField
+          id="confirmPassword"
+          label="Confirm Password"
+          placeholder="Re-enter your password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          autoComplete="new-password"
+        />
+
+        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
         <button
           type="submit"
