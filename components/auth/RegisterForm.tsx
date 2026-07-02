@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,8 +21,10 @@ export default function RegisterForm() {
       return;
     }
     setError("");
-    // TODO: hubungkan ke API auth
+    // TODO: ganti dengan pemanggilan API auth beneran.
+    // Setelah API bilang sukses, baru jalankan router.push("/dashboard").
     console.log({ fullName, email, password });
+    router.push("/dashboard");
   }
 
   return (

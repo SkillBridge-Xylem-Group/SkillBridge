@@ -1,19 +1,23 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    // TODO: hubungkan ke API auth
+    // TODO: ganti dengan pemanggilan API auth beneran.
+    // Setelah API bilang sukses, baru jalankan router.push("/dashboard").
     console.log({ email, password, remember });
+    router.push("/dashboard");
   }
 
   return (
