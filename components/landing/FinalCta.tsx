@@ -1,5 +1,4 @@
 import CtaButtons from "./CtaButtons";
-import BrowseForumLink from "./BrowseForumLink";
 
 export default function FinalCta() {
   return (
@@ -13,10 +12,12 @@ export default function FinalCta() {
           everyone has something valuable to teach.
         </p>
         <div className="mt-8">
-          <CtaButtons primaryLabel="Register Now" secondaryLabel="Explore Skills" />
-        </div>
-        <div className="mt-4">
-          <BrowseForumLink />
+          <CtaButtons
+            primaryLabel="Register Now"
+            primaryHref="/register"
+            secondaryLabel="Explore Skills"
+            secondaryHref="#skills"
+          />
         </div>
       </div>
     </section>
