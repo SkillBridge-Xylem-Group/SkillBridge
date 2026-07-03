@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
 
@@ -11,13 +12,46 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleGoogleSignIn() {
+    setError("");
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) {
+      setError(error.message);
+    }
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    // TODO: ganti dengan pemanggilan API auth beneran.
-    // Setelah API bilang sukses, baru jalankan router.push("/dashboard").
-    console.log({ email, password, remember });
-    router.push("/dashboard");
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data?.error ?? "Login failed. Please try again.");
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -67,17 +101,20 @@ export default function LoginForm() {
           </Link>
         </div>
 
+        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+
         <button
           type="submit"
-          className="btn-pill w-full bg-brand py-4 text-base text-white shadow-lg shadow-brand/30 hover:bg-brand-dark"
+          disabled={isSubmitting}
+          className="btn-pill w-full bg-brand py-4 text-base text-white shadow-lg shadow-brand/30 hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Sign In
+          {isSubmitting ? "Signing In..." : "Sign In"}
         </button>
       </form>
 
       <div className="mt-7 flex items-center gap-3">
         <span className="text-sm font-bold text-slate-900">Sign In with</span>
-        <GoogleButton label="Sign in with Google" />
+        <GoogleButton label="Sign in with Google" onClick={handleGoogleSignIn} />
       </div>
 
       <p className="mt-6 text-sm text-slate-600">
