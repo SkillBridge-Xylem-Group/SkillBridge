@@ -1,10 +1,12 @@
+import Link from "next/link";
+
 export default function Navbar() {
   return (
-    <header className="relative z-10">
-      <div className="mx-auto flex max-w-7xl items-center px-6 py-6 sm:px-10">
-        <span className="text-lg font-extrabold tracking-wide text-white">
-          SKILL BRIDGE
-        </span>
+    <header className="border-b border-slate-100 bg-white">
+      <div className="mx-auto max-w-7xl px-6 py-3 sm:px-10">
+        <Link href="/" className="text-xl font-extrabold text-brand">
+          SkillBridge
+        </Link>
       </div>
     </header>
   );
