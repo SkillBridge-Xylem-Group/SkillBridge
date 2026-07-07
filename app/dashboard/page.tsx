@@ -7,6 +7,7 @@ import StatsCards from "@/components/dashboard/StatsCards";
 import UpcomingSessions from "@/components/dashboard/UpcomingSessions";
 import PendingRequests from "@/components/dashboard/PendingRequests";
 import RecentMessages from "@/components/dashboard/RecentMessages";
+import OnboardingGate from "@/components/onboarding/OnboardingGate";
 
 export const metadata: Metadata = {
   title: "Dashboard | SkillBridge",
@@ -46,6 +47,11 @@ export default async function DashboardPage() {
     user.user_metadata?.name ||
     (user.email ? deriveNameFromEmail(user.email) : "there");
 
+  // TODO: replace with a real "onboarding_completed" flag from the profiles
+  // table once /api/onboarding persists it. For now this always shows the
+  // popup after login so the flow can be tested end-to-end.
+  const showOnboarding = true;
+
   return (
     <DashboardLayout>
       <div className="space-y-6 pt-2">
@@ -53,16 +59,15 @@ export default async function DashboardPage() {
           name={displayName}
           message="You've completed 85% of your 'Advanced React Patterns' course. Your next session starts in 2 hours."
         />
-
         <StatsCards />
-
         <UpcomingSessions />
-
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <PendingRequests />
           <RecentMessages />
         </div>
       </div>
+
+      <OnboardingGate initialShow={showOnboarding} />
     </DashboardLayout>
   );
 }
