@@ -32,7 +32,7 @@ export async function GET() {
       level: profile?.level ?? 0,
       trustScore:
         profile?.trust_score != null ? String(profile.trust_score) : null,
-      emailConfirmed: user.email_confirmed ?? false,
+      emailConfirmed: Boolean(user.email_confirmed_at),
     },
   });
 }
