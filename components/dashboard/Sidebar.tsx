@@ -5,7 +5,14 @@ import { usePathname } from "next/navigation";
 import { Home, Users, Repeat2, MessageSquare, MessagesSquare, Bell, User } from "lucide-react";
 import YourProgress from "./YourProgress";
 
-const navItems = [
+type NavItem = {
+  label: string;
+  href: string;
+  icon: typeof Home;
+  badge?: string | number;
+};
+
+const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Browse People", href: "/dashboard/browse-people", icon: Users },
   { label: "Skill Swap Requests", href: "/dashboard/swap-requests", icon: Repeat2 },
