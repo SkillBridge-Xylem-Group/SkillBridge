@@ -3,10 +3,10 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
-import StatsCards from "@/components/dashboard/StatsCards";
-import UpcomingSessions from "@/components/dashboard/UpcomingSessions";
-import PendingRequests from "@/components/dashboard/PendingRequests";
-import RecentMessages from "@/components/dashboard/RecentMessages";
+import TopRatedMembers from "@/components/dashboard/TopRatedMembers";
+import RecentForumDiscussions from "@/components/dashboard/RecentForumDiscussions";
+import QuickActions from "@/components/dashboard/QuickActions";
+import TipCard from "@/components/dashboard/TipCard";
 import OnboardingGate from "@/components/onboarding/OnboardingGate";
 
 export const metadata: Metadata = {
@@ -53,17 +53,17 @@ export default async function DashboardPage() {
   const showOnboarding = true;
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6 pt-2">
-        <WelcomeBanner
-          name={displayName}
-          message="You've completed 85% of your 'Advanced React Patterns' course. Your next session starts in 2 hours."
-        />
-        <StatsCards />
-        <UpcomingSessions />
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <PendingRequests />
-          <RecentMessages />
+    <DashboardLayout userName={displayName}>
+      <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <WelcomeBanner name={displayName} />
+          <TopRatedMembers />
+          <RecentForumDiscussions />
+        </div>
+
+        <div className="space-y-6">
+          <QuickActions />
+          <TipCard />
         </div>
       </div>
 

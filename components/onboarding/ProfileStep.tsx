@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Globe, ChevronDown } from "lucide-react";
-import { getTimezoneOptions } from "@/lib/timezones";
+import { getTimezoneOptions, type TimezoneOption } from "@/lib/timezones";
 
 type ProfileStepProps = {
   bio: string;
@@ -11,9 +11,19 @@ type ProfileStepProps = {
   onTimezoneChange: (value: string) => void;
 };
 
+// Static, identical on server and client — avoids a hydration mismatch.
+// The full Intl-generated list only gets computed in the browser (see
+// useEffect below), since Node's ICU data can list zones in a different
+// order/set than the browser's, which would make SSR output not match.
+const INITIAL_TIMEZONES: TimezoneOption[] = [{ value: "Asia/Jakarta", label: "(GMT+07:00) Jakarta" }];
+
 export default function ProfileStep({ bio, onBioChange, timezone, onTimezoneChange }: ProfileStepProps) {
   const maxLength = 300;
-  const timezones = useMemo(() => getTimezoneOptions(), []);
+  const [timezones, setTimezones] = useState<TimezoneOption[]>(INITIAL_TIMEZONES);
+
+  useEffect(() => {
+    setTimezones(getTimezoneOptions());
+  }, []);
 
   return (
     <div>

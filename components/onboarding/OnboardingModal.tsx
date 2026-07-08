@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import OnboardingStepper from "./OnboardingStepper";
 import ProfileStep from "./ProfileStep";
 import SkillsStep, { OTHER_SUBJECT } from "./SkillsStep";
 import { getBrowserTimezone } from "@/lib/timezones";
+
+// Fixed default so server and client render the same thing on first paint.
+// The real browser timezone is detected client-side after mount (see
+// useEffect below) — computing it during SSR risks a hydration mismatch if
+// the server's timezone differs from the visitor's.
+const DEFAULT_TIMEZONE = "Asia/Jakarta";
 
 const TEACH_SUBJECTS = [
   "Software Development (Web, Mobile)",
@@ -71,7 +77,11 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [bio, setBio] = useState("");
-  const [timezone, setTimezone] = useState(getBrowserTimezone());
+  const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
+
+  useEffect(() => {
+    setTimezone(getBrowserTimezone());
+  }, []);
 
   const [teachSubject, setTeachSubject] = useState(TEACH_SUBJECTS[0]);
   const [teachCustomSubject, setTeachCustomSubject] = useState("");
