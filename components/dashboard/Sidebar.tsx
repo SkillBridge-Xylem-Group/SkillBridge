@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Repeat2, MessageSquare, MessagesSquare, Bell, User } from "lucide-react";
+import { Home, Users, Repeat2, MessageSquare, MessagesSquare, Bell, User, type LucideIcon } from "lucide-react";
 import YourProgress from "./YourProgress";
 
 type NavItem = {
   label: string;
   href: string;
-  icon: typeof Home;
-  badge?: string | number;
+  icon: LucideIcon;
+  badge?: string;
 };
 
 const navItems: NavItem[] = [
