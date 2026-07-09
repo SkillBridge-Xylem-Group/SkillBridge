@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { type LucideIcon, Users, Sparkles, MessagesSquare, Repeat2, ChevronRight } from "lucide-react";
 
 type Action = {
@@ -53,7 +54,7 @@ export default function QuickActions() {
         {actions.map((a) => {
           const Icon = a.icon;
           return (
-            <a
+            <Link
               key={a.title}
               href={a.href}
               className="flex items-center gap-3 rounded-xl px-3 py-3 transition hover:bg-slate-50"
@@ -66,7 +67,7 @@ export default function QuickActions() {
                 <p className="text-xs text-slate-500">{a.desc}</p>
               </div>
               <ChevronRight size={16} className="shrink-0 text-slate-300" />
-            </a>
+            </Link>
           );
         })}
       </div>
