@@ -7,12 +7,33 @@ import { ArrowLeft, ArrowRight, KeyRound, ShieldCheck } from "lucide-react";
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    // TODO: hubungkan ke API auth (kirim reset link)
-    console.log({ email });
-    setSent(true);
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Failed to send reset link. Please try again.");
+        return;
+      }
+
+      setSent(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -79,11 +100,14 @@ export default function ForgotPasswordForm() {
                 />
               </div>
 
+              {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+
               <button
                 type="submit"
-                className="btn-pill flex w-full items-center justify-center gap-2 bg-brand py-4 text-base text-white shadow-lg shadow-brand/30 hover:bg-brand-dark"
+                disabled={isSubmitting}
+                className="btn-pill flex w-full items-center justify-center gap-2 bg-brand py-4 text-base text-white shadow-lg shadow-brand/30 hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Send Reset Link
+                {isSubmitting ? "Sending..." : "Send Reset Link"}
                 <ArrowRight size={18} />
               </button>
             </form>
