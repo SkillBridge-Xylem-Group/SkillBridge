@@ -37,7 +37,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, bio, skills_offered")
+    .select("name, bio, skills_offered, avatar_url")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -52,7 +52,12 @@ export default async function DashboardPage() {
   const showOnboarding = !profile?.bio && (profile?.skills_offered?.length ?? 0) === 0;
 
   return (
-    <DashboardLayout userName={displayName}>
+    <DashboardLayout
+      userName={displayName}
+      avatarId={profile?.avatar_url}
+      level={0}
+      xp={0}
+    >
       <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <WelcomeBanner name={displayName} />
