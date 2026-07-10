@@ -75,6 +75,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const totalSteps = 3;
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const [bio, setBio] = useState("");
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
@@ -106,21 +107,30 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }
 
     // Final step: persist onboarding data
+    setError("");
     setIsSubmitting(true);
     try {
       const finalTeachSubject = teachSubject === OTHER_SUBJECT ? teachCustomSubject : teachSubject;
       const finalLearnSubject = learnSubject === OTHER_SUBJECT ? learnCustomSubject : learnSubject;
 
-      // TODO: hubungkan ke API (mis. POST /api/onboarding) untuk menyimpan
-      // bio, timezone, finalTeachSubject, teachTags, finalLearnSubject, learnTags.
-      console.log({
-        bio,
-        timezone,
-        teachSubject: finalTeachSubject,
-        teachTags,
-        learnSubject: finalLearnSubject,
-        learnTags,
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bio,
+          timezone,
+          teachSubject: finalTeachSubject,
+          teachTags,
+          learnSubject: finalLearnSubject,
+          learnTags,
+        }),
       });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Failed to save onboarding. Please try again.");
+        return;
+      }
 
       if (onComplete) {
         onComplete();
@@ -128,6 +138,8 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
         router.push("/dashboard");
         router.refresh();
       }
+    } catch {
+      setError("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -188,6 +200,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
         {/* Footer */}
         <div className="border-t border-slate-100 px-8 py-6">
+          {error && <p className="mb-4 text-sm font-medium text-red-600">{error}</p>}
           <div className="flex items-center justify-between gap-4">
             <button
               type="button"

@@ -37,7 +37,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name")
+    .select("name, bio, skills_offered")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -47,10 +47,9 @@ export default async function DashboardPage() {
     user.user_metadata?.name ||
     (user.email ? deriveNameFromEmail(user.email) : "there");
 
-  // TODO: replace with a real "onboarding_completed" flag from the profiles
-  // table once /api/onboarding persists it. For now this always shows the
-  // popup after login so the flow can be tested end-to-end.
-  const showOnboarding = true;
+  // No dedicated "onboarding_completed" column exists yet, so infer it from
+  // whether /api/onboarding has ever written to this profile.
+  const showOnboarding = !profile?.bio && (profile?.skills_offered?.length ?? 0) === 0;
 
   return (
     <DashboardLayout userName={displayName}>
