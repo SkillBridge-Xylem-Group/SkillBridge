@@ -5,7 +5,9 @@ import UserMenu from "./UserMenu";
 
 type TopbarProps = {
   userName: string;
-  avatarUrl?: string;
+  avatarId?: string | null;
+  level?: string;
+  xp?: number;
 };
 
 function IconWithBadge({ icon: Icon, label, badge }: { icon: LucideIcon; label: string; badge?: number }) {
@@ -24,7 +26,7 @@ function IconWithBadge({ icon: Icon, label, badge }: { icon: LucideIcon; label: 
   );
 }
 
-export default function Topbar({ userName, avatarUrl = "/images/avatars/user.jpg" }: TopbarProps) {
+export default function Topbar({ userName, avatarId, level = "Level 0", xp = 0 }: TopbarProps) {
   return (
     <div className="flex items-center gap-4 px-6 py-6 sm:px-10">
       <div className="relative flex-1">
@@ -39,7 +41,7 @@ export default function Topbar({ userName, avatarUrl = "/images/avatars/user.jpg
       <IconWithBadge icon={MessageSquare} label="Messages" />
       <IconWithBadge icon={Bell} label="Notifications" />
 
-      <UserMenu name={userName} level="Level 0" xp={0} avatarUrl={avatarUrl} />
+      <UserMenu name={userName} level={level} xp={xp} avatarId={avatarId} />
     </div>
   );
 }

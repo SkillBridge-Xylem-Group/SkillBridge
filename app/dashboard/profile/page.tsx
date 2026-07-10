@@ -6,50 +6,29 @@ import ProfileClient from "@/components/profile/ProfileClient";
 import LevelCard from "@/components/profile/LevelCard";
 import TrustScoreCard from "@/components/profile/TrustScoreCard";
 import ReviewsCard from "@/components/profile/ReviewsCard";
-import type { Profile, Skill, Review } from "@/lib/types/profile";
+import type { Profile, Review } from "@/lib/types/profile";
+import { getFullSkillCatalog, tagsToSkills } from "@/lib/skillCatalog";
 
 export const metadata: Metadata = {
   title: "My Profile | SkillBridge",
 };
 
+// Google/email signups don't always populate a display name, so fall back to
+// turning the email's local part (e.g. "diah.pane") into "Diah Pane".
+function deriveNameFromEmail(email: string) {
+  return email
+    .split("@")[0]
+    .replace(/[._]+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 /**
- * TODO (backend): replace this mock data with real queries once the SKILL /
- * USER_SKILL_OFFERED / USER_SKILL_WANTED tables exist, against:
- *   - USER                (fullname, bio, timezone, experience_points, level, trust_score, created_at)
- *   - USER_SKILL_OFFERED join SKILL  (where user_id = current user)
- *   - USER_SKILL_WANTED join SKILL   (where user_id = current user)
- *   - SKILL                          (full catalog, for the add-skill picker)
- *   - REVIEW join USER as reviewer  (where reviewed_user_id = current user)
- * This mock represents a brand-new user who just finished signup — Level 0,
- * 0 XP, no skills added yet, no ratings, no reviews.
+ * TODO (backend): REVIEW join USER as reviewer (where reviewed_user_id =
+ * current user) isn't wired up yet, so reviews stay empty here.
  */
-
-const MOCK_PROFILE: Profile = {
-  user_id: 1,
-  fullname: "Halima Mohamed",
-  bio: null,
-  timezone: "Asia/Jakarta",
-  experience_points: 0,
-  level: 0,
-  trust_score: null,
-  created_at: new Date().toISOString(),
-};
-
-const MOCK_SKILL_CATALOG: Skill[] = [
-  { skill_id: 1, skill_name: "Python", category: "Software Development" },
-  { skill_id: 2, skill_name: "Java", category: "Software Development" },
-  { skill_id: 3, skill_name: "React", category: "Software Development" },
-  { skill_id: 4, skill_name: "HTML", category: "Software Development" },
-  { skill_id: 5, skill_name: "Cybersecurity", category: "Security" },
-  { skill_id: 6, skill_name: "AWS", category: "DevOps" },
-  { skill_id: 7, skill_name: "Docker", category: "DevOps" },
-  { skill_id: 8, skill_name: "Networking", category: "Security" },
-  { skill_id: 9, skill_name: "Linux", category: "DevOps" },
-  { skill_id: 10, skill_name: "Ethical Hacking", category: "Security" },
-];
-
-const MOCK_OFFERED: Skill[] = [];
-const MOCK_WANTED: Skill[] = [];
 const MOCK_REVIEWS: Review[] = [];
 
 export default async function ProfilePage() {
@@ -62,7 +41,29 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const profile = MOCK_PROFILE;
+  const { data: row } = await supabase
+    .from("profiles")
+    .select("name, bio, avatar_url, timezone, skills_offered, skills_wanted")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const profile: Profile = {
+    user_id: user.id,
+    fullname:
+      row?.name ||
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      (user.email ? deriveNameFromEmail(user.email) : "there"),
+    bio: row?.bio ?? null,
+    avatarId: row?.avatar_url ?? null,
+    timezone: row?.timezone ?? "UTC",
+    // The profiles table has no xp/level/trust_score columns yet, so these
+    // stay at defaults until that schema work lands.
+    experience_points: 0,
+    level: 0,
+    trust_score: null,
+    created_at: user.created_at,
+  };
   const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
@@ -74,17 +75,26 @@ export default async function ProfilePage() {
     .formatToParts(new Date())
     .find((part) => part.type === "timeZoneName")?.value ?? profile.timezone;
 
+  const offered = tagsToSkills(row?.skills_offered);
+  const wanted = tagsToSkills(row?.skills_wanted);
+  const skillCatalog = getFullSkillCatalog();
+
   return (
-    <DashboardLayout userName={profile.fullname}>
+    <DashboardLayout
+      userName={profile.fullname}
+      avatarId={profile.avatarId}
+      level={profile.level}
+      xp={profile.experience_points}
+    >
       <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <ProfileClient
             profile={profile}
             memberSince={memberSince}
             timezoneDisplay={timezoneDisplay}
-            initialOffered={MOCK_OFFERED}
-            initialWanted={MOCK_WANTED}
-            skillCatalog={MOCK_SKILL_CATALOG}
+            initialOffered={offered}
+            initialWanted={wanted}
+            skillCatalog={skillCatalog}
           />
 
           <ReviewsCard reviews={MOCK_REVIEWS} />

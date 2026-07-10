@@ -1,9 +1,10 @@
 import { Star } from "lucide-react";
+import { getAvatarOption } from "@/lib/avatars";
 
 type Person = {
   name: string;
   role: string;
-  avatar: string;
+  avatarId: string;
   rating: number;
   reviews: number;
   tags: string[];
@@ -14,7 +15,7 @@ const people: Person[] = [
   {
     name: "Maria Lopez",
     role: "Language Tutor",
-    avatar: "/images/avatars/maria-lopez.jpg",
+    avatarId: "fox",
     rating: 4.9,
     reviews: 41,
     tags: ["Spanish", "English", "Grammar"],
@@ -23,7 +24,7 @@ const people: Person[] = [
   {
     name: "Sarah Kim",
     role: "UI/UX Designer",
-    avatar: "/images/avatars/sarah-kim.jpg",
+    avatarId: "koala",
     rating: 4.8,
     reviews: 32,
     tags: ["Figma", "UI Design", "Wireframing"],
@@ -32,7 +33,7 @@ const people: Person[] = [
   {
     name: "Alex Chen",
     role: "Web Developer",
-    avatar: "/images/avatars/alex-chen.jpg",
+    avatarId: "panda",
     rating: 4.7,
     reviews: 28,
     tags: ["JavaScript", "React", "Node.js"],
@@ -55,10 +56,16 @@ export default function TopRatedMembers() {
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {sortedByRating.map((p) => (
+        {sortedByRating.map((p) => {
+          const avatar = getAvatarOption(p.avatarId);
+          return (
           <div key={p.name} className="rounded-2xl border border-slate-100 p-5">
             <div className="flex items-center gap-3">
-              <img src={p.avatar} alt={p.name} className="h-11 w-11 rounded-full object-cover" />
+              <div
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl ${avatar?.bg ?? "bg-brand-light"}`}
+              >
+                {avatar?.emoji}
+              </div>
               <div>
                 <p className="text-sm font-bold text-slate-900">{p.name}</p>
                 <p className="text-xs text-slate-500">{p.role}</p>
@@ -87,7 +94,8 @@ export default function TopRatedMembers() {
               View Profile
             </a>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

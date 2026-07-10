@@ -7,6 +7,7 @@ import OnboardingStepper from "./OnboardingStepper";
 import ProfileStep from "./ProfileStep";
 import SkillsStep, { OTHER_SUBJECT } from "./SkillsStep";
 import { getBrowserTimezone } from "@/lib/timezones";
+import { SKILL_CATEGORIES as SUBJECT_TAGS } from "@/lib/skillCatalog";
 
 // Fixed default so server and client render the same thing on first paint.
 // The real browser timezone is detected client-side after mount (see
@@ -24,19 +25,6 @@ const TEACH_SUBJECTS = [
   OTHER_SUBJECT,
 ];
 
-const TEACH_TAGS = [
-  "HTML/CSS",
-  "JavaScript",
-  "UI Layouts",
-  "Database ERD",
-  "Python",
-  "React",
-  "Figma",
-  "Wireframing",
-  "Copywriting",
-  "Project Management",
-];
-
 const LEARN_SUBJECTS = [
   "Design & UI/UX",
   "Software Development (Web, Mobile)",
@@ -45,19 +33,6 @@ const LEARN_SUBJECTS = [
   "Music",
   "Cooking",
   OTHER_SUBJECT,
-];
-
-const LEARN_TAGS = [
-  "Figma",
-  "Wireframing",
-  "UI Design",
-  "Graphic Design",
-  "Canva",
-  "User Research",
-  "Prototyping",
-  "Adobe XD",
-  "Illustrator",
-  "Branding",
 ];
 
 type OnboardingModalProps = {
@@ -86,14 +61,26 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const [teachSubject, setTeachSubject] = useState(TEACH_SUBJECTS[0]);
   const [teachCustomSubject, setTeachCustomSubject] = useState("");
-  const [teachTags, setTeachTags] = useState<string[]>(["HTML/CSS", "JavaScript", "UI Layouts", "Database ERD"]);
+  const [teachTags, setTeachTags] = useState<string[]>([]);
 
   const [learnSubject, setLearnSubject] = useState(LEARN_SUBJECTS[0]);
   const [learnCustomSubject, setLearnCustomSubject] = useState("");
-  const [learnTags, setLearnTags] = useState<string[]>(["Figma", "Wireframing", "UI Design"]);
+  const [learnTags, setLearnTags] = useState<string[]>([]);
 
   function toggleTag(list: string[], setList: (v: string[]) => void, tag: string) {
     setList(list.includes(tag) ? list.filter((t) => t !== tag) : [...list, tag]);
+  }
+
+  // Previously selected tags belong to the old subject, so clear them
+  // whenever the subject changes instead of leaving stale picks selected.
+  function handleTeachSubjectChange(value: string) {
+    setTeachSubject(value);
+    setTeachTags([]);
+  }
+
+  function handleLearnSubjectChange(value: string) {
+    setLearnSubject(value);
+    setLearnTags([]);
   }
 
   function handleBack() {
@@ -173,10 +160,10 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
               description="Select subjects you feel comfortable teaching to other community peers."
               subjectOptions={TEACH_SUBJECTS}
               subject={teachSubject}
-              onSubjectChange={setTeachSubject}
+              onSubjectChange={handleTeachSubjectChange}
               customSubject={teachCustomSubject}
               onCustomSubjectChange={setTeachCustomSubject}
-              tags={TEACH_TAGS}
+              tags={SUBJECT_TAGS[teachSubject] ?? []}
               selectedTags={teachTags}
               onToggleTag={(tag) => toggleTag(teachTags, setTeachTags, tag)}
             />
@@ -188,10 +175,10 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
               description="Choose the skills you're looking to learn from the community."
               subjectOptions={LEARN_SUBJECTS}
               subject={learnSubject}
-              onSubjectChange={setLearnSubject}
+              onSubjectChange={handleLearnSubjectChange}
               customSubject={learnCustomSubject}
               onCustomSubjectChange={setLearnCustomSubject}
-              tags={LEARN_TAGS}
+              tags={SUBJECT_TAGS[learnSubject] ?? []}
               selectedTags={learnTags}
               onToggleTag={(tag) => toggleTag(learnTags, setLearnTags, tag)}
             />
