@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const protectedRoutes = ["/dashboard"];
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -23,8 +25,18 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // Refreshes the session cookie if the access token is expired.
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { pathname, search } = request.nextUrl;
+  const needsAuth = protectedRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+
+  if (needsAuth && !user) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirectTo", `${pathname}${search}`);
+    return NextResponse.redirect(loginUrl);
+  }
 
   return response;
 }
