@@ -5,9 +5,10 @@ export type Skill = {
 };
 
 export type Profile = {
-  user_id: number;
+  user_id: string;
   fullname: string;
   bio: string | null;
+  avatarId: string | null;
   timezone: string;
   experience_points: number;
   level: number;
