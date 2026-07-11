@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { MessageSquareText, MessageCircle, ArrowBigUp } from "lucide-react";
+import { MessageSquareText, MessageCircle } from "lucide-react";
 
 type RecentQuestion = {
   id: string;
@@ -9,7 +9,6 @@ type RecentQuestion = {
   authorName: string;
   createdAt: string;
   replyCount: number;
-  upvotes?: number;
 };
 
 export default function RecentForumDiscussions() {
@@ -34,7 +33,6 @@ export default function RecentForumDiscussions() {
             authorName: question.author_name ?? "Unknown",
             createdAt: question.created_at,
             replyCount: question.reply_count ?? 0,
-            upvotes: question.upvotes ?? 0,
           }))
         );
       } catch (err: any) {
@@ -90,9 +88,6 @@ export default function RecentForumDiscussions() {
               <div className="flex shrink-0 items-center gap-4 text-xs font-semibold text-slate-500">
                 <span className="flex items-center gap-1">
                   <MessageCircle size={14} /> {question.replyCount}
-                </span>
-                <span className="flex items-center gap-1">
-                  <ArrowBigUp size={14} /> {question.upvotes}
                 </span>
               </div>
             </div>
