@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import PasswordField from "./PasswordField";
+import PasswordRequirements from "./PasswordRequirements";
+import { isPasswordValid } from "@/lib/auth/password";
 
 export default function ResetPasswordForm() {
   const router = useRouter();
@@ -14,6 +16,18 @@ export default function ResetPasswordForm() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!isPasswordValid(password)) {
+      setError(
+        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
+      );
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Password and confirm password do not match.");
+      return;
+    }
+
     setError("");
     setIsSubmitting(true);
 
@@ -65,6 +79,8 @@ export default function ResetPasswordForm() {
           onChange={setPassword}
           autoComplete="new-password"
         />
+
+        <PasswordRequirements password={password} />
 
         <PasswordField
           id="confirmPassword"

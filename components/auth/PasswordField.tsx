@@ -10,6 +10,8 @@ type PasswordFieldProps = {
   value: string;
   onChange: (value: string) => void;
   autoComplete?: string;
+  onFocus?: () => void;
+  onBlur?: () => void;
 };
 
 export default function PasswordField({
@@ -19,6 +21,8 @@ export default function PasswordField({
   value,
   onChange,
   autoComplete = "current-password",
+  onFocus,
+  onBlur,
 }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false);
 
@@ -37,6 +41,8 @@ export default function PasswordField({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onFocus={onFocus}
+          onBlur={onBlur}
           className="w-full rounded-xl border border-slate-200 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         />
         <button
