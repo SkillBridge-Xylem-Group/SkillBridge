@@ -1,87 +1,69 @@
-import { Search, PenLine } from "lucide-react";
+"use client";
 
-const stats = [
-  { value: "98%", label: "SUCCESS RATE" },
-  { value: "50k+", label: "SESSIONS" },
-  { value: "4.9/5", label: "AVG RATING" },
-  { value: "120", label: "TOPICS" },
+import { motion, type Variants } from "framer-motion";
+import { UserPlus, Search, Send, CheckCircle2 } from "lucide-react";
+
+const steps = [
+  { icon: UserPlus, title: "Create Your Profile", desc: "Add the skills you can teach and the skills you want to learn.", tone: "green" },
+  { icon: Search, title: "Find Skill Partners", desc: "Search by skills, interests, or experience level.", tone: "blue" },
+  { icon: Send, title: "Send & Accept Requests", desc: "Connect with someone and plan your learning session.", tone: "blue" },
+  { icon: CheckCircle2, title: "Learn & Grow Together", desc: "Share knowledge, help each other, and grow your skills.", tone: "green" },
 ];
+
+const container: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
+};
+
+const item: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+};
 
 export default function HowItWorks() {
   return (
-    <section className="bg-[#F5F6FE] py-20">
-      <div className="mx-auto max-w-7xl px-6 sm:px-10">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">How SkillBridge Works</h2>
-          <p className="mt-3 text-slate-500">A simple cycle of growth designed for professional connectivity.</p>
-        </div>
+    <section id="how-it-works" className="section-snap bg-white py-16">
+      <div className="mx-auto max-w-7xl px-6 text-center sm:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <p className="eyebrow text-brand-blue">Simple steps</p>
+          <h2 className="mt-2 text-4xl font-medium tracking-tight text-carbon">How SkillBridge Works</h2>
+          <p className="mt-3 text-charcoal">Exchange skills in four simple steps.</p>
+        </motion.div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-5">
-          {/* 01 */}
-          <div className="relative overflow-hidden rounded-3xl border border-slate-100 bg-white p-10 lg:col-span-3">
-            <p className="text-6xl font-extrabold text-slate-100">01</p>
-            <h3 className="mt-4 text-xl font-extrabold text-slate-900">Identify Your Edge</h3>
-            <p className="mt-3 max-w-md text-slate-500">
-              Everyone has a skill others need. Whether it&apos;s Python, Project Management, or Pottery—list your
-              expertise and set your availability.
-            </p>
-            <a href="#" className="mt-4 inline-flex items-center gap-1.5 font-bold text-brand hover:underline">
-              List your skills →
-            </a>
-            <PenLine size={90} className="absolute -bottom-4 -right-4 text-slate-100" strokeWidth={1} />
-          </div>
-
-          {/* 02 */}
-          <div className="relative overflow-hidden rounded-3xl bg-brand p-10 text-white lg:col-span-2">
-            <p className="text-6xl font-extrabold text-white/20">02</p>
-            <h3 className="mt-4 text-xl font-extrabold">Find Your Gap</h3>
-            <p className="mt-3 text-white/85">
-              Browse our curated library of skills and connect with a mentor who actually practices what they
-              teach.
-            </p>
-            <div className="mt-8 flex h-16 w-16 items-center justify-center rounded-full border-2 border-white/50">
-              <Search size={22} />
-            </div>
-          </div>
-
-          {/* 03 */}
-          <div className="rounded-3xl bg-emerald-300 p-10 lg:col-span-2">
-            <p className="text-6xl font-extrabold text-white/40">03</p>
-            <h3 className="mt-4 text-xl font-extrabold text-slate-900">The Swap</h3>
-            <p className="mt-3 text-slate-800">
-              Book a 1-on-1 session. No money changes hands—your &lsquo;credit&rsquo; is the session you teach to
-              someone else.
-            </p>
-            <div className="mt-8">
-              <div className="h-2 w-full rounded-full bg-slate-900/10">
-                <div className="h-2 w-3/4 rounded-full bg-slate-900" />
-              </div>
-              <p className="mt-2 text-sm font-bold text-slate-900">Swap Credits Earned: 1.5hrs</p>
-            </div>
-          </div>
-
-          {/* 04 */}
-          <div className="rounded-3xl border border-slate-100 bg-white p-10 lg:col-span-3">
-            <div className="flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-6xl font-extrabold text-slate-100">04</p>
-                <h3 className="mt-4 text-xl font-extrabold text-slate-900">Grow Together</h3>
-                <p className="mt-3 max-w-xs text-slate-500">
-                  Expand your network, build a portfolio of testimonials, and master new domains with structured
-                  progress tracking.
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {stats.map((s) => (
-                  <div key={s.label} className="rounded-xl bg-brand-light px-6 py-4 text-center">
-                    <p className="text-lg font-extrabold text-brand">{s.value}</p>
-                    <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <motion.div
+          className="mt-14 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4"
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          {steps.map((step, i) => {
+            const Icon = step.icon;
+            const isBlue = step.tone === "blue";
+            return (
+              <motion.div key={step.title} variants={item} className="group relative">
+                {i < steps.length - 1 && (
+                  <div className="absolute left-1/2 top-9 hidden h-px w-full border-t border-dotted border-mid-gray/30 lg:block" />
+                )}
+                <div
+                  className={`relative mx-auto flex h-[72px] w-[72px] items-center justify-center rounded-full border transition-transform duration-300 ease-out group-hover:scale-110 ${
+                    isBlue ? "border-blue-border icon-badge-blue" : "border-green-border icon-badge-green"
+                  }`}
+                >
+                  <Icon size={26} />
+                </div>
+                <p className="mt-4 text-sm font-medium text-mid-gray">{i + 1}</p>
+                <h3 className="mt-1 text-lg font-medium text-carbon">{step.title}</h3>
+                <p className="mt-2 text-sm text-charcoal">{step.desc}</p>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       </div>
     </section>
   );
