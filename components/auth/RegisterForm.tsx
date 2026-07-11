@@ -4,7 +4,9 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isPasswordValid } from "@/lib/auth/password";
 import PasswordField from "./PasswordField";
+import PasswordRequirements from "./PasswordRequirements";
 import GoogleButton from "./GoogleButton";
 
 export default function RegisterForm() {
@@ -16,6 +18,7 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   async function handleGoogleSignIn() {
     setError("");
@@ -35,6 +38,14 @@ export default function RegisterForm() {
       setError("Password and confirm password do not match.");
       return;
     }
+
+    if (!isPasswordValid(password)) {
+      setError(
+        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
+      );
+      return;
+    }
+
     setError("");
     setIsSubmitting(true);
 
@@ -128,6 +139,13 @@ export default function RegisterForm() {
           value={password}
           onChange={setPassword}
           autoComplete="new-password"
+          onFocus={() => setPasswordFocused(true)}
+          onBlur={() => setPasswordFocused(false)}
+        />
+
+        <PasswordRequirements
+          password={password}
+          open={passwordFocused || (password.length > 0 && !isPasswordValid(password))}
         />
 
         <PasswordField
