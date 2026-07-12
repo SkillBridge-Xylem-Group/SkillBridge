@@ -28,10 +28,10 @@ export default function PasswordField({
 
   return (
     <div>
-      <label htmlFor={id} className="text-sm font-bold text-slate-900">
+      <label htmlFor={id} className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
         {label}
       </label>
-      <div className="relative mt-2">
+      <div className="relative mt-1.5">
         <input
           id={id}
           name={id}
@@ -41,15 +41,23 @@ export default function PasswordField({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          className="w-full rounded-xl border border-slate-200 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "var(--color-brand-blue)";
+            onFocus?.();
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "var(--color-fog)";
+            onBlur?.();
+          }}
+          className="w-full border px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none"
+          style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
         />
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? "Hide password" : "Show password"}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          className="absolute right-4 top-1/2 -translate-y-1/2"
+          style={{ color: "var(--color-mid-gray)" }}
         >
           {visible ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>

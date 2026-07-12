@@ -8,9 +8,10 @@ export default function GoogleButton({ label, onClick }: GoogleButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-brand/40 hover:shadow-md"
+      className="flex w-full items-center justify-center gap-3 border bg-white py-3.5 text-base transition"
+      style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-blue-wash)")}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
     >
       <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
         <path
@@ -30,6 +31,7 @@ export default function GoogleButton({ label, onClick }: GoogleButtonProps) {
           d="M43.6 20.5H42V20.5H24v7h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C40.6 35.9 44 30.9 44 25c0-1.5-.1-2.4-.4-3.5z"
         />
       </svg>
+      {label}
     </button>
   );
 }

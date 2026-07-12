@@ -42,7 +42,7 @@ export default function Hero() {
     <section className="section-snap overflow-hidden bg-white">
       <Navbar />
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 py-12 sm:px-10 lg:grid-cols-[0.85fr_1.25fr] lg:gap-8 lg:py-16">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-start gap-12 px-6 py-12 sm:px-10 lg:grid-cols-[0.85fr_1.25fr] lg:gap-8 lg:py-16">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-fog bg-white px-4 py-2 text-sm font-medium text-carbon">
             <span className="h-2 w-2 rounded-full bg-brand-green" />
@@ -158,3 +158,4 @@ export default function Hero() {
     </section>
   );
 }
+

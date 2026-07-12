@@ -58,14 +58,14 @@ export default function LoginForm() {
 
   return (
     <>
-      <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
-        Welcome To SkillBridge
+      <h1 className="text-2xl font-medium sm:text-3xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
+        Welcome to SkillBridge
       </h1>
-      <p className="mt-2 text-slate-500">Sign in to your account</p>
+      <p className="mt-1 text-sm" style={{ color: "var(--color-mid-gray)" }}>Sign in to your account</p>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+      <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div>
-          <label htmlFor="email" className="text-sm font-bold text-slate-900">
+          <label htmlFor="email" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
             Email
           </label>
           <input
@@ -77,51 +77,55 @@ export default function LoginForm() {
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="mt-1.5 w-full border px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none"
+            style={{
+              borderColor: "var(--color-fog)",
+              borderRadius: "12px",
+              color: "var(--color-carbon)",
+            }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-brand-blue)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-fog)")}
           />
         </div>
 
-        <PasswordField
-          id="password"
-          label="Password"
-          value={password}
-          onChange={setPassword}
-        />
+        <PasswordField id="password" label="Password" value={password} onChange={setPassword} />
 
         <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-slate-600">
+          <label className="flex items-center gap-2" style={{ color: "var(--color-charcoal)" }}>
             <input
               type="checkbox"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand/30"
+              className="h-4 w-4 rounded"
+              style={{ accentColor: "var(--color-brand-blue)" }}
             />
             Remember me
           </label>
-          <Link href="/forgot-password" className="font-semibold text-brand hover:underline">
-            Forgot Password ?
+          <Link href="/forgot-password" className="font-medium hover:underline" style={{ color: "var(--color-brand-blue)" }}>
+            Forgot Password?
           </Link>
         </div>
 
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="btn-pill w-full bg-brand py-4 text-base text-white shadow-lg shadow-brand/30 hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <button type="submit" disabled={isSubmitting} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
           {isSubmitting ? "Signing In..." : "Sign In"}
         </button>
       </form>
 
-      <div className="mt-7 flex items-center gap-3">
-        <span className="text-sm font-bold text-slate-900">Sign In with</span>
-        <GoogleButton label="Sign in with Google" onClick={handleGoogleSignIn} />
+      <div className="mt-5 flex items-center gap-3 text-xs font-medium" style={{ color: "var(--color-mid-gray)" }}>
+        <div className="h-px flex-1" style={{ backgroundColor: "var(--color-fog)" }} />
+        or
+        <div className="h-px flex-1" style={{ backgroundColor: "var(--color-fog)" }} />
       </div>
 
-      <p className="mt-6 text-sm text-slate-600">
-        Don&apos;t have an account ?{" "}
-        <Link href="/register" className="font-bold text-brand hover:underline">
+      <div className="mt-5">
+        <GoogleButton label="Continue with Google" onClick={handleGoogleSignIn} />
+      </div>
+
+      <p className="mt-5 text-sm" style={{ color: "var(--color-charcoal)" }}>
+        Don&apos;t have an account?{" "}
+        <Link href="/register" className="font-medium hover:underline" style={{ color: "var(--color-brand-blue)" }}>
           Sign Up
         </Link>
       </p>
