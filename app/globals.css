@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -10,6 +11,14 @@
   --color-brand-green: #059669;      /* secondary brand accent — "Teach / Offers" side */
   --color-green-wash: #ecfdf5;
   --color-green-border: #a7f3d0;
+
+  /* Unqualified "brand" alias — the auth forms (login/register/forgot/reset)
+     use bg-brand / text-brand / border-brand / btn-pill, so these tokens
+     have to exist under the exact "brand" name Tailwind derives utilities
+     from, not just "brand-blue". */
+  --color-brand: var(--color-brand-blue);
+  --color-brand-dark: var(--color-brand-blue-deep);
+  --color-brand-light: var(--color-blue-wash);
 
   --gradient-brand: linear-gradient(120deg, #2563eb 0%, #059669 100%);
 
@@ -31,7 +40,7 @@
   --radius-tag: 4px;
   --radius-card: 20px;
   --radius-pill: 999px;
-  --radius-button: 12px;
+  --radius-button: 999px;
 
   --shadow-floating: rgba(0, 0, 0, 0.1) 0px 0px 32px 0px;
   --shadow-nav-idle: rgba(0, 0, 0, 0.08) 0px 1px 3px 0px;
@@ -151,6 +160,31 @@ h4 {
 }
 .btn-ghost-on-gradient:hover {
   background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Pill CTA — used by the auth forms (Sign In / Sign Up / Reset Password).
+   Sizing (padding, width) is supplied per-usage; this only owns the shape. */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.btn-pill:hover {
+  transform: translateY(-1px);
+}
+
+/* Brand gradient fill for the primary auth CTA — swaps in for the flat
+   bg-brand fill on Sign In / Sign Up / Reset Password buttons. */
+.btn-brand-gradient {
+  background-image: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+}
+.btn-brand-gradient:hover {
+  background-image: linear-gradient(90deg, #1d4ed8 0%, #1e40af 100%);
 }
 
 /* Feature Card — border over fill, no elevation. The default card language. */
