@@ -22,23 +22,32 @@ export default function PasswordRequirements({ password, open }: PasswordRequire
   const checks = getPasswordCheckState(password);
   const valid = isPasswordValid(password);
 
-  // always render so the transition can animate smoothly
   if (!password && !open) return null;
   if (valid && !open) return null;
 
   return (
-    <div className="mt-2 overflow-hidden transition-all duration-500 ease-out" style={{ maxHeight: open ? 500 : 0, opacity: open ? 1 : 0 }}>
-      <ul className="space-y-2 text-sm text-slate-700 pt-2" style={{ transform: open ? "translateY(0)" : "translateY(-10px)", transition: "transform 300ms ease-out" }}>
+    <div
+      className="mt-2 overflow-hidden transition-all duration-500 ease-out"
+      style={{ maxHeight: open ? 500 : 0, opacity: open ? 1 : 0 }}
+    >
+      <ul
+        className="space-y-2 pt-2 text-sm"
+        style={{
+          color: "var(--color-carbon)",
+          transform: open ? "translateY(0)" : "translateY(-10px)",
+          transition: "transform 300ms ease-out",
+        }}
+      >
         {requirements.map((req) => {
           const passed = checks[req.key];
           return (
             <li key={req.key} className="flex items-center gap-3">
               {passed ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <CheckCircle2 className="h-4 w-4" style={{ color: "var(--color-brand-green)" }} />
               ) : (
-                <Circle className="h-4 w-4 text-slate-400" />
+                <Circle className="h-4 w-4" style={{ color: "var(--color-mid-gray)" }} />
               )}
-              <span className={passed ? "text-slate-900" : "text-slate-500"}>{req.label}</span>
+              <span style={{ color: passed ? "var(--color-carbon)" : "var(--color-mid-gray)" }}>{req.label}</span>
             </li>
           );
         })}

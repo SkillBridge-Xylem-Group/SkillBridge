@@ -9,10 +9,6 @@ import SkillsStep, { OTHER_SUBJECT } from "./SkillsStep";
 import { getBrowserTimezone } from "@/lib/timezones";
 import { SKILL_CATEGORIES as SUBJECT_TAGS } from "@/lib/skillCatalog";
 
-// Fixed default so server and client render the same thing on first paint.
-// The real browser timezone is detected client-side after mount (see
-// useEffect below) — computing it during SSR risks a hydration mismatch if
-// the server's timezone differs from the visitor's.
 const DEFAULT_TIMEZONE = "Asia/Jakarta";
 
 const TEACH_SUBJECTS = [
@@ -36,12 +32,6 @@ const LEARN_SUBJECTS = [
 ];
 
 type OnboardingModalProps = {
-  /**
-   * Called when the user finishes step 3. Pass this when rendering the
-   * modal as an overlay on top of another page (e.g. the dashboard) so it
-   * can just close instead of navigating. If omitted, it redirects to
-   * /dashboard on completion.
-   */
   onComplete?: () => void;
 };
 
@@ -71,8 +61,6 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
     setList(list.includes(tag) ? list.filter((t) => t !== tag) : [...list, tag]);
   }
 
-  // Previously selected tags belong to the old subject, so clear them
-  // whenever the subject changes instead of leaving stale picks selected.
   function handleTeachSubjectChange(value: string) {
     setTeachSubject(value);
     setTeachTags([]);
@@ -93,7 +81,6 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
       return;
     }
 
-    // Final step: persist onboarding data
     setError("");
     setIsSubmitting(true);
     try {
@@ -133,22 +120,21 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4 py-8">
-      <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-8 py-6">
-          <span className="text-xl font-extrabold text-brand">SkillBridge</span>
-          <span className="text-sm font-semibold text-slate-500">
-            Step <span className="font-bold text-brand">{step}</span> of {totalSteps}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-8">
+      <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden bg-white shadow-2xl" style={{ borderRadius: "var(--radius-card)" }}>
+        <div className="flex items-center justify-between border-b px-8 py-6" style={{ borderColor: "var(--color-fog)" }}>
+          <span className="text-xl font-medium" style={{ fontFamily: "var(--font-heading)", color: "var(--color-brand-blue)" }}>
+            SkillBridge
+          </span>
+          <span className="text-sm font-medium" style={{ color: "var(--color-mid-gray)" }}>
+            Step <span className="font-bold" style={{ color: "var(--color-brand-blue)" }}>{step}</span> of {totalSteps}
           </span>
         </div>
 
-        {/* Stepper */}
         <div className="px-8 pt-6">
           <OnboardingStepper currentStep={step} totalSteps={totalSteps} />
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto px-8 py-8">
           {step === 1 && (
             <ProfileStep bio={bio} onBioChange={setBio} timezone={timezone} onTimezoneChange={setTimezone} />
@@ -166,6 +152,7 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
               tags={SUBJECT_TAGS[teachSubject] ?? []}
               selectedTags={teachTags}
               onToggleTag={(tag) => toggleTag(teachTags, setTeachTags, tag)}
+              accent="green"
             />
           )}
 
@@ -185,15 +172,14 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-slate-100 px-8 py-6">
+        <div className="border-t px-8 py-6" style={{ borderColor: "var(--color-fog)" }}>
           {error && <p className="mb-4 text-sm font-medium text-red-600">{error}</p>}
           <div className="flex items-center justify-between gap-4">
             <button
               type="button"
               onClick={handleBack}
               disabled={step === 1}
-              className="btn-pill border-2 border-slate-200 bg-white px-6 py-3.5 text-sm text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span className="flex items-center gap-2">
                 <ArrowLeft size={16} />
@@ -206,14 +192,14 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 type="button"
                 onClick={handleContinue}
                 disabled={isSubmitting}
-                className="btn-pill bg-brand px-8 py-3.5 text-sm text-white shadow-lg shadow-brand/30 hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="flex items-center gap-2">
                   {step === totalSteps ? (isSubmitting ? "Finishing..." : "Finish Setup") : "Save & Continue"}
                   <ArrowRight size={16} />
                 </span>
               </button>
-              <p className="mt-2 text-xs text-slate-400">You can always update this later.</p>
+              <p className="mt-2 text-xs" style={{ color: "var(--color-mid-gray)" }}>You can always update this later.</p>
             </div>
           </div>
         </div>
