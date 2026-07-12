@@ -23,8 +23,9 @@ export async function POST(request: Request) {
   try {
     const supabase = await createSupabaseServerClient();
 
-    // `name` (not `full_name`) is the metadata key the on_auth_user_created
-    // trigger reads via raw_user_meta_data->>'name' to populate profiles.name.
+    // No signup trigger creates a `users` row automatically — the first
+    // authenticated save (see lib/profile/upsertUser.ts) creates it lazily,
+    // falling back to this `name` metadata for the initial fullname.
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

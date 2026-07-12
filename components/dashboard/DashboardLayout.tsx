@@ -5,7 +5,6 @@ import Topbar from "./Topbar";
 type DashboardLayoutProps = {
   children: ReactNode;
   userName?: string;
-  avatarId?: string | null;
   level?: number;
   xp?: number;
 };
@@ -13,7 +12,6 @@ type DashboardLayoutProps = {
 export default function DashboardLayout({
   children,
   userName = "there",
-  avatarId,
   level,
   xp,
 }: DashboardLayoutProps) {
@@ -24,7 +22,6 @@ export default function DashboardLayout({
       <div className="flex-1">
         <Topbar
           userName={userName}
-          avatarId={avatarId}
           level={level != null ? `Level ${level}` : undefined}
           xp={xp}
         />

@@ -25,7 +25,10 @@ export async function POST(request: Request) {
   // used to enumerate registered accounts. The destination link itself is
   // controlled by the "Reset Password" email template in Supabase (Site URL +
   // /auth/confirm?token_hash=...&type=recovery), same as the signup template.
-  await supabase.auth.resetPasswordForEmail(parsed.data.email);
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email);
+  if (error) {
+    console.error("[forgot-password] resetPasswordForEmail error:", error);
+  }
 
   return NextResponse.json({
     message: "If an account exists for this email, a reset link is on its way.",

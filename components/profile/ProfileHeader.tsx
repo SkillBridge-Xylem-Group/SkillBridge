@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Pencil, Calendar, Clock, Check, X } from "lucide-react";
-import { AVATAR_OPTIONS, getAvatarOption } from "@/lib/avatars";
 
 type ProfileHeaderProps = {
   fullname: string;
@@ -11,8 +10,6 @@ type ProfileHeaderProps = {
   bio: string | null;
   onSaveProfile: (name: string, bio: string) => Promise<void>;
   profileError: string;
-  avatarId: string | null;
-  onSaveAvatar: (avatarId: string) => void;
 };
 
 export default function ProfileHeader({
@@ -22,15 +19,11 @@ export default function ProfileHeader({
   bio,
   onSaveProfile,
   profileError,
-  avatarId,
-  onSaveAvatar,
 }: ProfileHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(fullname);
   const [draftBio, setDraftBio] = useState(bio ?? "");
   const [isSaving, setIsSaving] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const selectedAvatar = getAvatarOption(avatarId);
 
   function startEdit() {
     setDraftName(fullname);
@@ -56,44 +49,8 @@ export default function ProfileHeader({
     <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => setPickerOpen((open) => !open)}
-              aria-label="Change avatar"
-              className={`flex h-24 w-24 items-center justify-center rounded-full text-3xl font-extrabold transition hover:opacity-80 ${
-                selectedAvatar ? selectedAvatar.bg : "bg-brand-light text-brand"
-              }`}
-            >
-              {selectedAvatar ? <span className="text-4xl">{selectedAvatar.emoji}</span> : initials}
-            </button>
-            <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-700 text-white">
-              <Pencil size={12} />
-            </span>
-
-            {pickerOpen && (
-              <div className="absolute left-0 top-28 z-10 w-64 rounded-2xl border border-slate-100 bg-white p-4 shadow-xl">
-                <p className="mb-3 text-sm font-bold text-slate-900">Choose an avatar</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {AVATAR_OPTIONS.map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      title={option.label}
-                      onClick={() => {
-                        onSaveAvatar(option.id);
-                        setPickerOpen(false);
-                      }}
-                      className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl ring-2 transition ${
-                        option.bg
-                      } ${avatarId === option.id ? "ring-brand" : "ring-transparent hover:ring-slate-200"}`}
-                    >
-                      {option.emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-brand-light text-3xl font-extrabold text-brand">
+            {initials}
           </div>
 
           <div>
