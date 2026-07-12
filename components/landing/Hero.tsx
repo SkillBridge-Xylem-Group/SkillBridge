@@ -4,13 +4,6 @@ import { motion } from "framer-motion";
 import { Search, Share2, Sparkles, Globe2, ShieldCheck } from "lucide-react";
 import Navbar from "./Navbar";
 import { WorldMap } from "@/components/ui/world-map";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-const communityAvatars = [
-  { src: "/images/avatars/alex-chen.jpg", name: "Alex Chen" },
-  { src: "/images/avatars/sarah-kim.jpg", name: "Sarah Kim" },
-  { src: "/images/avatars/maria-lopez.jpg", name: "Maria Lopez" },
-];
 
 const floatingCards = [
   { name: "Emma", offers: "Graphic Design", wants: "Korean", top: "2%", left: "48%" },
@@ -81,24 +74,6 @@ export default function Hero() {
               <Share2 size={18} />
               Share your skills
             </motion.a>
-          </div>
-
-          <div className="mt-6 flex items-center gap-3">
-            <div className="flex">
-              {communityAvatars.map((person, i) => (
-                <Avatar
-                  key={person.name}
-                  style={{ marginLeft: i === 0 ? 0 : -10 }}
-                  className="h-9 w-9 border-2 border-white"
-                >
-                  <AvatarImage src={person.src} alt={person.name} />
-                  <AvatarFallback>{initials(person.name)}</AvatarFallback>
-                </Avatar>
-              ))}
-            </div>
-            <p className="text-sm text-charcoal">
-              Join a growing community of learners and sharers.
-            </p>
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-4 border-t border-fog pt-6 sm:grid-cols-3">

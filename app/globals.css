@@ -1,198 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  /* SkillBridge — Slack-style system, recolored to the blue/green brand */
-  --color-brand-blue: #2563eb;       /* Aubergine equivalent — filled CTAs, primary fills */
-  --color-brand-blue-deep: #1d4ed8;  /* Deep Plum equivalent — ghost-button text, focus rings */
-  --color-blue-wash: #eff6ff;        /* Purple Haze equivalent — soft section/pill backgrounds */
-  --color-blue-border: #bfdbfe;      /* Lavender Mist equivalent — card borders */
-
-  --color-brand-green: #059669;      /* secondary brand accent — "Teach / Offers" side */
-  --color-green-wash: #ecfdf5;
-  --color-green-border: #a7f3d0;
-
-  --gradient-brand: linear-gradient(120deg, #2563eb 0%, #059669 100%);
-
-  --color-gold: #ffda6e;             /* star ratings — unchanged accent */
-
-  --color-carbon: #1d1c1d;           /* primary text */
-  --color-charcoal: #454245;         /* secondary text */
-  --color-mid-gray: #696969;         /* muted/nav text */
-  --color-fog: #e7e5e4;              /* hairline borders */
-  --color-canvas: #fefeff;           /* page background */
-
-  /* Typography — Jost (display/headings) + Inter (body/UI), standing in for
-     Salesforce-Avant-Garde / Salesforce-Sans from the Slack-style skill,
-     since those are proprietary and unavailable to load. */
-  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-
-  /* Radius — smooth rounded buttons, 20px cards, full-pill tags */
-  --radius-tag: 4px;
-  --radius-card: 20px;
-  --radius-pill: 999px;
-  --radius-button: 12px;
-
-  --shadow-floating: rgba(0, 0, 0, 0.1) 0px 0px 32px 0px;
-  --shadow-nav-idle: rgba(0, 0, 0, 0.08) 0px 1px 3px 0px;
-  --shadow-nav-active: rgba(0, 0, 0, 0.1) 0px 5px 20px 0px;
-  --shadow-focus: inset 0px 0px 0px 1px var(--color-brand-blue);
+  --color-brand: #4F39F6;
+  --color-brand-dark: #3F2DD6;
+  --color-brand-light: #EEF0FF;
 }
 
 html {
   scroll-behavior: smooth;
-  scroll-snap-type: y proximity;
 }
 
-/* Applied to each top-level <section> so scrolling settles smoothly at
-   section boundaries instead of stopping wherever the scroll happened to
-   end — "proximity" (not "mandatory") so it doesn't fight normal scrolling
-   on sections shorter than the viewport. */
-.section-snap {
-  scroll-snap-align: start;
+.btn-pill {
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
-
-body {
-  font-family: var(--font-sans);
-  background-color: var(--color-canvas);
-  color: var(--color-carbon);
-}
-
-/* Headings use the display face everywhere — no per-component overrides needed */
-h1,
-h2,
-h3,
-h4 {
-  font-family: var(--font-heading);
-  letter-spacing: -0.01em;
-}
-
-/* Primary CTA — filled, smooth rounded corners. */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-button);
-  background-color: var(--color-brand-blue);
-  color: #ffffff;
-  font-weight: 500;
-  padding: 19px 40px 20px;
-  transition: background-color 0.15s ease, transform 0.15s ease;
-}
-.btn-primary:hover {
-  background-color: var(--color-brand-blue-deep);
+.btn-pill:hover {
   transform: translateY(-1px);
 }
-.btn-primary:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-/* Ghost CTA — transparent, colored text, no border */
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-button);
-  background-color: transparent;
-  color: var(--color-brand-blue-deep);
-  font-weight: 500;
-  padding: 19px 40px 20px;
-  transition: background-color 0.15s ease;
-}
-.btn-ghost:hover {
-  background-color: var(--color-blue-wash);
-}
-
-/* Secondary CTA — white fill, hairline border, used beside a primary action */
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-button);
-  background-color: #ffffff;
-  border: 1px solid var(--color-fog);
-  color: var(--color-carbon);
-  font-weight: 500;
-  padding: 18px 39px 19px;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-.btn-secondary:hover {
-  border-color: var(--color-brand-blue);
-  background-color: var(--color-blue-wash);
-}
-
-/* Buttons on the gradient CTA band */
-.btn-on-gradient {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-button);
-  background-color: #ffffff;
-  color: var(--color-brand-blue-deep);
-  font-weight: 500;
-  padding: 19px 40px 20px;
-  transition: transform 0.15s ease;
-}
-.btn-on-gradient:hover {
-  transform: translateY(-1px);
-}
-.btn-ghost-on-gradient {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-button);
-  background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  color: #ffffff;
-  font-weight: 500;
-  padding: 18px 39px 19px;
-  transition: background-color 0.15s ease;
-}
-.btn-ghost-on-gradient:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-}
-
-/* Feature Card — border over fill, no elevation. The default card language. */
-.card {
-  background-color: transparent;
-  border: 1px solid var(--color-blue-border);
-  border-radius: var(--radius-card);
-}
-
-/* Product-shot / floating card — white fill, 16px radius, ambient shadow only.
-   Reserved for imagery/profile cards, not static content cards. */
-.card-floating {
-  background-color: #ffffff;
-  border: 1px solid var(--color-fog);
-  border-radius: var(--radius-card);
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.16);
-}
-
-/* Icon badges — tinted square behind section icons, alternating brand hues */
-.icon-badge-blue {
-  background-color: var(--color-blue-wash);
-  color: var(--color-brand-blue);
-}
-.icon-badge-green {
-  background-color: var(--color-green-wash);
-  color: var(--color-brand-green);
-}
-
-/* Eyebrow / tag pattern — 12px/700 uppercase, 0.057em tracking */
-.eyebrow {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.057em;
-}
-
-/* Brand gradient — final CTA band only; gradients stay decorative, never on UI surfaces */
-.bg-brand-gradient {
-  background-image: var(--gradient-brand);
-}
-
-/* Sticky nav elevation */
-.nav-elevated {
-  box-shadow: var(--shadow-nav-idle);
+.btn-pill:focus-visible {
+  outline: 2px solid #4F39F6;
+  outline-offset: 2px;
 }
