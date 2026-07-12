@@ -4,7 +4,9 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isPasswordValid } from "@/lib/auth/password";
 import PasswordField from "./PasswordField";
+import PasswordRequirements from "./PasswordRequirements";
 import GoogleButton from "./GoogleButton";
 
 export default function RegisterForm() {
@@ -16,6 +18,7 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   async function handleGoogleSignIn() {
     setError("");
@@ -35,6 +38,14 @@ export default function RegisterForm() {
       setError("Password and confirm password do not match.");
       return;
     }
+
+    if (!isPasswordValid(password)) {
+      setError(
+        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
+      );
+      return;
+    }
+
     setError("");
     setIsSubmitting(true);
 
@@ -69,10 +80,12 @@ export default function RegisterForm() {
   if (confirmationMessage) {
     return (
       <>
-        <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">Check your email</h1>
-        <p className="mt-4 text-slate-600">{confirmationMessage}</p>
-        <p className="mt-6 text-sm text-slate-600">
-          <Link href="/login" className="font-bold text-brand hover:underline">
+        <h1 className="text-3xl font-medium sm:text-4xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
+          Check your email
+        </h1>
+        <p className="mt-4" style={{ color: "var(--color-charcoal)" }}>{confirmationMessage}</p>
+        <p className="mt-6 text-sm" style={{ color: "var(--color-charcoal)" }}>
+          <Link href="/login" className="font-medium hover:underline" style={{ color: "var(--color-brand-blue)" }}>
             Back to Sign In
           </Link>
         </p>
@@ -82,14 +95,14 @@ export default function RegisterForm() {
 
   return (
     <>
-      <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
-        Welcome To SkillBridge
+      <h1 className="text-2xl font-medium sm:text-3xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
+        Welcome to SkillBridge
       </h1>
-      <p className="mt-2 text-slate-500">Create your account</p>
+      <p className="mt-1 text-sm" style={{ color: "var(--color-mid-gray)" }}>Create your account</p>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+      <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div>
-          <label htmlFor="fullName" className="text-sm font-bold text-slate-900">
+          <label htmlFor="fullName" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
             Full Name
           </label>
           <input
@@ -101,12 +114,15 @@ export default function RegisterForm() {
             placeholder="Enter your full name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="mt-1.5 w-full border px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none"
+            style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-brand-blue)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-fog)")}
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="text-sm font-bold text-slate-900">
+          <label htmlFor="email" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
             Email
           </label>
           <input
@@ -118,7 +134,10 @@ export default function RegisterForm() {
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="mt-1.5 w-full border px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none"
+            style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-brand-blue)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-fog)")}
           />
         </div>
 
@@ -128,6 +147,13 @@ export default function RegisterForm() {
           value={password}
           onChange={setPassword}
           autoComplete="new-password"
+          onFocus={() => setPasswordFocused(true)}
+          onBlur={() => setPasswordFocused(false)}
+        />
+
+        <PasswordRequirements
+          password={password}
+          open={passwordFocused || (password.length > 0 && !isPasswordValid(password))}
         />
 
         <PasswordField
@@ -141,23 +167,24 @@ export default function RegisterForm() {
 
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="btn-pill w-full bg-brand py-4 text-base text-white shadow-lg shadow-brand/30 hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <button type="submit" disabled={isSubmitting} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
           {isSubmitting ? "Signing Up..." : "Sign Up"}
         </button>
       </form>
 
-      <div className="mt-7 flex items-center gap-3">
-        <span className="text-sm font-bold text-slate-900">Sign Up with</span>
-        <GoogleButton label="Sign up with Google" onClick={handleGoogleSignIn} />
+      <div className="mt-5 flex items-center gap-3 text-xs font-medium" style={{ color: "var(--color-mid-gray)" }}>
+        <div className="h-px flex-1" style={{ backgroundColor: "var(--color-fog)" }} />
+        or
+        <div className="h-px flex-1" style={{ backgroundColor: "var(--color-fog)" }} />
       </div>
 
-      <p className="mt-6 text-sm text-slate-600">
-        Already have an account ?{" "}
-        <Link href="/login" className="font-bold text-brand hover:underline">
+      <div className="mt-5">
+        <GoogleButton label="Continue with Google" onClick={handleGoogleSignIn} />
+      </div>
+
+      <p className="mt-5 text-sm" style={{ color: "var(--color-charcoal)" }}>
+        Already have an account?{" "}
+        <Link href="/login" className="font-medium hover:underline" style={{ color: "var(--color-brand-blue)" }}>
           Sign In
         </Link>
       </p>

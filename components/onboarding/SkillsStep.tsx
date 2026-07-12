@@ -13,6 +13,10 @@ export type SkillsStepProps = {
   tags: string[];
   selectedTags: string[];
   onToggleTag: (tag: string) => void;
+  /** "green" for the teach/offer step, "blue" for the learn/want step —
+      matches the offers=green / wants=blue convention used elsewhere
+      (profile cards, hero floating cards). */
+  accent?: "blue" | "green";
 };
 
 export default function SkillsStep({
@@ -26,18 +30,22 @@ export default function SkillsStep({
   tags,
   selectedTags,
   onToggleTag,
+  accent = "blue",
 }: SkillsStepProps) {
   const isOther = subject === OTHER_SUBJECT;
+  const accentColor = accent === "green" ? "var(--color-brand-green)" : "var(--color-brand-blue)";
 
   return (
     <div>
       <div className="text-center">
-        <h2 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">{title}</h2>
-        <p className="mt-3 text-slate-500">{description}</p>
+        <h2 className="text-2xl font-medium sm:text-3xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
+          {title}
+        </h2>
+        <p className="mt-3" style={{ color: "var(--color-charcoal)" }}>{description}</p>
       </div>
 
       <div className="mt-8">
-        <label htmlFor="subject" className="text-sm font-bold text-slate-900">
+        <label htmlFor="subject" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
           Primary Subject Field
         </label>
         <div className="relative mt-2">
@@ -45,7 +53,10 @@ export default function SkillsStep({
             id="subject"
             value={subject}
             onChange={(e) => onSubjectChange(e.target.value)}
-            className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-3.5 pl-4 pr-11 text-sm text-slate-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full appearance-none border bg-white py-3.5 pl-4 pr-11 text-sm focus:outline-none"
+            style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = accentColor)}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-fog)")}
           >
             {subjectOptions.map((opt) => (
               <option key={opt} value={opt}>
@@ -53,10 +64,7 @@ export default function SkillsStep({
               </option>
             ))}
           </select>
-          <ChevronDown
-            size={18}
-            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-          />
+          <ChevronDown size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" style={{ color: "var(--color-mid-gray)" }} />
         </div>
 
         {isOther && (
@@ -66,13 +74,14 @@ export default function SkillsStep({
             onChange={(e) => onCustomSubjectChange(e.target.value)}
             placeholder="Tell us your subject field"
             autoFocus
-            className="mt-3 w-full rounded-xl border border-slate-200 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="mt-3 w-full border px-4 py-3.5 text-sm placeholder:text-slate-400 focus:outline-none"
+            style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
           />
         )}
       </div>
 
       <div className="mt-6">
-        <p className="text-sm font-bold text-slate-900">Select Tags to Feature on Your Profile</p>
+        <p className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>Select Tags to Feature on Your Profile</p>
         <div className="mt-3 flex flex-wrap gap-2.5">
           {tags.map((tag) => {
             const isSelected = selectedTags.includes(tag);
@@ -81,11 +90,13 @@ export default function SkillsStep({
                 key={tag}
                 type="button"
                 onClick={() => onToggleTag(tag)}
-                className={`btn-pill flex items-center gap-1.5 border px-4 py-2 text-sm ${
-                  isSelected
-                    ? "border-brand bg-brand text-white shadow-sm shadow-brand/30"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:text-brand"
-                }`}
+                className="flex items-center gap-1.5 border px-4 py-2 text-sm transition-colors"
+                style={{
+                  borderRadius: "999px",
+                  borderColor: isSelected ? accentColor : "var(--color-fog)",
+                  backgroundColor: isSelected ? accentColor : "#ffffff",
+                  color: isSelected ? "#ffffff" : "var(--color-charcoal)",
+                }}
               >
                 {isSelected && <Check size={14} />}
                 {tag}

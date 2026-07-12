@@ -6,7 +6,9 @@ export async function GET() {
 
   const { data: questions, error } = await supabase
     .from("forum_questions")
-    .select("id, title, created_at, reply_count, author_name, author_id, upvotes")
+    .select(
+      "question_id, title, created_at, user_id, users(fullname), forum_answers(count)"
+    )
     .order("created_at", { ascending: false })
     .limit(5);
 
@@ -15,5 +17,16 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to fetch recent forum questions" }, { status: 500 });
   }
 
-  return NextResponse.json({ questions: questions ?? [] });
+  // Note: questions have no upvote concept in the BRD (FR-007/FR-008 —
+  // only answers are voted on, via answer_votes), so no upvotes field here.
+  const mapped = (questions ?? []).map((q) => ({
+    id: q.question_id,
+    title: q.title,
+    created_at: q.created_at,
+    author_id: q.user_id,
+    author_name: (Array.isArray(q.users) ? q.users[0] : q.users)?.fullname ?? "Unknown",
+    reply_count: q.forum_answers?.[0]?.count ?? 0,
+  }));
+
+  return NextResponse.json({ questions: mapped });
 }

@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import PasswordField from "./PasswordField";
+import PasswordRequirements from "./PasswordRequirements";
+import { isPasswordValid } from "@/lib/auth/password";
 
 export default function ResetPasswordForm() {
   const router = useRouter();
@@ -14,6 +16,18 @@ export default function ResetPasswordForm() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!isPasswordValid(password)) {
+      setError(
+        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
+      );
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Password and confirm password do not match.");
+      return;
+    }
+
     setError("");
     setIsSubmitting(true);
 
@@ -45,16 +59,20 @@ export default function ResetPasswordForm() {
   if (done) {
     return (
       <>
-        <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">Password Updated</h1>
-        <p className="mt-3 text-slate-500">Redirecting you to login...</p>
+        <h1 className="text-3xl font-medium sm:text-4xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
+          Password Updated
+        </h1>
+        <p className="mt-3" style={{ color: "var(--color-charcoal)" }}>Redirecting you to login...</p>
       </>
     );
   }
 
   return (
     <>
-      <h1 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">Set a New Password</h1>
-      <p className="mt-2 text-slate-500">Choose a new password for your account.</p>
+      <h1 className="text-3xl font-medium sm:text-4xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
+        Set a New Password
+      </h1>
+      <p className="mt-2" style={{ color: "var(--color-charcoal)" }}>Choose a new password for your account.</p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         <PasswordField
@@ -65,6 +83,8 @@ export default function ResetPasswordForm() {
           onChange={setPassword}
           autoComplete="new-password"
         />
+
+        <PasswordRequirements password={password} open={password.length > 0 && !isPasswordValid(password)} />
 
         <PasswordField
           id="confirmPassword"
@@ -77,11 +97,7 @@ export default function ResetPasswordForm() {
 
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="btn-pill w-full bg-brand py-4 text-base text-white shadow-lg shadow-brand/30 hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <button type="submit" disabled={isSubmitting} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
           {isSubmitting ? "Updating..." : "Update Password"}
         </button>
       </form>

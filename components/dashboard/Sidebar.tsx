@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Users, Repeat2, MessageSquare, MessagesSquare, Bell, User, type LucideIcon } from "lucide-react";
@@ -28,8 +29,15 @@ export default function Sidebar() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col justify-between border-r border-slate-100 bg-white px-6 py-8 lg:flex">
       <div>
-        <Link href="/dashboard" className="text-xl font-extrabold text-brand">
-          SkillBridge
+        <Link href="/dashboard" className="inline-flex items-center gap-2">
+          <Image
+            src="/images/logo-mark.png"
+            alt=""
+            width={44}
+            height={44}
+            className="h-11 w-11 shrink-0"
+          />
+          <span className="text-xl font-extrabold text-brand">SkillBridge</span>
         </Link>
 
         <nav className="mt-10 space-y-1">
