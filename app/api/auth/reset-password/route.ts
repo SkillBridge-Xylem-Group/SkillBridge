@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resetPasswordSchema } from "@/lib/auth/validation";
+import { isPwnedPassword } from "@/lib/auth/password";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -30,6 +31,19 @@ export async function POST(request: Request) {
       { error: "Your password reset link has expired. Please request a new one." },
       { status: 401 }
     );
+  }
+
+  // check if password has been seen in a breach
+  try {
+    const pwned = await isPwnedPassword(parsed.data.password);
+    if (pwned) {
+      return NextResponse.json(
+        { error: "This password has appeared in a data breach. Choose a different password." },
+        { status: 400 }
+      );
+    }
+  } catch (err) {
+    console.error("HIBP check failed:", err);
   }
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });

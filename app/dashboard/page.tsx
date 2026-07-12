@@ -31,6 +31,11 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .maybeSingle();
 
+  const { count: offeredCount } = await supabase
+    .from("user_skill_offered")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
   const displayName =
     profile?.fullname ||
     user.user_metadata?.full_name ||
@@ -39,10 +44,6 @@ export default async function DashboardPage() {
 
   // No dedicated "onboarding_completed" column exists, so infer it from
   // whether the user has a bio or has picked any skills yet.
-  const { count: offeredCount } = await supabase
-    .from("user_skill_offered")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
   const { count: wantedCount } = await supabase
     .from("user_skill_wanted")
     .select("id", { count: "exact", head: true })
