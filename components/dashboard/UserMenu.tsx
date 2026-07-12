@@ -4,17 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronDown, User, Settings, LogOut } from "lucide-react";
-import { getAvatarOption } from "@/lib/avatars";
 
 type UserMenuProps = {
   name: string;
   level?: string;
   xp?: number;
-  avatarId?: string | null;
 };
 
-export default function UserMenu({ name, level = "Level 0", xp = 0, avatarId }: UserMenuProps) {
-  const selectedAvatar = getAvatarOption(avatarId);
+export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -43,15 +40,9 @@ export default function UserMenu({ name, level = "Level 0", xp = 0, avatarId }: 
         aria-expanded={open}
         className="flex items-center gap-3 rounded-full py-1 pl-1 pr-3 transition hover:bg-slate-100"
       >
-        {selectedAvatar ? (
-          <div className={`flex h-10 w-10 items-center justify-center rounded-full text-lg ${selectedAvatar.bg}`}>
-            {selectedAvatar.emoji}
-          </div>
-        ) : (
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
-            {name.charAt(0).toUpperCase()}
-          </div>
-        )}
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+          {name.charAt(0).toUpperCase()}
+        </div>
         <div className="hidden text-left sm:block">
           <p className="text-sm font-bold text-slate-900">{name}</p>
           <p className="text-xs font-semibold text-brand">

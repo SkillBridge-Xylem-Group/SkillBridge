@@ -6,30 +6,37 @@ import ProfileClient from "@/components/profile/ProfileClient";
 import LevelCard from "@/components/profile/LevelCard";
 import TrustScoreCard from "@/components/profile/TrustScoreCard";
 import ReviewsCard from "@/components/profile/ReviewsCard";
-import type { Profile, Review } from "@/lib/types/profile";
-import { getFullSkillCatalog, tagsToSkills } from "@/lib/skillCatalog";
+import type { Profile, Review, Skill } from "@/lib/types/profile";
+import { getFullSkillCatalog } from "@/lib/skillCatalog";
+import { deriveNameFromEmail } from "@/lib/deriveName";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const metadata: Metadata = {
   title: "My Profile | SkillBridge",
 };
-
-// Google/email signups don't always populate a display name, so fall back to
-// turning the email's local part (e.g. "diah.pane") into "Diah Pane".
-function deriveNameFromEmail(email: string) {
-  return email
-    .split("@")[0]
-    .replace(/[._]+/g, " ")
-    .split(" ")
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
 
 /**
  * TODO (backend): REVIEW join USER as reviewer (where reviewed_user_id =
  * current user) isn't wired up yet, so reviews stay empty here.
  */
 const MOCK_REVIEWS: Review[] = [];
+
+async function getUserSkills(
+  supabase: SupabaseClient,
+  table: "user_skill_offered" | "user_skill_wanted",
+  userId: string
+): Promise<Skill[]> {
+  const { data: rows } = await supabase.from(table).select("skill_id").eq("user_id", userId);
+  const skillIds = (rows ?? []).map((r) => r.skill_id);
+  if (skillIds.length === 0) return [];
+
+  const { data: skills } = await supabase
+    .from("skills")
+    .select("skill_id, skill_name, category")
+    .in("skill_id", skillIds);
+
+  return skills ?? [];
+}
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
@@ -42,26 +49,25 @@ export default async function ProfilePage() {
   }
 
   const { data: row } = await supabase
-    .from("profiles")
-    .select("name, bio, avatar_url, timezone, skills_offered, skills_wanted")
+    .from("users")
+    .select("fullname, bio, timezone, experience_points, level, trust_score")
     .eq("id", user.id)
     .maybeSingle();
 
   const profile: Profile = {
     user_id: user.id,
     fullname:
-      row?.name ||
+      row?.fullname ||
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||
       (user.email ? deriveNameFromEmail(user.email) : "there"),
     bio: row?.bio ?? null,
-    avatarId: row?.avatar_url ?? null,
     timezone: row?.timezone ?? "UTC",
-    // The profiles table has no xp/level/trust_score columns yet, so these
-    // stay at defaults until that schema work lands.
-    experience_points: 0,
-    level: 0,
-    trust_score: null,
+    experience_points: row?.experience_points ?? 0,
+    level: row?.level ?? 0,
+    // trust_score is NOT NULL in the DB (defaults to 0), but 0 means "no
+    // ratings yet" the same as null does for TrustScoreCard's display.
+    trust_score: row?.trust_score ? row.trust_score : null,
     created_at: user.created_at,
   };
   const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
@@ -75,17 +81,14 @@ export default async function ProfilePage() {
     .formatToParts(new Date())
     .find((part) => part.type === "timeZoneName")?.value ?? profile.timezone;
 
-  const offered = tagsToSkills(row?.skills_offered);
-  const wanted = tagsToSkills(row?.skills_wanted);
-  const skillCatalog = getFullSkillCatalog();
+  const [offered, wanted, skillCatalog] = await Promise.all([
+    getUserSkills(supabase, "user_skill_offered", user.id),
+    getUserSkills(supabase, "user_skill_wanted", user.id),
+    getFullSkillCatalog(supabase),
+  ]);
 
   return (
-    <DashboardLayout
-      userName={profile.fullname}
-      avatarId={profile.avatarId}
-      level={profile.level}
-      xp={profile.experience_points}
-    >
+    <DashboardLayout userName={profile.fullname} level={profile.level} xp={profile.experience_points}>
       <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <ProfileClient

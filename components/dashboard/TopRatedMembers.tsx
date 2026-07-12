@@ -1,10 +1,8 @@
 import { Star } from "lucide-react";
-import { getAvatarOption } from "@/lib/avatars";
 
 type Person = {
   name: string;
   role: string;
-  avatarId: string;
   rating: number;
   reviews: number;
   tags: string[];
@@ -15,7 +13,6 @@ const people: Person[] = [
   {
     name: "Maria Lopez",
     role: "Language Tutor",
-    avatarId: "fox",
     rating: 4.9,
     reviews: 41,
     tags: ["Spanish", "English", "Grammar"],
@@ -24,7 +21,6 @@ const people: Person[] = [
   {
     name: "Sarah Kim",
     role: "UI/UX Designer",
-    avatarId: "koala",
     rating: 4.8,
     reviews: 32,
     tags: ["Figma", "UI Design", "Wireframing"],
@@ -33,13 +29,21 @@ const people: Person[] = [
   {
     name: "Alex Chen",
     role: "Web Developer",
-    avatarId: "panda",
     rating: 4.7,
     reviews: 28,
     tags: ["JavaScript", "React", "Node.js"],
     offersHelpIn: "JavaScript, React",
   },
 ];
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
 
 // Sorted highest-rated first — this section shows the community's top rated
 // members overall, not a personalized "recommended for you" pick.
@@ -57,14 +61,11 @@ export default function TopRatedMembers() {
 
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {sortedByRating.map((p) => {
-          const avatar = getAvatarOption(p.avatarId);
           return (
           <div key={p.name} className="rounded-2xl border border-slate-100 p-5">
             <div className="flex items-center gap-3">
-              <div
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl ${avatar?.bg ?? "bg-brand-light"}`}
-              >
-                {avatar?.emoji}
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+                {getInitials(p.name)}
               </div>
               <div>
                 <p className="text-sm font-bold text-slate-900">{p.name}</p>

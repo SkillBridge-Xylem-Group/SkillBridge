@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { updateOrCreateUser } from "@/lib/profile/upsertUser";
 
 const profileSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
@@ -32,10 +33,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({ name: parsed.data.name, bio: parsed.data.bio })
-    .eq("id", user.id);
+  const { error } = await updateOrCreateUser(supabase, user, {
+    fullname: parsed.data.name,
+    bio: parsed.data.bio,
+  });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

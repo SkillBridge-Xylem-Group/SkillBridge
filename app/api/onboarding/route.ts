@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { onboardingSchema } from "@/lib/onboarding/validation";
+import { updateOrCreateUser } from "@/lib/profile/upsertUser";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -27,26 +28,49 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { bio, timezone, teachSubject, teachTags, learnSubject, learnTags } = parsed.data;
+  const { bio, timezone, teachTags, learnTags } = parsed.data;
 
-  // Dedupe: the subject is also surfaced as a tag so profile displays are
-  // consistent whether they show skills_offered/skills_wanted as one list.
-  const skillsOffered = Array.from(new Set([teachSubject, ...teachTags]));
-  const skillsWanted = Array.from(new Set([learnSubject, ...learnTags]));
+  const { error: userError } = await updateOrCreateUser(supabase, user, { bio, timezone });
+  if (userError) {
+    return NextResponse.json({ error: userError.message }, { status: 500 });
+  }
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      bio,
-      timezone,
-      skills_offered: skillsOffered,
-      skills_wanted: skillsWanted,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", user.id);
+  // The subject fields (teachSubject/learnSubject) are just used to scope
+  // which tags are shown in the UI — only the selected tags themselves are
+  // real skills, so only they get saved against user_skill_offered/wanted.
+  const allTagNames = Array.from(new Set([...teachTags, ...learnTags]));
+  const { data: skillRows, error: skillLookupError } = await supabase
+    .from("skills")
+    .select("skill_id, skill_name")
+    .in("skill_name", allTagNames);
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (skillLookupError) {
+    return NextResponse.json({ error: skillLookupError.message }, { status: 500 });
+  }
+
+  const skillIdByName = new Map((skillRows ?? []).map((s) => [s.skill_name, s.skill_id]));
+
+  await supabase.from("user_skill_offered").delete().eq("user_id", user.id);
+  await supabase.from("user_skill_wanted").delete().eq("user_id", user.id);
+
+  const offeredRows = teachTags
+    .map((name) => skillIdByName.get(name))
+    .filter((skillId): skillId is number => skillId != null)
+    .map((skillId) => ({ user_id: user.id, skill_id: skillId }));
+
+  const wantedRows = learnTags
+    .map((name) => skillIdByName.get(name))
+    .filter((skillId): skillId is number => skillId != null)
+    .map((skillId) => ({ user_id: user.id, skill_id: skillId }));
+
+  if (offeredRows.length > 0) {
+    const { error } = await supabase.from("user_skill_offered").insert(offeredRows);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (wantedRows.length > 0) {
+    const { error } = await supabase.from("user_skill_wanted").insert(wantedRows);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   return NextResponse.json({ message: "Onboarding saved" });

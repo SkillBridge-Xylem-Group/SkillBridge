@@ -27,11 +27,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
 
-  // profiles has an "anyone can read" SELECT policy, so the session-bound
+  // users has an "anyone can read" SELECT policy, so the session-bound
   // client can fetch it directly without needing the service-role key.
   const { data: profile } = await supabase
-    .from("profiles")
-    .select("name, avatar_url")
+    .from("users")
+    .select("fullname")
     .eq("id", data.user.id)
     .maybeSingle();
 
@@ -40,8 +40,7 @@ export async function POST(request: Request) {
     user: {
       id: data.user.id,
       email: data.user.email,
-      fullName: profile?.name ?? null,
-      avatarUrl: profile?.avatar_url ?? null,
+      fullName: profile?.fullname ?? null,
     },
   });
 }

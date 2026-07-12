@@ -7,9 +7,11 @@ import OnboardingModal from "./OnboardingModal";
 type OnboardingGateProps = {
   /** Computed on the server (e.g. from the user's profile) before render. */
   initialShow: boolean;
+  /** Category -> skill names, fetched server-side from the `skills` table. */
+  skillsByCategory: Record<string, string[]>;
 };
 
-export default function OnboardingGate({ initialShow }: OnboardingGateProps) {
+export default function OnboardingGate({ initialShow, skillsByCategory }: OnboardingGateProps) {
   const router = useRouter();
   const [show, setShow] = useState(initialShow);
   const [showSavedToast, setShowSavedToast] = useState(false);
@@ -26,7 +28,7 @@ export default function OnboardingGate({ initialShow }: OnboardingGateProps) {
 
   return (
     <>
-      {show && <OnboardingModal onComplete={handleComplete} />}
+      {show && <OnboardingModal onComplete={handleComplete} skillsByCategory={skillsByCategory} />}
       {showSavedToast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
           Skill saved

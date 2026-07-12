@@ -7,33 +7,12 @@ import OnboardingStepper from "./OnboardingStepper";
 import ProfileStep from "./ProfileStep";
 import SkillsStep, { OTHER_SUBJECT } from "./SkillsStep";
 import { getBrowserTimezone } from "@/lib/timezones";
-import { SKILL_CATEGORIES as SUBJECT_TAGS } from "@/lib/skillCatalog";
 
 // Fixed default so server and client render the same thing on first paint.
 // The real browser timezone is detected client-side after mount (see
 // useEffect below) — computing it during SSR risks a hydration mismatch if
 // the server's timezone differs from the visitor's.
 const DEFAULT_TIMEZONE = "Asia/Jakarta";
-
-const TEACH_SUBJECTS = [
-  "Software Development (Web, Mobile)",
-  "Design & UI/UX",
-  "Business & Marketing",
-  "Languages",
-  "Music",
-  "Cooking",
-  OTHER_SUBJECT,
-];
-
-const LEARN_SUBJECTS = [
-  "Design & UI/UX",
-  "Software Development (Web, Mobile)",
-  "Business & Marketing",
-  "Languages",
-  "Music",
-  "Cooking",
-  OTHER_SUBJECT,
-];
 
 type OnboardingModalProps = {
   /**
@@ -43,14 +22,18 @@ type OnboardingModalProps = {
    * /dashboard on completion.
    */
   onComplete?: () => void;
+  /** Category -> skill names, fetched server-side from the `skills` table. */
+  skillsByCategory: Record<string, string[]>;
 };
 
-export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
+export default function OnboardingModal({ onComplete, skillsByCategory }: OnboardingModalProps) {
   const router = useRouter();
   const totalSteps = 3;
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const subjectOptions = [...Object.keys(skillsByCategory), OTHER_SUBJECT];
 
   const [bio, setBio] = useState("");
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
@@ -59,11 +42,11 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
     setTimezone(getBrowserTimezone());
   }, []);
 
-  const [teachSubject, setTeachSubject] = useState(TEACH_SUBJECTS[0]);
+  const [teachSubject, setTeachSubject] = useState(subjectOptions[0]);
   const [teachCustomSubject, setTeachCustomSubject] = useState("");
   const [teachTags, setTeachTags] = useState<string[]>([]);
 
-  const [learnSubject, setLearnSubject] = useState(LEARN_SUBJECTS[0]);
+  const [learnSubject, setLearnSubject] = useState(subjectOptions[0]);
   const [learnCustomSubject, setLearnCustomSubject] = useState("");
   const [learnTags, setLearnTags] = useState<string[]>([]);
 
@@ -158,12 +141,12 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
             <SkillsStep
               title="What skills can you share?"
               description="Select subjects you feel comfortable teaching to other community peers."
-              subjectOptions={TEACH_SUBJECTS}
+              subjectOptions={subjectOptions}
               subject={teachSubject}
               onSubjectChange={handleTeachSubjectChange}
               customSubject={teachCustomSubject}
               onCustomSubjectChange={setTeachCustomSubject}
-              tags={SUBJECT_TAGS[teachSubject] ?? []}
+              tags={skillsByCategory[teachSubject] ?? []}
               selectedTags={teachTags}
               onToggleTag={(tag) => toggleTag(teachTags, setTeachTags, tag)}
             />
@@ -173,12 +156,12 @@ export default function OnboardingModal({ onComplete }: OnboardingModalProps) {
             <SkillsStep
               title="What skills do you want to learn?"
               description="Choose the skills you're looking to learn from the community."
-              subjectOptions={LEARN_SUBJECTS}
+              subjectOptions={subjectOptions}
               subject={learnSubject}
               onSubjectChange={handleLearnSubjectChange}
               customSubject={learnCustomSubject}
               onCustomSubjectChange={setLearnCustomSubject}
-              tags={SUBJECT_TAGS[learnSubject] ?? []}
+              tags={skillsByCategory[learnSubject] ?? []}
               selectedTags={learnTags}
               onToggleTag={(tag) => toggleTag(learnTags, setLearnTags, tag)}
             />

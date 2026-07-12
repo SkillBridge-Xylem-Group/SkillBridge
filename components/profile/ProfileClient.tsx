@@ -27,7 +27,6 @@ export default function ProfileClient({
   const router = useRouter();
   const [fullname, setFullname] = useState(profile.fullname);
   const [bio, setBio] = useState(profile.bio);
-  const [avatarId, setAvatarId] = useState(profile.avatarId);
   const [offered, setOffered] = useState<Skill[]>(initialOffered);
   const [wanted, setWanted] = useState<Skill[]>(initialWanted);
   const [profileError, setProfileError] = useState("");
@@ -100,25 +99,6 @@ export default function ProfileClient({
     if (!(await persistSkills(offered, next))) setWanted(previous);
   }
 
-  async function handleSaveAvatar(id: string) {
-    const previous = avatarId;
-    setAvatarId(id);
-
-    const res = await fetch("/api/profile/avatar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ avatarId: id }),
-    });
-
-    if (!res.ok) {
-      setAvatarId(previous);
-      return;
-    }
-
-    // Refresh so the topbar avatar (rendered server-side) matches immediately.
-    router.refresh();
-  }
-
   return (
     <>
       <ProfileHeader
@@ -128,8 +108,6 @@ export default function ProfileClient({
         bio={bio}
         onSaveProfile={handleSaveProfile}
         profileError={profileError}
-        avatarId={avatarId}
-        onSaveAvatar={handleSaveAvatar}
       />
 
       <SkillsPanel
