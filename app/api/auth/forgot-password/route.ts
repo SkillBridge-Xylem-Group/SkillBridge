@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { forgotPasswordSchema } from "@/lib/auth/validation";
 import { isSuspiciousSubmission } from "@/lib/auth/bot-guard";
 import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FORGOT_PER_IP = 5;
@@ -50,8 +51,12 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createSupabaseServerClient();
+  const origin = getRequestOrigin(request);
 
-  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email);
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    // Matches email template: /auth/confirm?token_hash={{ .TokenHash }}&type=recovery
+    redirectTo: `${origin}/auth/confirm?type=recovery`,
+  });
   if (error) {
     console.error("[forgot-password] resetPasswordForEmail error:", error);
   }

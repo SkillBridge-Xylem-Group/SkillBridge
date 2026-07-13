@@ -9,9 +9,17 @@ import type { NextRequest } from "next/server";
  * (which nginx does forward correctly via proxy_set_header Host $host) avoids
  * that and always lands on the domain the user actually visited.
  */
-export function getRequestOrigin(request: NextRequest): string {
+export function getRequestOrigin(request: Request | NextRequest): string {
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+
+  if (!host) {
+    const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+    if (envUrl) return envUrl;
+    return "http://localhost:3000";
+  }
+
   const protocol =
-    request.headers.get("x-forwarded-proto") ?? (host?.startsWith("localhost") ? "http" : "https");
+    request.headers.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+
   return `${protocol}://${host}`;
 }
