@@ -12,6 +12,7 @@ type RequirementKey = keyof ReturnType<typeof getPasswordCheckState>;
 
 const requirements: Array<{ key: RequirementKey; label: string }> = [
   { key: "minLength", label: "At least 8 characters" },
+  { key: "maxLength", label: "At most 128 characters" },
   { key: "hasLowercase", label: "Lowercase letter (a-z)" },
   { key: "hasUppercase", label: "Uppercase letter (A-Z)" },
   { key: "hasNumber", label: "Number (0-9)" },

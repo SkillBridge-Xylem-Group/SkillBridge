@@ -14,6 +14,7 @@ type UserMenuProps = {
 export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,9 +27,17 @@ export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuPr
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function handleLogout() {
-    // TODO: hubungkan ke API auth (clear session/token) sebelum redirect.
-    router.push("/login");
+  async function handleLogout() {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
+    } catch {
+      // Still redirect — stale session is cleared server-side when possible.
+    } finally {
+      router.push("/login");
+      router.refresh();
+    }
   }
 
   return (
@@ -78,7 +87,8 @@ export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuPr
           <button
             type="button"
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+            disabled={isLoggingOut}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
           >
             <LogOut size={16} />
             Logout

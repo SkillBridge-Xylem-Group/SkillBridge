@@ -6,11 +6,13 @@ import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
+import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
+  const redirectTo = getSafeRedirectPath(searchParams.get("redirectTo"));
+  const urlError = searchParams.get("error");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -38,6 +40,7 @@ export default function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ email, password, remember }),
       });
       const data = await res.json();
@@ -62,6 +65,12 @@ export default function LoginForm() {
         Welcome to SkillBridge
       </h1>
       <p className="mt-1 text-sm" style={{ color: "var(--color-mid-gray)" }}>Sign in to your account</p>
+
+      {urlError === "confirm-email" && (
+        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Please confirm your email before signing in. Check your inbox for the confirmation link.
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div>

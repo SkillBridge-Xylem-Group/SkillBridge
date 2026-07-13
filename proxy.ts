@@ -38,6 +38,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  if (needsAuth && user && !user.email_confirmed_at) {
+    const usesEmailPassword = user.identities?.some((identity) => identity.provider === "email");
+    if (usesEmailPassword) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("error", "confirm-email");
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return response;
 }
 

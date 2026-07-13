@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loginSchema } from "@/lib/auth/validation";
+import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+
+const WINDOW_MS = 15 * 60 * 1000;
+const MAX_LOGIN_PER_IP = 20;
+const MAX_LOGIN_PER_EMAIL = 8;
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -19,6 +24,24 @@ export async function POST(request: Request) {
   }
 
   const { email, password, remember } = parsed.data;
+  const ip = getClientIp(request);
+
+  const ipLimit = checkRateLimit("auth:login:ip", ip, MAX_LOGIN_PER_IP, WINDOW_MS);
+  if (!ipLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Try again later." },
+      { status: 429, headers: rateLimitHeaders(ipLimit.retryAfterMs) }
+    );
+  }
+
+  const emailLimit = checkRateLimit("auth:login:email", email, MAX_LOGIN_PER_EMAIL, WINDOW_MS);
+  if (!emailLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Try again later." },
+      { status: 429, headers: rateLimitHeaders(emailLimit.retryAfterMs) }
+    );
+  }
+
   const supabase = await createSupabaseServerClient(remember ?? false);
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -27,8 +50,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
 
-  // users has an "anyone can read" SELECT policy, so the session-bound
-  // client can fetch it directly without needing the service-role key.
+  if (!data.user.email_confirmed_at) {
+    const usesEmailPassword = data.user.identities?.some((identity) => identity.provider === "email");
+    if (usesEmailPassword) {
+      await supabase.auth.signOut();
+      return NextResponse.json(
+        { error: "Please confirm your email before signing in." },
+        { status: 403 }
+      );
+    }
+  }
+
   const { data: profile } = await supabase
     .from("users")
     .select("fullname")
