@@ -4,6 +4,13 @@ import { motion } from "framer-motion";
 import { Search, Share2, Sparkles, Globe2, ShieldCheck } from "lucide-react";
 import Navbar from "./Navbar";
 import { WorldMap } from "@/components/ui/world-map";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const communityAvatars = [
+  { src: "/images/avatars/alex-chen.jpg", name: "Alex Chen" },
+  { src: "/images/avatars/sarah-kim.jpg", name: "Sarah Kim" },
+  { src: "/images/avatars/maria-lopez.jpg", name: "Maria Lopez" },
+];
 
 const floatingCards = [
   { name: "Emma", offers: "Graphic Design", wants: "Korean", top: "2%", left: "48%" },
@@ -35,7 +42,7 @@ export default function Hero() {
     <section className="section-snap overflow-hidden bg-white">
       <Navbar />
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 py-12 sm:px-10 lg:grid-cols-[0.85fr_1.25fr] lg:gap-8 lg:py-16">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-start gap-12 px-6 py-12 sm:px-10 lg:grid-cols-[0.85fr_1.25fr] lg:gap-8 lg:py-16">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-fog bg-white px-4 py-2 text-sm font-medium text-carbon">
             <span className="h-2 w-2 rounded-full bg-brand-green" />
@@ -74,6 +81,24 @@ export default function Hero() {
               <Share2 size={18} />
               Share your skills
             </motion.a>
+          </div>
+
+          <div className="mt-6 flex items-center gap-3">
+            <div className="flex">
+              {communityAvatars.map((person, i) => (
+                <Avatar
+                  key={person.name}
+                  style={{ marginLeft: i === 0 ? 0 : -10 }}
+                  className="h-9 w-9 border-2 border-white"
+                >
+                  <AvatarImage src={person.src} alt={person.name} />
+                  <AvatarFallback>{initials(person.name)}</AvatarFallback>
+                </Avatar>
+              ))}
+            </div>
+            <p className="text-sm text-charcoal">
+              Join a growing community of learners and sharers.
+            </p>
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-4 border-t border-fog pt-6 sm:grid-cols-3">
@@ -133,3 +158,4 @@ export default function Hero() {
     </section>
   );
 }
+
