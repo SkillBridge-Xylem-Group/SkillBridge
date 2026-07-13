@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { isPasswordValid } from "@/lib/auth/password";
+import { isPasswordValid, PASSWORD_MAX_LENGTH } from "@/lib/auth/password";
 import PasswordField from "./PasswordField";
 import PasswordRequirements from "./PasswordRequirements";
 import GoogleButton from "./GoogleButton";
@@ -15,10 +15,16 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [website, setWebsite] = useState("");
+  const [formStartedAt, setFormStartedAt] = useState(0);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [passwordFocused, setPasswordFocused] = useState(false);
+
+  useEffect(() => {
+    setFormStartedAt(Date.now());
+  }, []);
 
   async function handleGoogleSignIn() {
     setError("");
@@ -41,7 +47,7 @@ export default function RegisterForm() {
 
     if (!isPasswordValid(password)) {
       setError(
-        "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
+        "Password must be 8–128 characters and include uppercase, lowercase, a number, and a special character."
       );
       return;
     }
@@ -53,7 +59,15 @@ export default function RegisterForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, email, password, confirmPassword }),
+        credentials: "same-origin",
+        body: JSON.stringify({
+          fullName,
+          email,
+          password,
+          confirmPassword,
+          website,
+          formStartedAt,
+        }),
       });
       const data = await res.json();
 
@@ -101,6 +115,20 @@ export default function RegisterForm() {
       <p className="mt-1 text-sm" style={{ color: "var(--color-mid-gray)" }}>Create your account</p>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        {/* Honeypot — hidden from users, bots often fill this field */}
+        <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+          <label htmlFor="website">Website</label>
+          <input
+            id="website"
+            name="website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+          />
+        </div>
+
         <div>
           <label htmlFor="fullName" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
             Full Name
@@ -110,6 +138,7 @@ export default function RegisterForm() {
             name="fullName"
             type="text"
             required
+            maxLength={100}
             autoComplete="name"
             placeholder="Enter your full name"
             value={fullName}
@@ -130,6 +159,7 @@ export default function RegisterForm() {
             name="email"
             type="email"
             required
+            maxLength={254}
             autoComplete="email"
             placeholder="Enter your email"
             value={email}
@@ -147,6 +177,7 @@ export default function RegisterForm() {
           value={password}
           onChange={setPassword}
           autoComplete="new-password"
+          maxLength={PASSWORD_MAX_LENGTH}
           onFocus={() => setPasswordFocused(true)}
           onBlur={() => setPasswordFocused(false)}
         />
@@ -163,6 +194,7 @@ export default function RegisterForm() {
           value={confirmPassword}
           onChange={setConfirmPassword}
           autoComplete="new-password"
+          maxLength={PASSWORD_MAX_LENGTH}
         />
 
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
