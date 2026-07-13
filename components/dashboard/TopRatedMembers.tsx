@@ -1,40 +1,15 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 
-type Person = {
+type Match = {
+  id: string;
   name: string;
-  role: string;
   rating: number;
-  reviews: number;
+  reviewCount: number;
   tags: string[];
-  offersHelpIn: string;
 };
-
-const people: Person[] = [
-  {
-    name: "Maria Lopez",
-    role: "Language Tutor",
-    rating: 4.9,
-    reviews: 41,
-    tags: ["Spanish", "English", "Grammar"],
-    offersHelpIn: "Spanish, English",
-  },
-  {
-    name: "Sarah Kim",
-    role: "UI/UX Designer",
-    rating: 4.8,
-    reviews: 32,
-    tags: ["Figma", "UI Design", "Wireframing"],
-    offersHelpIn: "Figma, UI Design",
-  },
-  {
-    name: "Alex Chen",
-    role: "Web Developer",
-    rating: 4.7,
-    reviews: 28,
-    tags: ["JavaScript", "React", "Node.js"],
-    offersHelpIn: "JavaScript, React",
-  },
-];
 
 function getInitials(name: string) {
   return name
@@ -45,11 +20,32 @@ function getInitials(name: string) {
     .join("");
 }
 
-// Sorted highest-rated first — this section shows the community's top rated
-// members overall, not a personalized "recommended for you" pick.
-const sortedByRating = [...people].sort((a, b) => b.rating - a.rating);
-
 export default function TopRatedMembers() {
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadMatches() {
+      try {
+        const res = await fetch("/api/users/matches");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data?.error || "Failed to load matches");
+        }
+
+        setMatches(data.matches ?? []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load matches");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadMatches();
+  }, []);
+
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between">
@@ -59,45 +55,55 @@ export default function TopRatedMembers() {
         </a>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {sortedByRating.map((p) => {
-          return (
-          <div key={p.name} className="rounded-2xl border border-slate-100 p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
-                {getInitials(p.name)}
+      {loading && <p className="mt-5 text-sm text-slate-500">Loading...</p>}
+
+      {!loading && error && <p className="mt-5 text-sm text-red-500">{error}</p>}
+
+      {!loading && !error && matches.length === 0 && (
+        <p className="mt-5 text-sm text-slate-500">
+          No matches yet — add skills you want to learn on your profile to see people who can help.
+        </p>
+      )}
+
+      {!loading && !error && matches.length > 0 && (
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {matches.map((m) => (
+            <div key={m.id} className="rounded-2xl border border-slate-100 p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+                  {getInitials(m.name)}
+                </div>
+                <p className="text-sm font-bold text-slate-900">{m.name}</p>
               </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900">{p.name}</p>
-                <p className="text-xs text-slate-500">{p.role}</p>
+
+              <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-slate-600">
+                <Star size={14} className="fill-amber-400 text-amber-400" />
+                {m.rating > 0 ? `${m.rating.toFixed(1)} (${m.reviewCount})` : "No ratings yet"}
               </div>
+
+              {m.tags.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {m.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="rounded-full bg-brand-light px-2.5 py-1 text-[11px] font-semibold text-brand"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <a
+                href="#"
+                className="btn-pill mt-4 block border-2 border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 hover:border-brand/40 hover:text-brand"
+              >
+                View Profile
+              </a>
             </div>
-
-            <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-slate-600">
-              <Star size={14} className="fill-amber-400 text-amber-400" />
-              {p.rating} ({p.reviews})
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {p.tags.map((t) => (
-                <span key={t} className="rounded-full bg-brand-light px-2.5 py-1 text-[11px] font-semibold text-brand">
-                  {t}
-                </span>
-              ))}
-            </div>
-
-            <p className="mt-3 text-xs font-semibold text-brand">Offers help in {p.offersHelpIn}</p>
-
-            <a
-              href="#"
-              className="btn-pill mt-4 block border-2 border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 hover:border-brand/40 hover:text-brand"
-            >
-              View Profile
-            </a>
-          </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
