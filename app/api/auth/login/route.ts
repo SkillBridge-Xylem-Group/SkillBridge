@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loginSchema } from "@/lib/auth/validation";
+import { isSuspiciousSubmission } from "@/lib/auth/bot-guard";
 import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+import { authResponseDelay } from "@/lib/auth/timing";
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_LOGIN_PER_IP = 20;
@@ -24,6 +26,12 @@ export async function POST(request: Request) {
   }
 
   const { email, password, remember } = parsed.data;
+
+  if (isSuspiciousSubmission(parsed.data)) {
+    await authResponseDelay();
+    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+  }
+
   const ip = getClientIp(request);
 
   const ipLimit = checkRateLimit("auth:login:ip", ip, MAX_LOGIN_PER_IP, WINDOW_MS);
@@ -47,6 +55,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
+    await authResponseDelay();
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
 
@@ -54,6 +63,7 @@ export async function POST(request: Request) {
     const usesEmailPassword = data.user.identities?.some((identity) => identity.provider === "email");
     if (usesEmailPassword) {
       await supabase.auth.signOut();
+      await authResponseDelay();
       return NextResponse.json(
         { error: "Please confirm your email before signing in." },
         { status: 403 }

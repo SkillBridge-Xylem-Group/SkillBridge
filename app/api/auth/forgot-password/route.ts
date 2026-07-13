@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { forgotPasswordSchema } from "@/lib/auth/validation";
+import { isSuspiciousSubmission } from "@/lib/auth/bot-guard";
 import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 
 const WINDOW_MS = 15 * 60 * 1000;
@@ -23,6 +24,10 @@ export async function POST(request: Request) {
       { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
+  }
+
+  if (isSuspiciousSubmission(parsed.data)) {
+    return NextResponse.json({ message: GENERIC_MESSAGE });
   }
 
   const ip = getClientIp(request);
