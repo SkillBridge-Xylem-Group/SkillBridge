@@ -4,8 +4,11 @@ import { useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { PASSWORD_MAX_LENGTH } from "@/lib/auth/password";
+import { useFormGuard } from "@/hooks/useFormGuard";
 import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
+import AuthHoneypot from "./AuthHoneypot";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 
 export default function LoginForm() {
@@ -13,6 +16,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTo = getSafeRedirectPath(searchParams.get("redirectTo"));
   const urlError = searchParams.get("error");
+  const { website, setWebsite, guardPayload } = useFormGuard();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -41,11 +45,15 @@ export default function LoginForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ email, password, remember }),
+        body: JSON.stringify({ email, password, remember, ...guardPayload }),
       });
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 429) {
+          setError("Too many login attempts. Please wait a few minutes and try again.");
+          return;
+        }
         setError(data?.error ?? "Login failed. Please try again.");
         return;
       }
@@ -73,6 +81,8 @@ export default function LoginForm() {
       )}
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        <AuthHoneypot value={website} onChange={setWebsite} />
+
         <div>
           <label htmlFor="email" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
             Email
@@ -82,6 +92,7 @@ export default function LoginForm() {
             name="email"
             type="email"
             required
+            maxLength={254}
             autoComplete="email"
             placeholder="Enter your email"
             value={email}
@@ -97,7 +108,13 @@ export default function LoginForm() {
           />
         </div>
 
-        <PasswordField id="password" label="Password" value={password} onChange={setPassword} />
+        <PasswordField
+          id="password"
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          maxLength={PASSWORD_MAX_LENGTH}
+        />
 
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center gap-2" style={{ color: "var(--color-charcoal)" }}>

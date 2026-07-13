@@ -48,6 +48,7 @@ export const loginSchema = z.object({
     .email("Invalid email address"),
   password: z.string().min(1, "Password is required").max(PASSWORD_MAX_LENGTH),
   remember: z.boolean().optional(),
+  ...botGuardFields,
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -59,6 +60,7 @@ export const forgotPasswordSchema = z.object({
     .toLowerCase()
     .max(254, "Email is too long")
     .email("Invalid email address"),
+  ...botGuardFields,
 });
 
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
