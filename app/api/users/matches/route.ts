@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+type NestedSkill = { skill_name?: string | null };
+type OfferedSkillRow = { skills?: NestedSkill | NestedSkill[] | null };
+
+function skillNameFromOffered(row: OfferedSkillRow): string | undefined {
+  const skills = row.skills;
+  if (!skills) return undefined;
+  if (Array.isArray(skills)) return skills[0]?.skill_name ?? undefined;
+  return skills.skill_name ?? undefined;
+}
+
 export async function GET() {
   const supabase = await createSupabaseServerClient();
   const {
@@ -79,7 +89,7 @@ export async function GET() {
       rating: c.trust_score ?? 0,
       reviewCount: reviewsAgg?.count ?? 0,
       tags: offered
-        .map((o) => (Array.isArray(o.skills) ? o.skills[0]?.skill_name : o.skills?.skill_name))
+        .map((o) => skillNameFromOffered(o as OfferedSkillRow))
         .filter((name): name is string => Boolean(name))
         .slice(0, 3),
     };
