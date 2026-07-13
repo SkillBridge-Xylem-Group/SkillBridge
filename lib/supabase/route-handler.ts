@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 /**
  * Supabase client for auth Route Handlers that redirect after setting cookies.
- * Using `cookies()` from next/headers here can fail behind nginx and leave
- * session cookies off the redirect response (502 / broken recovery flow).
+ * Cookies are written onto the provided redirect response so nginx/PM2 always
+ * receive a valid Set-Cookie header (avoids 502 / blank error pages).
  */
 export function createSupabaseRouteHandlerClient(
   request: NextRequest,
