@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { isPasswordValid, PASSWORD_MAX_LENGTH } from "@/lib/auth/password";
 import PasswordField from "./PasswordField";
 import PasswordRequirements from "./PasswordRequirements";
@@ -21,6 +22,15 @@ export default function ResetPasswordForm() {
 
   const handleSessionReady = useCallback(() => {
     setSessionReady(true);
+  }, []);
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSessionReady(true);
+      }
+    });
   }, []);
 
   async function handleSubmit(e: FormEvent) {
@@ -42,19 +52,15 @@ export default function ResetPasswordForm() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ password, confirmPassword }),
-      });
-      const data = await res.json();
+      const supabase = createSupabaseBrowserClient();
+      const { error: updateError } = await supabase.auth.updateUser({ password });
 
-      if (!res.ok) {
-        setError(data?.error ?? "Failed to reset password. Please try again.");
+      if (updateError) {
+        setError(updateError.message || "Failed to reset password. Please try again.");
         return;
       }
 
+      await supabase.auth.signOut();
       setDone(true);
       setTimeout(() => {
         router.push("/login");
@@ -91,6 +97,9 @@ export default function ResetPasswordForm() {
     );
   }
 
+  const showForm = sessionReady;
+  const waitingMessage = sessionReady ? null : "Verifying your reset link...";
+
   return (
     <>
       <ResetPasswordHashHandler onReady={handleSessionReady} />
@@ -105,9 +114,9 @@ export default function ResetPasswordForm() {
         Choose a new password for your account.
       </p>
 
-      {!sessionReady ? (
+      {!showForm ? (
         <p className="mt-8 text-sm" style={{ color: "var(--color-mid-gray)" }}>
-          Verifying your reset link...
+          {error || waitingMessage}
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
