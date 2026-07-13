@@ -41,21 +41,24 @@ export default function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ email, password, remember, ...guardPayload }),
+      const supabase = createSupabaseBrowserClient();
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
       });
-      const data = await res.json();
 
-      if (!res.ok) {
-        if (res.status === 429) {
-          setError("Too many login attempts. Please wait a few minutes and try again.");
+      if (signInError || !data.user) {
+        setError("Invalid email or password");
+        return;
+      }
+
+      if (!data.user.email_confirmed_at) {
+        const usesEmailPassword = data.user.identities?.some((i) => i.provider === "email");
+        if (usesEmailPassword) {
+          await supabase.auth.signOut();
+          setError("Please confirm your email before signing in.");
           return;
         }
-        setError(data?.error ?? "Login failed. Please try again.");
-        return;
       }
 
       router.push(redirectTo);
