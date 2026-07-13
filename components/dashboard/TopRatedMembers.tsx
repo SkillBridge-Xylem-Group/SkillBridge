@@ -1,7 +1,7 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
+import { getInitials } from "@/lib/utils";
 
 type Match = {
   id: string;
@@ -10,15 +10,6 @@ type Match = {
   reviewCount: number;
   tags: string[];
 };
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
-}
 
 export default function TopRatedMembers() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -30,11 +21,9 @@ export default function TopRatedMembers() {
       try {
         const res = await fetch("/api/users/matches");
         const data = await res.json();
-
         if (!res.ok) {
           throw new Error(data?.error || "Failed to load matches");
         }
-
         setMatches(data.matches ?? []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load matches");
@@ -42,7 +31,6 @@ export default function TopRatedMembers() {
         setLoading(false);
       }
     }
-
     loadMatches();
   }, []);
 
@@ -54,17 +42,13 @@ export default function TopRatedMembers() {
           View all
         </a>
       </div>
-
       {loading && <p className="mt-5 text-sm text-slate-500">Loading...</p>}
-
       {!loading && error && <p className="mt-5 text-sm text-red-500">{error}</p>}
-
       {!loading && !error && matches.length === 0 && (
         <p className="mt-5 text-sm text-slate-500">
-          No matches yet — add skills you want to learn on your profile to see people who can help.
+          No matches yet - add skills you want to learn on your profile to see people who can help.
         </p>
       )}
-
       {!loading && !error && matches.length > 0 && (
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {matches.map((m) => (
@@ -75,12 +59,10 @@ export default function TopRatedMembers() {
                 </div>
                 <p className="text-sm font-bold text-slate-900">{m.name}</p>
               </div>
-
               <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-slate-600">
                 <Star size={14} className="fill-amber-400 text-amber-400" />
                 {m.rating > 0 ? `${m.rating.toFixed(1)} (${m.reviewCount})` : "No ratings yet"}
               </div>
-
               {m.tags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {m.tags.map((t) => (
@@ -93,7 +75,6 @@ export default function TopRatedMembers() {
                   ))}
                 </div>
               )}
-
               <a
                 href="#"
                 className="btn-pill mt-4 block border-2 border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 hover:border-brand/40 hover:text-brand"
