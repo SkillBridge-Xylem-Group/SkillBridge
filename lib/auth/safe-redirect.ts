@@ -1,6 +1,8 @@
 const DEFAULT_REDIRECT = "/dashboard";
 
-/** Allow only same-origin relative paths under /dashboard to prevent open redirects. */
+const ALLOWED_EXACT = new Set(["/dashboard", "/reset-password", "/login"]);
+
+/** Allow only same-origin relative paths on known auth/app routes. */
 export function getSafeRedirectPath(
   path: string | null | undefined,
   fallback = DEFAULT_REDIRECT
@@ -11,7 +13,7 @@ export function getSafeRedirectPath(
   }
 
   const pathname = path.split("?")[0].split("#")[0];
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+  if (ALLOWED_EXACT.has(pathname) || pathname.startsWith("/dashboard/")) {
     return path;
   }
 

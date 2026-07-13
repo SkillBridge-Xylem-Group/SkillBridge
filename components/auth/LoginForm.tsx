@@ -80,6 +80,12 @@ export default function LoginForm() {
         </p>
       )}
 
+      {urlError === "confirmation-failed" && (
+        <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          This link is invalid or has expired. Please request a new password reset link.
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <AuthHoneypot value={website} onChange={setWebsite} />
 
