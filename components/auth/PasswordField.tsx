@@ -10,6 +10,7 @@ type PasswordFieldProps = {
   value: string;
   onChange: (value: string) => void;
   autoComplete?: string;
+  maxLength?: number;
   onFocus?: () => void;
   onBlur?: () => void;
 };
@@ -21,6 +22,7 @@ export default function PasswordField({
   value,
   onChange,
   autoComplete = "current-password",
+  maxLength,
   onFocus,
   onBlur,
 }: PasswordFieldProps) {
@@ -38,6 +40,7 @@ export default function PasswordField({
           type={visible ? "text" : "password"}
           required
           autoComplete={autoComplete}
+          maxLength={maxLength}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}

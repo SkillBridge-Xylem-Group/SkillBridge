@@ -4,13 +4,15 @@ import { useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
+  const redirectTo = getSafeRedirectPath(searchParams.get("redirectTo"));
+  const urlError = searchParams.get("error");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -35,16 +37,24 @@ export default function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, remember }),
+      const supabase = createSupabaseBrowserClient();
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
       });
-      const data = await res.json();
 
-      if (!res.ok) {
-        setError(data?.error ?? "Login failed. Please try again.");
+      if (signInError || !data.user) {
+        setError("Invalid email or password");
         return;
+      }
+
+      if (!data.user.email_confirmed_at) {
+        const usesEmailPassword = data.user.identities?.some((i) => i.provider === "email");
+        if (usesEmailPassword) {
+          await supabase.auth.signOut();
+          setError("Please confirm your email before signing in.");
+          return;
+        }
       }
 
       router.push(redirectTo);
@@ -63,6 +73,18 @@ export default function LoginForm() {
       </h1>
       <p className="mt-1 text-sm" style={{ color: "var(--color-mid-gray)" }}>Sign in to your account</p>
 
+      {urlError === "confirm-email" && (
+        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Please confirm your email before signing in. Check your inbox for the confirmation link.
+        </p>
+      )}
+
+      {urlError === "confirmation-failed" && (
+        <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          This link is invalid or has expired. Please request a new password reset link.
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div>
           <label htmlFor="email" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
@@ -73,6 +95,7 @@ export default function LoginForm() {
             name="email"
             type="email"
             required
+            maxLength={254}
             autoComplete="email"
             placeholder="Enter your email"
             value={email}

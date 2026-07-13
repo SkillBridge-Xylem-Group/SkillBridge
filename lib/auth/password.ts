@@ -1,3 +1,5 @@
+export const PASSWORD_MAX_LENGTH = 128;
+
 export const passwordSpecialCharRegex = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/;
 
 export function getPasswordCheckState(password: string) {
