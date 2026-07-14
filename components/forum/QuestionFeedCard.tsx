@@ -1,0 +1,56 @@
+import Link from "next/link";
+import { MessageCircle } from "lucide-react";
+import type { ForumQuestionSummary } from "@/lib/forum";
+
+function timeAgo(dateStr: string) {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+const AVATAR_COLORS = ["bg-brand", "bg-indigo-500", "bg-violet-500", "bg-teal-500", "bg-rose-500"];
+
+function colorFor(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash + id.charCodeAt(i)) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[hash];
+}
+
+export default function QuestionFeedCard({ question }: { question: ForumQuestionSummary }) {
+  const initials = question.author.fullname
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p.charAt(0).toUpperCase())
+    .join("");
+
+  return (
+    <Link
+      href={`/dashboard/forum/${question.question_id}`}
+      className="flex items-start justify-between gap-4 border-b border-slate-100 py-5 transition hover:bg-slate-50/60 last:border-b-0"
+    >
+      <div className="flex min-w-0 items-start gap-3">
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${colorFor(question.author.id)}`}>
+          {initials}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm text-slate-500">
+            <span className="font-bold text-slate-900">{question.author.fullname}</span> · {timeAgo(question.created_at)}
+          </p>
+          <h3 className="mt-0.5 text-base font-extrabold text-slate-900">{question.title}</h3>
+          <p className="mt-1 line-clamp-1 text-sm text-slate-600">{question.content}</p>
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pt-1 text-sm font-semibold text-slate-500">
+        <MessageCircle size={16} />
+        {question.answer_count}
+      </div>
+    </Link>
+  );
+}
