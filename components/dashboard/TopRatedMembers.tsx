@@ -85,13 +85,13 @@ export default function TopRatedMembers() {
                 </div>
 
                 {/* Fixed-height tag slot so every card's button lines up */}
-                <div className="mt-5 min-h-[4.75rem]">
+                <div className="mt-5 flex min-h-[3.5rem] items-start">
                   {tags.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap content-start gap-1.5">
                       {tags.map((t) => (
                         <span
                           key={t}
-                          className="rounded-full bg-brand-light px-2.5 py-1 text-[11px] font-semibold text-brand"
+                          className="w-fit shrink-0 rounded-full bg-brand-light px-2.5 py-1 text-[11px] font-semibold text-brand"
                         >
                           {t}
                         </span>
@@ -104,7 +104,7 @@ export default function TopRatedMembers() {
 
                 <a
                   href={`/dashboard/profile/${m.slug}`}
-                  className="mt-auto inline-flex w-full items-center justify-center rounded-full border-2 border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand/40 hover:text-brand"
+                  className="mt-auto inline-flex w-fit self-center items-center justify-center rounded-full border-2 border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand/40 hover:text-brand"
                 >
                   View Profile
                 </a>
