@@ -89,6 +89,12 @@ export default function LoginForm() {
         </p>
       )}
 
+      {urlError === "auth-unavailable" && (
+        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Sign-in service is temporarily unavailable. Please try again in a moment.
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <AuthHoneypot value={website} onChange={setWebsite} />
 
