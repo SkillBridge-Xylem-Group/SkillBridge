@@ -28,7 +28,8 @@ export default function RegisterForm() {
 
   async function handleGoogleSignIn() {
     setError("");
-    const supabase = createSupabaseBrowserClient();
+    const { createOAuthBrowserClient } = await import("@/lib/supabase/oauth-client");
+    const supabase = createOAuthBrowserClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
