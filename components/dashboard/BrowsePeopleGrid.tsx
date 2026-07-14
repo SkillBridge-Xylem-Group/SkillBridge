@@ -5,6 +5,7 @@ import { getInitials } from "@/lib/utils";
 
 type Person = {
   id: string;
+  slug: string;
   name: string;
   rating: number;
   reviewCount: number;
@@ -145,7 +146,7 @@ export default function BrowsePeopleGrid() {
                   )}
 
                   <a
-                    href={`/dashboard/profile/${p.id}`}
+                    href={`/dashboard/profile/${p.slug}`}
                     className="btn-pill mt-4 block border-2 border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 hover:border-brand/40 hover:text-brand"
                   >
                     View Profile

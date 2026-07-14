@@ -1,5 +1,6 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { deriveNameFromEmail } from "@/lib/deriveName";
+import { generateUniqueSlug } from "@/lib/slug";
 
 type UserFields = {
   fullname?: string;
@@ -40,10 +41,13 @@ export async function updateOrCreateUser(
     user.user_metadata?.full_name ||
     (user.email ? deriveNameFromEmail(user.email) : "New User");
 
+  const slug = await generateUniqueSlug(supabase, fallbackName);
+
   const { error: insertError } = await supabase.from("users").insert({
     id: user.id,
     email: user.email ?? "",
     fullname: fallbackName,
+    slug,
     bio: fields.bio ?? null,
     timezone: fields.timezone ?? null,
     experience_points: 0,

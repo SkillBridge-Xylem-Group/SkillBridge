@@ -52,6 +52,7 @@ export async function GET() {
 
   const selectClause = `
     id,
+    slug,
     fullname,
     trust_score,
     user_skill_offered ( skills ( skill_name ) ),
@@ -85,6 +86,7 @@ export async function GET() {
 
     return {
       id: c.id,
+      slug: c.slug,
       name: c.fullname,
       rating: c.trust_score ?? 0,
       reviewCount: reviewsAgg?.count ?? 0,

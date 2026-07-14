@@ -5,6 +5,7 @@ import { getInitials } from "@/lib/utils";
 
 type Match = {
   id: string;
+  slug: string;
   name: string;
   rating: number;
   reviewCount: number;
@@ -76,7 +77,7 @@ export default function TopRatedMembers() {
                 </div>
               )}
               <a
-                href={`/dashboard/profile/${m.id}`}
+                href={`/dashboard/profile/${m.slug}`}
                 className="btn-pill mt-4 block border-2 border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 hover:border-brand/40 hover:text-brand"
               >
                 View Profile

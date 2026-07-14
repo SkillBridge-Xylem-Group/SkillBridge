@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   title: "Member Profile | SkillBridge",
 };
 
-export default async function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function PublicProfilePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const supabase = await createSupabaseServerClient();
   const {
     data: { user: viewer },
@@ -27,17 +27,17 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     redirect("/login");
   }
 
-  // Viewing your own public profile isn't useful (no swap/message button makes
-  // sense against yourself) — send them to the editable version instead.
-  if (id === viewer.id) {
-    redirect("/dashboard/profile");
-  }
-
   const { data: viewerRow } = await supabase
     .from("users")
-    .select("fullname, level, experience_points")
+    .select("fullname, level, experience_points, slug")
     .eq("id", viewer.id)
     .maybeSingle();
+
+  // Viewing your own public profile isn't useful (no swap/message button makes
+  // sense against yourself) — send them to the editable version instead.
+  if (viewerRow?.slug === slug) {
+    redirect("/dashboard/profile");
+  }
 
   const viewerName =
     viewerRow?.fullname ||
@@ -47,8 +47,8 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
   const { data: profileRow } = await supabase
     .from("users")
-    .select("fullname, bio, timezone, experience_points, level, trust_score, created_at")
-    .eq("id", id)
+    .select("id, fullname, bio, timezone, experience_points, level, trust_score, created_at")
+    .eq("slug", slug)
     .maybeSingle();
 
   if (!profileRow) {
@@ -79,9 +79,9 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     .find((part) => part.type === "timeZoneName")?.value ?? timezone;
 
   const [offered, wanted, { reviews, trustScore, reviewCount }] = await Promise.all([
-    getUserSkills(supabase, "user_skill_offered", id),
-    getUserSkills(supabase, "user_skill_wanted", id),
-    getUserReviews(supabase, id),
+    getUserSkills(supabase, "user_skill_offered", profileRow.id),
+    getUserSkills(supabase, "user_skill_wanted", profileRow.id),
+    getUserReviews(supabase, profileRow.id),
   ]);
 
   return (
