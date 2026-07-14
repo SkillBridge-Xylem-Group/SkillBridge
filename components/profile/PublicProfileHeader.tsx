@@ -1,4 +1,4 @@
-import { Calendar, Clock } from "lucide-react";
+﻿import { Calendar, Clock } from "lucide-react";
 import PublicProfileActions from "./PublicProfileActions";
 
 type PublicProfileHeaderProps = {
@@ -6,9 +6,10 @@ type PublicProfileHeaderProps = {
   memberSince: string;
   timezone: string;
   bio: string | null;
+  profileId: string;
 };
 
-export default function PublicProfileHeader({ fullname, memberSince, timezone, bio }: PublicProfileHeaderProps) {
+export default function PublicProfileHeader({ fullname, memberSince, timezone, bio, profileId }: PublicProfileHeaderProps) {
   const initials = fullname
     .split(" ")
     .filter(Boolean)
@@ -40,7 +41,7 @@ export default function PublicProfileHeader({ fullname, memberSince, timezone, b
         </div>
 
         <div className="w-full sm:w-56">
-          <PublicProfileActions fullname={fullname} />
+          <PublicProfileActions fullname={fullname} profileId={profileId} />
         </div>
       </div>
 
