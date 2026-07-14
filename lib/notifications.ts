@@ -1,6 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type NotificationType = "message" | "swap_request" | "swap_response" | "level_up";
+export type NotificationType =
+  | "message"
+  | "swap_request"
+  | "swap_response"
+  | "level_up"
+  | "forum_reply"
+  | "review_prompt"
+  | "review_received";
 
 export type NotificationRow = {
   notification_id: string;
@@ -27,13 +34,17 @@ export async function createNotification(
   });
 }
 
-function staticLink(type: NotificationType): string | null {
+function staticLink(type: NotificationType, relatedEntityId: string | null): string | null {
   switch (type) {
     case "swap_request":
     case "swap_response":
+    case "review_prompt":
       return "/dashboard/swap-requests";
     case "level_up":
+    case "review_received":
       return "/dashboard/profile";
+    case "forum_reply":
+      return relatedEntityId ? `/dashboard/forum/${relatedEntityId}` : "/dashboard/forum";
     default:
       return null;
   }
@@ -55,7 +66,9 @@ export async function getUserNotifications(
 
   // Message notifications store the thread_id — resolve it to the partner's
   // profile slug so the link matches the /dashboard/messages/[slug] route.
-  const messageThreadIds = [...new Set(rows.filter((r) => r.type === "message" && r.related_entity_id).map((r) => r.related_entity_id as string))];
+  const messageThreadIds = [
+    ...new Set(rows.filter((r) => r.type === "message" && r.related_entity_id).map((r) => r.related_entity_id as string)),
+  ];
   let slugByThreadId = new Map<string, string>();
 
   if (messageThreadIds.length > 0) {
@@ -80,12 +93,13 @@ export async function getUserNotifications(
 
   return rows.map((r) => ({
     ...r,
+    type: r.type as NotificationType,
     link:
       r.type === "message"
         ? r.related_entity_id && slugByThreadId.get(r.related_entity_id)
           ? `/dashboard/messages/${slugByThreadId.get(r.related_entity_id)}`
           : "/dashboard/messages"
-        : staticLink(r.type),
+        : staticLink(r.type as NotificationType, r.related_entity_id),
   }));
 }
 

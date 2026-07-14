@@ -1,32 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarCheck, Award, MessageCircle, Repeat, type LucideIcon } from "lucide-react";
+import { CalendarCheck, Award, MessageCircle, Repeat, MessagesSquare, Star, type LucideIcon } from "lucide-react";
 import type { NotificationRow, NotificationType } from "@/lib/notifications";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 const ICONS: Record<NotificationType, { icon: LucideIcon; bg: string; color: string }> = {
   message: { icon: MessageCircle, bg: "bg-slate-100", color: "text-slate-500" },
   swap_request: { icon: Repeat, bg: "bg-brand-light", color: "text-brand" },
   swap_response: { icon: CalendarCheck, bg: "bg-brand-light", color: "text-brand" },
   level_up: { icon: Award, bg: "bg-emerald-50", color: "text-emerald-500" },
+  forum_reply: { icon: MessagesSquare, bg: "bg-violet-50", color: "text-violet-500" },
+  review_prompt: { icon: Star, bg: "bg-amber-50", color: "text-amber-500" },
+  review_received: { icon: Star, bg: "bg-amber-50", color: "text-amber-600" },
 };
 
 export default function NotificationsPanel() {
-  const [notifications, setNotifications] = useState<NotificationRow[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { notifications, unreadCount, reload, setNotifications, setUnreadCount } = useRealtimeNotifications();
   const router = useRouter();
-
-  useEffect(() => {
-    async function load() {
-      const res = await fetch("/api/notifications");
-      if (!res.ok) return;
-      const data = await res.json();
-      setNotifications((data.notifications ?? []).slice(0, 5));
-      setUnreadCount(data.unreadCount ?? 0);
-    }
-    load();
-  }, []);
+  const preview = notifications.slice(0, 5);
 
   async function handleClick(n: NotificationRow) {
     if (!n.is_read) {
@@ -39,6 +31,7 @@ export default function NotificationsPanel() {
         prev.map((x) => (x.notification_id === n.notification_id ? { ...x, is_read: true } : x))
       );
       setUnreadCount((c) => Math.max(0, c - 1));
+      await reload();
     }
     if (n.link) router.push(n.link);
   }
@@ -53,10 +46,10 @@ export default function NotificationsPanel() {
       </div>
 
       <div className="mt-5 space-y-3">
-        {notifications.length === 0 ? (
+        {preview.length === 0 ? (
           <p className="text-sm text-slate-500">You&apos;re all caught up.</p>
         ) : (
-          notifications.map((n) => {
+          preview.map((n) => {
             const { icon: Icon, bg, color } = ICONS[n.type] ?? ICONS.message;
             return (
               <button

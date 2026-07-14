@@ -5,26 +5,16 @@ import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import type { NotificationRow } from "@/lib/notifications";
 
-export default function NotificationBell() {
+type NotificationBellProps = {
+  notifications: NotificationRow[];
+  unreadCount: number;
+  onReload: () => Promise<void>;
+};
+
+export default function NotificationBell({ notifications, unreadCount, onReload }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationRow[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  async function load() {
-    const res = await fetch("/api/notifications");
-    if (!res.ok) return;
-    const data = await res.json();
-    setNotifications(data.notifications ?? []);
-    setUnreadCount(data.unreadCount ?? 0);
-  }
-
-  useEffect(() => {
-    load();
-    const interval = setInterval(load, 15000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -42,7 +32,7 @@ export default function NotificationBell() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notificationId: n.notification_id }),
       });
-      load();
+      await onReload();
     }
     if (n.link) router.push(n.link);
   }
@@ -53,7 +43,7 @@ export default function NotificationBell() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
-    load();
+    await onReload();
   }
 
   return (
