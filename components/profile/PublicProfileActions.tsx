@@ -1,29 +1,41 @@
 "use client";
 
-import { useState } from "react";
-import { Repeat, MessageCircle } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Repeat, MessageCircle, Check } from "lucide-react";
+import { sendSwapRequestAction } from "@/lib/actions/sessionRequests";
 
 type PublicProfileActionsProps = {
   fullname: string;
+  profileId: string;
 };
 
-/**
- * FR-005 (Send Swap Request) / FR-006 (Message) — the session-request and
- * messaging flows aren't built yet, so these are placeholders that give
- * feedback instead of silently doing nothing.
- */
-export default function PublicProfileActions({ fullname }: PublicProfileActionsProps) {
+export default function PublicProfileActions({ fullname, profileId }: PublicProfileActionsProps) {
   const [notice, setNotice] = useState("");
+  const [sent, setSent] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSendRequest() {
+    startTransition(async () => {
+      const result = await sendSwapRequestAction(profileId);
+      if (result?.error) {
+        setNotice(result.error);
+      } else {
+        setSent(true);
+        setNotice("Swap request sent — check My Swap Requests to track it.");
+      }
+    });
+  }
 
   return (
     <div className="space-y-3">
       <button
         type="button"
-        onClick={() => setNotice(`Sending swap requests isn't available yet — coming soon!`)}
-        className="btn-pill flex w-full items-center justify-center gap-2 bg-brand py-3 text-sm text-white shadow-lg shadow-brand/30 hover:bg-brand-dark"
+        onClick={handleSendRequest}
+        disabled={isPending || sent}
+        className="btn-pill flex w-full items-center justify-center gap-2 bg-brand py-3 text-sm text-white shadow-lg shadow-brand/30 hover:bg-brand-dark disabled:opacity-60"
       >
-        <Repeat size={16} />
-        Send Swap Request
+        {sent ? <Check size={16} /> : <Repeat size={16} />}
+        {sent ? "Request Sent" : isPending ? "Sending..." : "Send Swap Request"}
       </button>
       <button
         type="button"

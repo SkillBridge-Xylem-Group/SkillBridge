@@ -89,11 +89,12 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <PublicProfileHeader
-            fullname={profileRow.fullname}
-            memberSince={memberSince}
-            timezone={timezoneDisplay}
-            bio={profileRow.bio}
-          />
+       fullname={profileRow.fullname}
+       memberSince={memberSince}
+       timezone={timezoneDisplay}
+       bio={profileRow.bio}
+       profileId={profileRow.id}
+/>
 
           <SkillChipList
             icon={GraduationCap}
