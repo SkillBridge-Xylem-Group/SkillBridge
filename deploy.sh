@@ -11,12 +11,6 @@ cd "$SCRIPT_DIR"
 REF="$1"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-if [ -z "$REF" ]; then
-  echo "Usage: ./deploy.sh <main|develop>"
-  echo "Error: branch/ref argument is required (got empty string)."
-  exit 1
-fi
-
 # Environment (sandbox vs production) is derived from the ref being
 # deployed, not the folder path — GitHub Actions passes "develop" for
 # sandbox deploys and "main" for production deploys.
