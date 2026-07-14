@@ -5,19 +5,12 @@ import { Search, Share2, Sparkles, Globe2, ShieldCheck } from "lucide-react";
 import Navbar from "./Navbar";
 import { WorldMap } from "@/components/ui/world-map";
 
-const floatingCards = [
-  { name: "Emma", offers: "Graphic Design", wants: "Korean", top: "2%", left: "48%" },
-  { name: "Rafael", offers: "Portuguese", wants: "Photography", top: "0%", left: "88%" },
-  { name: "Aisha", offers: "Python", wants: "UI/UX Design", top: "62%", left: "22%" },
-  { name: "Daniel", offers: "Guitar", wants: "Music Theory", top: "72%", left: "70%" },
-];
-
 const routes = [
-  { start: { lat: 40.7128, lng: -74.006 }, end: { lat: 38.7223, lng: -9.1393 } }, // New York → Lisbon
-  { start: { lat: 38.7223, lng: -9.1393 }, end: { lat: -23.5505, lng: -46.6333 } }, // Lisbon → São Paulo
-  { start: { lat: 51.5074, lng: -0.1278 }, end: { lat: 28.6139, lng: 77.209 } }, // London → New Delhi
-  { start: { lat: 28.6139, lng: 77.209 }, end: { lat: 37.5665, lng: 126.978 } }, // New Delhi → Seoul
-  { start: { lat: 28.6139, lng: 77.209 }, end: { lat: -1.2921, lng: 36.8219 } }, // New Delhi → Nairobi
+  { start: { lat: 40.7128, lng: -74.006 }, end: { lat: 38.7223, lng: -9.1393 } },
+  { start: { lat: 38.7223, lng: -9.1393 }, end: { lat: -23.5505, lng: -46.6333 } },
+  { start: { lat: 51.5074, lng: -0.1278 }, end: { lat: 28.6139, lng: 77.209 } },
+  { start: { lat: 28.6139, lng: 77.209 }, end: { lat: 37.5665, lng: 126.978 } },
+  { start: { lat: 28.6139, lng: 77.209 }, end: { lat: -1.2921, lng: 36.8219 } },
 ];
 
 const trustPoints = [
@@ -25,10 +18,6 @@ const trustPoints = [
   { icon: Globe2, title: "Global Community", desc: "Open to everyone" },
   { icon: ShieldCheck, title: "Built for Trust", desc: "By the community" },
 ];
-
-function initials(name: string) {
-  return name.charAt(0).toUpperCase();
-}
 
 export default function Hero() {
   return (
@@ -57,7 +46,7 @@ export default function Hero() {
 
           <div className="mt-8 flex flex-wrap gap-4">
             <motion.a
-              href="#community"
+              href="/register"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="btn-primary gap-2 text-base"
@@ -99,44 +88,10 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative mx-auto mt-4 w-full max-w-none overflow-hidden rounded-2xl lg:mt-0 lg:overflow-visible">
+        <div className="relative mx-auto mt-4 w-full max-w-none overflow-hidden rounded-2xl lg:mt-0">
           <WorldMap dots={routes} lineColor="#2563eb" />
-
-          {floatingCards.map((card, i) => (
-            <motion.div
-              key={card.name}
-              style={{ top: card.top, left: card.left }}
-              initial={{ x: "-50%", y: 0, opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              animate={{ x: "-50%", y: [0, -10, 0] }}
-              transition={{
-                opacity: { duration: 0.5, delay: 0.3 + i * 0.15 },
-                y: { duration: 3.5 + i * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 },
-              }}
-              className="card-floating absolute w-32 p-2 text-xs sm:w-40 sm:p-3 sm:text-sm md:w-44"
-            >
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <div
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-medium sm:h-8 sm:w-8 sm:text-xs ${
-                    i % 2 === 0 ? "icon-badge-blue" : "icon-badge-green"
-                  }`}
-                >
-                  {initials(card.name)}
-                </div>
-                <p className="truncate text-xs font-medium text-carbon sm:text-sm">{card.name}</p>
-              </div>
-              <p className="mt-1.5 truncate text-[10px] text-brand-green sm:mt-2 sm:text-xs">
-                Offers <span className="font-medium text-carbon">{card.offers}</span>
-              </p>
-              <p className="truncate text-[10px] text-brand-blue sm:text-xs">
-                Wants <span className="font-medium text-carbon">{card.wants}</span>
-              </p>
-            </motion.div>
-          ))}
         </div>
       </div>
     </section>
   );
 }
-
