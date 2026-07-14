@@ -5,14 +5,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { createOAuthBrowserClient } from "@/lib/supabase/oauth-client";
+import {
+  clearGoogleReauthRequired,
+  clearOAuthPkceStorage,
+  createOAuthBrowserClient,
+} from "@/lib/supabase/oauth-client";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 
 export default function AuthCallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "error">("loading");
-  const [message, setMessage] = useState("Finishing sign-in...");
+  const [message, setMessage] = useState("Finishing Google sign-in...");
 
   useEffect(() => {
     let cancelled = false;
@@ -40,24 +44,26 @@ export default function AuthCallbackClient() {
       }
 
       try {
-        // 1) Exchange using the same localStorage PKCE client that started OAuth.
         const oauthClient = createOAuthBrowserClient();
         const { data, error } = await oauthClient.auth.exchangeCodeForSession(code);
 
         if (error || !data.session) {
           console.error("[auth/callback] exchangeCodeForSession:", error?.message);
           if (!cancelled) {
+            const msg = error?.message || "Could not complete Google sign-in.";
+            const lower = msg.toLowerCase();
             setStatus("error");
             setMessage(
-              error?.message?.includes("code verifier")
-                ? "Sign-in session expired. Please click “Continue with Google” again and finish in the same browser (don’t open the link in another app)."
-                : error?.message || "Could not complete Google sign-in."
+              lower.includes("verifier")
+                ? "Google sign-in expired. Please go back and click “Continue with Google” again in this same browser."
+                : lower.includes("database error saving new user")
+                  ? "Google verified you, but creating your SkillBridge profile failed (database trigger). Ask an admin to fix the auth.users → public.users trigger in Supabase, then try again."
+                  : msg
             );
           }
           return;
         }
 
-        // 2) Sync session into @supabase/ssr cookie client so middleware / SSR see it.
         const cookieClient = createSupabaseBrowserClient();
         const { error: syncError } = await cookieClient.auth.setSession({
           access_token: data.session.access_token,
@@ -66,7 +72,15 @@ export default function AuthCallbackClient() {
 
         if (syncError) {
           console.error("[auth/callback] setSession sync:", syncError.message);
+          if (!cancelled) {
+            setStatus("error");
+            setMessage("Signed in with Google, but saving your session failed. Please try again.");
+          }
+          return;
         }
+
+        clearOAuthPkceStorage();
+        clearGoogleReauthRequired();
 
         if (cancelled) return;
         router.replace(next);

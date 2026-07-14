@@ -1,16 +1,20 @@
 type GoogleButtonProps = {
   label: string;
   onClick?: () => void;
+  disabled?: boolean;
 };
 
-export default function GoogleButton({ label, onClick }: GoogleButtonProps) {
+export default function GoogleButton({ label, onClick, disabled = false }: GoogleButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-center gap-3 border bg-white py-3.5 text-base transition"
+      disabled={disabled}
+      className="flex w-full items-center justify-center gap-3 border bg-white py-3.5 text-base transition disabled:cursor-not-allowed disabled:opacity-60"
       style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-blue-wash)")}
+      onMouseEnter={(e) => {
+        if (!disabled) e.currentTarget.style.backgroundColor = "var(--color-blue-wash)";
+      }}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
     >
       <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
