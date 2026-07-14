@@ -3,7 +3,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserReviews } from "@/lib/reviews";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
-import { MobileBottomNav } from "./MobileNav";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -52,18 +51,14 @@ export default async function DashboardLayout({
     <div className="flex min-h-screen bg-[#F7F7FB]">
       <Sidebar level={shellLevel} experiencePoints={shellXp} trustScore={trustScore} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex-1">
         <Topbar
           userName={shellName}
           level={`Level ${shellLevel}`}
           xp={shellXp}
-          levelNumber={shellLevel}
-          trustScore={trustScore}
         />
-        <main className="px-4 pb-24 sm:px-8 lg:px-10 lg:pb-10">{children}</main>
+        <main className="px-6 pb-10 sm:px-10">{children}</main>
       </div>
-
-      <MobileBottomNav />
     </div>
   );
 }

@@ -81,24 +81,22 @@ export default function BrowsePeopleGrid() {
           />
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal size={16} className="shrink-0 text-slate-400" />
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="min-w-0 flex-1 rounded-full border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-brand/50 sm:flex-none"
-            >
-              {categoryOptions.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal size={16} className="text-slate-400" />
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="rounded-full border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-brand/50"
+          >
+            {categoryOptions.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
 
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="w-full rounded-full border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-brand/50 sm:w-auto"
+            className="rounded-full border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-brand/50"
           >
             <option value="rating">Highest Rated</option>
             <option value="reviews">Most Reviews</option>

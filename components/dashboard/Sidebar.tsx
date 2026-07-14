@@ -3,8 +3,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { DASHBOARD_NAV_ITEMS, isDashboardNavActive } from "@/lib/dashboard-nav";
+import { Home, Users, Repeat2, MessagesSquare, User, type LucideIcon } from "lucide-react";
 import YourProgress from "./YourProgress";
+
+type NavItem = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  badge?: string;
+};
+
+const navItems: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: Home },
+  { label: "Browse People", href: "/dashboard/browse-people", icon: Users },
+  { label: "Skill Swap Requests", href: "/dashboard/swap-requests", icon: Repeat2 },
+  { label: "Community Forum", href: "/dashboard/forum", icon: MessagesSquare },
+  { label: "My Profile", href: "/dashboard/profile", icon: User },
+];
 
 type SidebarProps = {
   level?: number;
@@ -18,6 +33,7 @@ export default function Sidebar({
   trustScore = null,
 }: SidebarProps) {
   const pathname = usePathname();
+  // My Profile already shows LevelCard + TrustScoreCard — hide the sidebar card there.
   const hideProgress = pathname === "/dashboard/profile";
 
   return (
@@ -34,9 +50,14 @@ export default function Sidebar({
           <span className="text-xl font-extrabold text-brand">SkillBridge</span>
         </Link>
         <nav className="mt-10 space-y-1">
-          {DASHBOARD_NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = isDashboardNavActive(pathname, item.href);
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : item.href === "/dashboard/profile"
+                  ? pathname === "/dashboard/profile"
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.label}
@@ -47,6 +68,11 @@ export default function Sidebar({
               >
                 <Icon size={18} />
                 <span className="flex-1">{item.label}</span>
+                {item.badge ? (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {item.badge}
+                  </span>
+                ) : null}
               </Link>
             );
           })}

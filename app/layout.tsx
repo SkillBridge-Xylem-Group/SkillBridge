@@ -25,12 +25,6 @@ export const metadata: Metadata = {
   description: "Trade skills with people worldwide, at no cost, on SkillBridge.",
 };
 
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover" as const,
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{

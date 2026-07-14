@@ -9,7 +9,7 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full w-full flex-col overflow-y-auto border-r border-slate-100">
+    <div className="flex w-full max-w-xs shrink-0 flex-col overflow-y-auto border-r border-slate-100">
       <div className="border-b border-slate-100 p-4">
         <h1 className="text-lg font-extrabold text-slate-900">Messages</h1>
       </div>

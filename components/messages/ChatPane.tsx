@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
-import Link from "next/link";
-import { ArrowLeft, Send, Trash2 } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { deleteThreadAction } from "@/lib/actions/messages";
@@ -111,25 +110,18 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-4">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <Link
-            href="/dashboard/messages"
-            aria-label="Back to conversations"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 md:hidden"
-          >
-            <ArrowLeft size={18} />
-          </Link>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
             {getInitials(partner.fullname)}
           </div>
-          <p className="truncate text-sm font-bold text-slate-900">{partner.fullname}</p>
+          <p className="text-sm font-bold text-slate-900">{partner.fullname}</p>
         </div>
         <button
           type="button"
           onClick={handleDelete}
           disabled={isDeleting}
           aria-label="Delete conversation"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
         >
           <Trash2 size={16} />
         </button>
@@ -156,7 +148,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                   </button>
                 )}
                 <div
-                  className={`max-w-[min(70%,20rem)] break-words rounded-2xl px-4 py-2 text-sm ${
+                  className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${
                     mine ? "bg-brand text-white" : "bg-slate-100 text-slate-700"
                   }`}
                 >
@@ -169,10 +161,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
         <div ref={bottomRef} />
       </div>
 
-      <form
-        onSubmit={handleSend}
-        className="flex items-center gap-2 border-t border-slate-100 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 lg:pb-4"
-      >
+      <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-slate-100 p-4">
         <EmojiPicker onSelect={(emoji) => setDraft((prev) => prev + emoji)} />
         <input
           type="text"
