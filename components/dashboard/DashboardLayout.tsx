@@ -1,4 +1,6 @@
 import { type ReactNode } from "react";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserReviews } from "@/lib/reviews";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
@@ -9,21 +11,51 @@ type DashboardLayoutProps = {
   xp?: number;
 };
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
   userName = "there",
   level,
   xp,
 }: DashboardLayoutProps) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let shellName = userName;
+  let shellLevel = level ?? 0;
+  let shellXp = xp ?? 0;
+  let trustScore: number | null = null;
+
+  if (user) {
+    const [{ data: row }, reviews] = await Promise.all([
+      supabase
+        .from("users")
+        .select("fullname, experience_points, level")
+        .eq("id", user.id)
+        .maybeSingle(),
+      getUserReviews(supabase, user.id),
+    ]);
+
+    if (row) {
+      if (userName === "there" && row.fullname) {
+        shellName = row.fullname;
+      }
+      shellLevel = row.level ?? shellLevel;
+      shellXp = row.experience_points ?? shellXp;
+    }
+    trustScore = reviews.trustScore;
+  }
+
   return (
     <div className="flex min-h-screen bg-[#F7F7FB]">
-      <Sidebar />
+      <Sidebar level={shellLevel} experiencePoints={shellXp} trustScore={trustScore} />
 
       <div className="flex-1">
         <Topbar
-          userName={userName}
-          level={level != null ? `Level ${level}` : undefined}
-          xp={xp}
+          userName={shellName}
+          level={`Level ${shellLevel}`}
+          xp={shellXp}
         />
         <main className="px-6 pb-10 sm:px-10">{children}</main>
       </div>
