@@ -6,37 +6,14 @@ import ProfileClient from "@/components/profile/ProfileClient";
 import LevelCard from "@/components/profile/LevelCard";
 import TrustScoreCard from "@/components/profile/TrustScoreCard";
 import ReviewsCard from "@/components/profile/ReviewsCard";
-import type { Profile, Review, Skill } from "@/lib/types/profile";
-import { getFullSkillCatalog } from "@/lib/skillCatalog";
+import type { Profile } from "@/lib/types/profile";
+import { getFullSkillCatalog, getUserSkills } from "@/lib/skillCatalog";
+import { getUserReviews } from "@/lib/reviews";
 import { deriveNameFromEmail } from "@/lib/deriveName";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const metadata: Metadata = {
   title: "My Profile | SkillBridge",
 };
-
-/**
- * TODO (backend): REVIEW join USER as reviewer (where reviewed_user_id =
- * current user) isn't wired up yet, so reviews stay empty here.
- */
-const MOCK_REVIEWS: Review[] = [];
-
-async function getUserSkills(
-  supabase: SupabaseClient,
-  table: "user_skill_offered" | "user_skill_wanted",
-  userId: string
-): Promise<Skill[]> {
-  const { data: rows } = await supabase.from(table).select("skill_id").eq("user_id", userId);
-  const skillIds = (rows ?? []).map((r) => r.skill_id);
-  if (skillIds.length === 0) return [];
-
-  const { data: skills } = await supabase
-    .from("skills")
-    .select("skill_id, skill_name, category")
-    .in("skill_id", skillIds);
-
-  return skills ?? [];
-}
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
@@ -81,10 +58,11 @@ export default async function ProfilePage() {
     .formatToParts(new Date())
     .find((part) => part.type === "timeZoneName")?.value ?? profile.timezone;
 
-  const [offered, wanted, skillCatalog] = await Promise.all([
+  const [offered, wanted, skillCatalog, { reviews, trustScore, reviewCount }] = await Promise.all([
     getUserSkills(supabase, "user_skill_offered", user.id),
     getUserSkills(supabase, "user_skill_wanted", user.id),
     getFullSkillCatalog(supabase),
+    getUserReviews(supabase, user.id),
   ]);
 
   return (
@@ -100,12 +78,12 @@ export default async function ProfilePage() {
             skillCatalog={skillCatalog}
           />
 
-          <ReviewsCard reviews={MOCK_REVIEWS} />
+          <ReviewsCard reviews={reviews} />
         </div>
 
         <div className="space-y-6">
           <LevelCard level={profile.level} experiencePoints={profile.experience_points} />
-          <TrustScoreCard trustScore={profile.trust_score} />
+          <TrustScoreCard trustScore={trustScore} reviewCount={reviewCount} />
         </div>
       </div>
     </DashboardLayout>

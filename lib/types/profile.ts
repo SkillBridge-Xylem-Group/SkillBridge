@@ -16,8 +16,8 @@ export type Profile = {
 };
 
 export type Review = {
-  review_id: number;
-  reviewer_id: number;
+  review_id: string;
+  reviewer_id: string;
   reviewer_fullname: string;
   rating: number; // FR-010
   comment: string;

@@ -16,3 +16,21 @@ export async function getSkillsByCategory(supabase: SupabaseClient): Promise<Rec
   }
   return byCategory;
 }
+
+/** A given user's offered/wanted skills, resolved from the join table to full Skill rows. */
+export async function getUserSkills(
+  supabase: SupabaseClient,
+  table: "user_skill_offered" | "user_skill_wanted",
+  userId: string
+): Promise<Skill[]> {
+  const { data: rows } = await supabase.from(table).select("skill_id").eq("user_id", userId);
+  const skillIds = (rows ?? []).map((r) => r.skill_id);
+  if (skillIds.length === 0) return [];
+
+  const { data: skills } = await supabase
+    .from("skills")
+    .select("skill_id, skill_name, category")
+    .in("skill_id", skillIds);
+
+  return skills ?? [];
+}

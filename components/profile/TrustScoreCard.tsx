@@ -3,9 +3,10 @@ import { ShieldCheck, Info } from "lucide-react";
 type TrustScoreCardProps = {
   // FR-014: average of all session ratings received; null until the first rating exists.
   trustScore: number | null;
+  reviewCount?: number;
 };
 
-export default function TrustScoreCard({ trustScore }: TrustScoreCardProps) {
+export default function TrustScoreCard({ trustScore, reviewCount }: TrustScoreCardProps) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="flex items-center gap-3">
@@ -18,8 +19,13 @@ export default function TrustScoreCard({ trustScore }: TrustScoreCardProps) {
         </h2>
       </div>
 
-      <p className="mt-4 text-4xl font-extrabold text-slate-900">
+      <p className="mt-4 flex items-baseline gap-2 text-4xl font-extrabold text-slate-900">
         {trustScore != null ? trustScore.toFixed(1) : "—"}
+        {trustScore != null && reviewCount != null && (
+          <span className="text-sm font-semibold text-slate-400">
+            ({reviewCount} review{reviewCount === 1 ? "" : "s"})
+          </span>
+        )}
       </p>
 
       {trustScore == null && (
