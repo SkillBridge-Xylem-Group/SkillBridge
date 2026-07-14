@@ -3,10 +3,16 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useFormGuard } from "@/hooks/useFormGuard";
+import AuthHoneypot from "./AuthHoneypot";
+
+const GENERIC_SUCCESS_MESSAGE =
+  "If an account exists for this email, a reset link is on its way.";
 
 export default function ForgotPasswordForm() {
+  const { website, setWebsite, guardPayload } = useFormGuard();
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -19,16 +25,19 @@ export default function ForgotPasswordForm() {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        credentials: "same-origin",
+        body: JSON.stringify({ email, ...guardPayload }),
       });
 
+      const data = await res.json().catch(() => null);
+
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setError(data?.error ?? "Failed to send reset link. Please try again.");
+        const fieldError = data?.details?.email?.[0];
+        setError(fieldError ?? data?.error ?? "Failed to send reset link. Please try again.");
         return;
       }
 
-      setSent(true);
+      setSuccessMessage(data?.message ?? GENERIC_SUCCESS_MESSAGE);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -45,15 +54,17 @@ export default function ForgotPasswordForm() {
         Enter your email and we&apos;ll send you a reset link.
       </p>
 
-      {sent ? (
+      {successMessage ? (
         <p
           className="mt-8 px-4 py-3.5 text-sm font-medium"
           style={{ backgroundColor: "var(--color-blue-wash)", color: "var(--color-brand-blue-deep)", borderRadius: "12px" }}
         >
-          If an account exists for {email}, a reset link is on its way.
+          {successMessage}
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <AuthHoneypot value={website} onChange={setWebsite} />
+
           <div>
             <label htmlFor="email" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
               Email Address
@@ -63,6 +74,7 @@ export default function ForgotPasswordForm() {
               name="email"
               type="email"
               required
+              maxLength={254}
               autoComplete="email"
               placeholder="name@example.com"
               value={email}
