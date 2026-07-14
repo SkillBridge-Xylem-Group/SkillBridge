@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -10,30 +10,43 @@ import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
 import AuthHoneypot from "./AuthHoneypot";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
+import { signOutEverywhere } from "@/lib/auth/sign-out";
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = getSafeRedirectPath(searchParams.get("redirectTo"));
   const urlError = searchParams.get("error");
+  const justLoggedOut = searchParams.get("loggedOut") === "1";
   const { website, setWebsite, guardPayload } = useFormGuard();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  // Safety net: if login opened right after logout, wipe any leftover session
+  // so the user cannot land on dashboard without signing in again.
+  useEffect(() => {
+    if (!justLoggedOut) return;
+    void signOutEverywhere();
+  }, [justLoggedOut]);
 
   async function handleGoogleSignIn() {
     setError("");
-    // Must use the same OAuth client as /auth/callback (localStorage PKCE).
-    const { createOAuthBrowserClient } = await import("@/lib/supabase/oauth-client");
-    const supabase = createOAuthBrowserClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) {
-      setError(error.message);
+    setIsGoogleLoading(true);
+    try {
+      const { startGoogleOAuth } = await import("@/lib/supabase/oauth-client");
+      const { error } = await startGoogleOAuth();
+      if (error) {
+        setError(error);
+        setIsGoogleLoading(false);
+      }
+      // On success we navigate away to Google; keep loading state.
+    } catch {
+      setError("Could not start Google sign-in. Please try again.");
+      setIsGoogleLoading(false);
     }
   }
 
@@ -94,6 +107,12 @@ export default function LoginForm() {
       {urlError === "auth-unavailable" && (
         <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Sign-in service is temporarily unavailable. Please try again in a moment.
+        </p>
+      )}
+
+      {justLoggedOut && (
+        <p className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          You have been signed out. Please sign in again to continue.
         </p>
       )}
 
@@ -163,7 +182,11 @@ export default function LoginForm() {
       </div>
 
       <div className="mt-5">
-        <GoogleButton label="Continue with Google" onClick={handleGoogleSignIn} />
+        <GoogleButton
+          label={isGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleLoading || isSubmitting}
+        />
       </div>
 
       <p className="mt-5 text-sm" style={{ color: "var(--color-charcoal)" }}>

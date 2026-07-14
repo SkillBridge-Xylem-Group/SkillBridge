@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronDown, User, Settings, LogOut } from "lucide-react";
+import { signOutEverywhere } from "@/lib/auth/sign-out";
 
 type UserMenuProps = {
   name: string;
@@ -12,7 +12,6 @@ type UserMenuProps = {
 };
 
 export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuProps) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -31,12 +30,10 @@ export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuPr
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
-    } catch {
-      // Still redirect — stale session is cleared server-side when possible.
+      await signOutEverywhere();
     } finally {
-      router.push("/login");
-      router.refresh();
+      // Hard navigation + cache-bust so back-button / bfcache cannot reopen a live session.
+      window.location.replace(`/login?loggedOut=1&t=${Date.now()}`);
     }
   }
 
@@ -91,7 +88,7 @@ export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuPr
             className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
           >
             <LogOut size={16} />
-            Logout
+            {isLoggingOut ? "Logging out..." : "Logout"}
           </button>
         </div>
       )}

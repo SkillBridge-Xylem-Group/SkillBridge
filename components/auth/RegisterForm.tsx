@@ -21,6 +21,7 @@ export default function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
     setFormStartedAt(Date.now());
@@ -28,14 +29,17 @@ export default function RegisterForm() {
 
   async function handleGoogleSignIn() {
     setError("");
-    const { createOAuthBrowserClient } = await import("@/lib/supabase/oauth-client");
-    const supabase = createOAuthBrowserClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) {
-      setError(error.message);
+    setIsGoogleLoading(true);
+    try {
+      const { startGoogleOAuth } = await import("@/lib/supabase/oauth-client");
+      const { error } = await startGoogleOAuth();
+      if (error) {
+        setError(error);
+        setIsGoogleLoading(false);
+      }
+    } catch {
+      setError("Could not start Google sign-in. Please try again.");
+      setIsGoogleLoading(false);
     }
   }
 
@@ -212,7 +216,11 @@ export default function RegisterForm() {
       </div>
 
       <div className="mt-5">
-        <GoogleButton label="Continue with Google" onClick={handleGoogleSignIn} />
+        <GoogleButton
+          label={isGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleLoading || isSubmitting}
+        />
       </div>
 
       <p className="mt-5 text-sm" style={{ color: "var(--color-charcoal)" }}>
