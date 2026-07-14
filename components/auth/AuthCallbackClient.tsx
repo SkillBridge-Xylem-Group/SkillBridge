@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createOAuthBrowserClient } from "@/lib/supabase/oauth-client";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 
 export default function AuthCallbackClient() {
@@ -33,24 +34,41 @@ export default function AuthCallbackClient() {
       if (!code) {
         if (!cancelled) {
           setStatus("error");
-          setMessage("Missing sign-in code. Please try again.");
+          setMessage("Missing sign-in code. Please try again from the login page.");
         }
         return;
       }
 
       try {
-        const supabase = createSupabaseBrowserClient();
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        // 1) Exchange using the same localStorage PKCE client that started OAuth.
+        const oauthClient = createOAuthBrowserClient();
+        const { data, error } = await oauthClient.auth.exchangeCodeForSession(code);
 
-        if (error) {
-          console.error("[auth/callback] exchangeCodeForSession:", error.message);
+        if (error || !data.session) {
+          console.error("[auth/callback] exchangeCodeForSession:", error?.message);
           if (!cancelled) {
             setStatus("error");
-            setMessage(error.message || "Could not complete Google sign-in.");
+            setMessage(
+              error?.message?.includes("code verifier")
+                ? "Sign-in session expired. Please click “Continue with Google” again and finish in the same browser (don’t open the link in another app)."
+                : error?.message || "Could not complete Google sign-in."
+            );
           }
           return;
         }
 
+        // 2) Sync session into @supabase/ssr cookie client so middleware / SSR see it.
+        const cookieClient = createSupabaseBrowserClient();
+        const { error: syncError } = await cookieClient.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+
+        if (syncError) {
+          console.error("[auth/callback] setSession sync:", syncError.message);
+        }
+
+        if (cancelled) return;
         router.replace(next);
         router.refresh();
       } catch (err) {
