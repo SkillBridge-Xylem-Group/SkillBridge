@@ -37,7 +37,7 @@ export default async function ForumPage({
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
-    .map((p) => p.charAt(0).toUpperCase())
+    .map((p: string) => p.charAt(0).toUpperCase())
     .join("");
 
   const questions = await getForumQuestions(supabase, { search: q, tab: activeTab });
