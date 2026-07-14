@@ -10,6 +10,8 @@ import {
   cancelSessionRequest,
   rescheduleSessionRequest,
 } from "@/lib/sessionRequests";
+import { createNotification } from "@/lib/notifications";
+import { awardSessionCompletionXp } from "@/lib/gamification";
 
 async function assertParticipant(supabase: SupabaseClient, requestId: string, userId: string) {
   const { data } = await supabase
@@ -32,12 +34,21 @@ export async function sendSwapRequestAction(receiverId: string) {
   if (!user) return { error: "You need to be signed in to send a request." };
   if (user.id === receiverId) return { error: "You can't send a request to yourself." };
 
-  const { error } = await createSessionRequest(supabase, {
+  const { data: created, error } = await createSessionRequest(supabase, {
     requesterId: user.id,
     receiverId,
   });
 
   if (error) return { error: error.message };
+
+  const { data: requesterRow } = await supabase.from("users").select("fullname").eq("id", user.id).maybeSingle();
+  await createNotification(supabase, {
+    userId: receiverId,
+    type: "swap_request",
+    message: `${requesterRow?.fullname ?? "Someone"} sent you a swap request`,
+    relatedEntityType: "session_request",
+    relatedEntityId: created?.request_id,
+  });
 
   revalidatePath("/dashboard/swap-requests");
   return { success: true };
@@ -53,7 +64,7 @@ export async function respondToRequestAction(requestId: string, status: "accepte
 
   const { data: existing } = await supabase
     .from("session_requests")
-    .select("receiver_id")
+    .select("requester_id, receiver_id")
     .eq("request_id", requestId)
     .maybeSingle();
 
@@ -63,6 +74,18 @@ export async function respondToRequestAction(requestId: string, status: "accepte
 
   const { error } = await respondToSessionRequest(supabase, requestId, status, scheduledTime);
   if (error) return { error: error.message };
+
+  const { data: responderRow } = await supabase.from("users").select("fullname").eq("id", user.id).maybeSingle();
+  await createNotification(supabase, {
+    userId: existing.requester_id,
+    type: "swap_response",
+    message:
+      status === "accepted"
+        ? `${responderRow?.fullname ?? "Someone"} accepted your swap request`
+        : `${responderRow?.fullname ?? "Someone"} declined your swap request`,
+    relatedEntityType: "session_request",
+    relatedEntityId: requestId,
+  });
 
   revalidatePath("/dashboard/swap-requests");
   return { success: true };
@@ -80,6 +103,19 @@ export async function completeSessionAction(requestId: string) {
 
   const { error } = await completeSessionRequest(supabase, requestId);
   if (error) return { error: error.message };
+
+  const { data: full } = await supabase
+    .from("session_requests")
+    .select("requester_id, receiver_id")
+    .eq("request_id", requestId)
+    .maybeSingle();
+
+  if (full) {
+    await Promise.all([
+      awardSessionCompletionXp(supabase, full.requester_id),
+      awardSessionCompletionXp(supabase, full.receiver_id),
+    ]);
+  }
 
   revalidatePath("/dashboard/swap-requests");
   return { success: true };

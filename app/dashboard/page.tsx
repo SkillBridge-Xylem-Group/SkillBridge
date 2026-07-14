@@ -5,7 +5,9 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 import TopRatedMembers from "@/components/dashboard/TopRatedMembers";
 import RecentForumDiscussions from "@/components/dashboard/RecentForumDiscussions";
+import RecentMessages from "@/components/dashboard/RecentMessages";
 import QuickActions from "@/components/dashboard/QuickActions";
+import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
 import TipCard from "@/components/dashboard/TipCard";
 import OnboardingGate from "@/components/onboarding/OnboardingGate";
 import { deriveNameFromEmail } from "@/lib/deriveName";
@@ -58,11 +60,15 @@ export default async function DashboardPage() {
         <div className="space-y-6 lg:col-span-2">
           <WelcomeBanner name={displayName} />
           <TopRatedMembers />
+          <RecentMessages />
           <RecentForumDiscussions />
         </div>
 
         <div className="space-y-6">
           <QuickActions />
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+            <NotificationsPanel />
+          </div>
           <TipCard />
         </div>
       </div>

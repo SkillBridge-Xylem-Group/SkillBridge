@@ -1,71 +1,83 @@
-import { CalendarCheck, Award, MessageCircle } from "lucide-react";
+"use client";
 
-type Notification = {
-  icon: typeof CalendarCheck;
-  title: string;
-  desc: string;
-  highlighted?: boolean;
-  iconBg: string;
-  iconColor: string;
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { CalendarCheck, Award, MessageCircle, Repeat, type LucideIcon } from "lucide-react";
+import { notificationLink, type NotificationRow, type NotificationType } from "@/lib/notifications";
+
+const ICONS: Record<NotificationType, { icon: LucideIcon; bg: string; color: string }> = {
+  message: { icon: MessageCircle, bg: "bg-slate-100", color: "text-slate-500" },
+  swap_request: { icon: Repeat, bg: "bg-brand-light", color: "text-brand" },
+  swap_response: { icon: CalendarCheck, bg: "bg-brand-light", color: "text-brand" },
+  level_up: { icon: Award, bg: "bg-emerald-50", color: "text-emerald-500" },
 };
 
-const notifications: Notification[] = [
-  {
-    icon: CalendarCheck,
-    title: "Session Confirmed",
-    desc: "Your session with Sarah is confirmed for 2 PM.",
-    highlighted: true,
-    iconBg: "bg-brand-light",
-    iconColor: "text-brand",
-  },
-  {
-    icon: Award,
-    title: "New Badge Earned!",
-    desc: "You've unlocked the 'React Pioneer' badge.",
-    iconBg: "bg-emerald-50",
-    iconColor: "text-emerald-500",
-  },
-  {
-    icon: MessageCircle,
-    title: "Review Received",
-    desc: "Mark left you a 5-star review for your help.",
-    iconBg: "bg-slate-100",
-    iconColor: "text-slate-500",
-  },
-];
-
 export default function NotificationsPanel() {
+  const [notifications, setNotifications] = useState<NotificationRow[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/notifications");
+      if (!res.ok) return;
+      const data = await res.json();
+      setNotifications((data.notifications ?? []).slice(0, 5));
+      setUnreadCount(data.unreadCount ?? 0);
+    }
+    load();
+  }, []);
+
+  async function handleClick(n: NotificationRow) {
+    if (!n.is_read) {
+      await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationId: n.notification_id }),
+      });
+      setNotifications((prev) =>
+        prev.map((x) => (x.notification_id === n.notification_id ? { ...x, is_read: true } : x))
+      );
+      setUnreadCount((c) => Math.max(0, c - 1));
+    }
+    const link = notificationLink(n);
+    if (link) router.push(link);
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-extrabold text-slate-900">Notifications</h2>
-        <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white">
-          3 NEW
-        </span>
+        {unreadCount > 0 && (
+          <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white">{unreadCount} NEW</span>
+        )}
       </div>
 
       <div className="mt-5 space-y-3">
-        {notifications.map((n) => {
-          const Icon = n.icon;
-          return (
-            <div
-              key={n.title}
-              className={`flex gap-3 rounded-xl p-3 ${
-                n.highlighted ? "border-l-4 border-brand bg-brand-light" : ""
-              }`}
-            >
-              <div
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${n.iconBg} ${n.iconColor}`}
+        {notifications.length === 0 ? (
+          <p className="text-sm text-slate-500">You&apos;re all caught up.</p>
+        ) : (
+          notifications.map((n) => {
+            const { icon: Icon, bg, color } = ICONS[n.type] ?? ICONS.message;
+            return (
+              <button
+                key={n.notification_id}
+                type="button"
+                onClick={() => handleClick(n)}
+                className={`flex w-full gap-3 rounded-xl p-3 text-left ${
+                  !n.is_read ? "border-l-4 border-brand bg-brand-light" : "hover:bg-slate-50"
+                }`}
               >
-                <Icon size={16} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900">{n.title}</p>
-                <p className="text-sm text-slate-500">{n.desc}</p>
-              </div>
-            </div>
-          );
-        })}
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${bg} ${color}`}>
+                  <Icon size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-slate-900">{n.message}</p>
+                </div>
+              </button>
+            );
+          })
+        )}
       </div>
     </div>
   );
