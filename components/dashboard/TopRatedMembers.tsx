@@ -56,7 +56,7 @@ export default function TopRatedMembers() {
       {!loading && !error && matches.length > 0 && (
         <div className="mt-6 grid grid-cols-1 items-stretch gap-5 sm:grid-cols-3">
           {matches.map((m) => {
-            const tags = m.tags.slice(0, 2);
+            const tags = m.tags.slice(0, 3);
             return (
               <article
                 key={m.id}
@@ -85,17 +85,18 @@ export default function TopRatedMembers() {
                 </div>
 
                 {/* Fixed-height tag slot so every card's button lines up */}
-                <div className="mt-5 flex min-h-[4.75rem] flex-col justify-start gap-2">
+                <div className="mt-5 min-h-[4.75rem]">
                   {tags.length > 0 ? (
-                    tags.map((t) => (
-                      <span
-                        key={t}
-                        title={t}
-                        className="inline-block max-w-full truncate rounded-full bg-brand-light px-3 py-1.5 text-xs font-semibold text-brand"
-                      >
-                        {t}
-                      </span>
-                    ))
+                    <div className="flex flex-wrap gap-1.5">
+                      {tags.map((t) => (
+                        <span
+                          key={t}
+                          className="rounded-full bg-brand-light px-2.5 py-1 text-[11px] font-semibold text-brand"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
                   ) : (
                     <span className="text-xs font-medium text-slate-400">No skills listed</span>
                   )}
