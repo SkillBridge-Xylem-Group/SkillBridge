@@ -120,39 +120,58 @@ export default function BrowsePeopleGrid() {
               <p className="mt-1 text-sm text-slate-400">Try a different search term or category.</p>
             </div>
           ) : (
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((p) => (
-                <div key={p.id} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
-                      {getInitials(p.name)}
-                    </div>
-                    <p className="text-sm font-bold text-slate-900">{p.name}</p>
-                  </div>
-
-                  <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-slate-600">
-                    <Star size={14} className="fill-amber-400 text-amber-400" />
-                    {p.rating > 0 ? `${p.rating.toFixed(1)} (${p.reviewCount})` : "No ratings yet"}
-                  </div>
-
-                  {p.tags.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {p.tags.map((t) => (
-                        <span key={t} className="rounded-full bg-brand-light px-2.5 py-1 text-[11px] font-semibold text-brand">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <a
-                    href={`/dashboard/profile/${p.slug}`}
-                    className="btn-pill mt-4 block border-2 border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 hover:border-brand/40 hover:text-brand"
+            <div className="mt-4 grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((p) => {
+                const tags = p.tags.slice(0, 2);
+                return (
+                  <article
+                    key={p.id}
+                    className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
                   >
-                    View Profile
-                  </a>
-                </div>
-              ))}
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+                        {getInitials(p.name)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-slate-900" title={p.name}>
+                          {p.name}
+                        </p>
+                        <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                          <Star size={13} className="shrink-0 fill-amber-400 text-amber-400" />
+                          <span className="truncate">
+                            {p.rating > 0
+                              ? `${p.rating.toFixed(1)} (${p.reviewCount})`
+                              : "No ratings yet"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex min-h-[4.75rem] flex-col justify-start gap-2">
+                      {tags.length > 0 ? (
+                        tags.map((t) => (
+                          <span
+                            key={t}
+                            title={t}
+                            className="inline-block max-w-full truncate rounded-full bg-brand-light px-3 py-1.5 text-xs font-semibold text-brand"
+                          >
+                            {t}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs font-medium text-slate-400">No skills listed</span>
+                      )}
+                    </div>
+
+                    <a
+                      href={`/dashboard/profile/${p.slug}`}
+                      className="mt-auto inline-flex w-full items-center justify-center rounded-full border-2 border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand/40 hover:text-brand"
+                    >
+                      View Profile
+                    </a>
+                  </article>
+                );
+              })}
             </div>
           )}
         </>
