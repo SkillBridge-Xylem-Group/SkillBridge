@@ -16,7 +16,7 @@ jobs:
             echo "path=/var/www/skillbridge/app" >> "$GITHUB_OUTPUT"
             echo "env=production" >> "$GITHUB_OUTPUT"
           else
-            echo "path=/var/www/sandbox.skillbridge/app" >> "$GITHUB_OUTPUT"
+            echo "path=/var/www/skillbridge-sandbox/app" >> "$GITHUB_OUTPUT"
             echo "env=sandbox" >> "$GITHUB_OUTPUT"
           fi
 
