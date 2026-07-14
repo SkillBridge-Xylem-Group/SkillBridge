@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
-import { notificationLink, type NotificationRow } from "@/lib/notifications";
+import type { NotificationRow } from "@/lib/notifications";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -44,8 +44,7 @@ export default function NotificationBell() {
       });
       load();
     }
-    const link = notificationLink(n);
-    if (link) router.push(link);
+    if (n.link) router.push(n.link);
   }
 
   async function handleMarkAllRead() {

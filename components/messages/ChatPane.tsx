@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Send } from "lucide-react";
+import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { Send, Trash2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { deleteThreadAction } from "@/lib/actions/messages";
+import EmojiPicker from "./EmojiPicker";
 import type { MessageRow } from "@/lib/messages";
 
 type ChatPaneProps = {
@@ -17,6 +19,9 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
   const [messages, setMessages] = useState(initialMessages);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleting, startDeleteTransition] = useTransition();
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,6 +36,15 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           setMessages((prev) =>
             prev.some((m) => m.message_id === incoming.message_id) ? prev : [...prev, incoming]
           );
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "messages", filter: `thread_id=eq.${threadId}` },
+        (payload) => {
+          const removedId = (payload.old as { message_id?: string }).message_id;
+          if (!removedId) return;
+          setMessages((prev) => prev.filter((m) => m.message_id !== removedId));
         }
       )
       .subscribe();
@@ -70,14 +84,49 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
     }
   }
 
+  function handleDelete() {
+    if (!window.confirm(`Delete this conversation with ${partner.fullname}? This can't be undone.`)) return;
+    setDeleteError("");
+    startDeleteTransition(async () => {
+      const result = await deleteThreadAction(threadId);
+      if (result?.error) setDeleteError(result.error);
+      // On success, deleteThreadAction redirects to /dashboard/messages itself.
+    });
+  }
+
+  async function handleDeleteMessage(messageId: string) {
+    if (!window.confirm("Delete this message?")) return;
+    setDeletingMessageId(messageId);
+    try {
+      const res = await fetch(`/api/messages/${threadId}/${messageId}`, { method: "DELETE" });
+      if (res.ok) {
+        setMessages((prev) => prev.filter((m) => m.message_id !== messageId));
+      }
+    } finally {
+      setDeletingMessageId(null);
+    }
+  }
+
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b border-slate-100 p-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
-          {getInitials(partner.fullname)}
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+            {getInitials(partner.fullname)}
+          </div>
+          <p className="text-sm font-bold text-slate-900">{partner.fullname}</p>
         </div>
-        <p className="text-sm font-bold text-slate-900">{partner.fullname}</p>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={isDeleting}
+          aria-label="Delete conversation"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+        >
+          <Trash2 size={16} />
+        </button>
       </div>
+      {deleteError && <p className="px-4 pt-2 text-xs font-medium text-red-600">{deleteError}</p>}
 
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.length === 0 ? (
@@ -86,7 +135,18 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           messages.map((m) => {
             const mine = m.sender_id === viewerId;
             return (
-              <div key={m.message_id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+              <div key={m.message_id} className={`group flex items-center gap-1.5 ${mine ? "justify-end" : "justify-start"}`}>
+                {mine && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteMessage(m.message_id)}
+                    disabled={deletingMessageId === m.message_id}
+                    aria-label="Delete message"
+                    className="opacity-0 transition group-hover:opacity-100 text-slate-300 hover:text-red-500 disabled:opacity-50"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
                 <div
                   className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${
                     mine ? "bg-brand text-white" : "bg-slate-100 text-slate-700"
@@ -102,6 +162,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
       </div>
 
       <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-slate-100 p-4">
+        <EmojiPicker onSelect={(emoji) => setDraft((prev) => prev + emoji)} />
         <input
           type="text"
           value={draft}

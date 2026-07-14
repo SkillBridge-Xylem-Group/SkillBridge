@@ -21,11 +21,11 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
       ) : (
         <ul>
           {threads.map((t) => {
-            const active = pathname === `/dashboard/messages/${t.thread_id}`;
+            const active = pathname === `/dashboard/messages/${t.partner.slug}`;
             return (
               <li key={t.thread_id}>
                 <Link
-                  href={`/dashboard/messages/${t.thread_id}`}
+                  href={`/dashboard/messages/${t.partner.slug}`}
                   className={`flex items-center gap-3 border-b border-slate-50 p-4 hover:bg-slate-50 ${
                     active ? "bg-brand-light" : ""
                   }`}

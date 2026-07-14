@@ -10,22 +10,9 @@ export type NotificationRow = {
   related_entity_id: string | null;
   is_read: boolean;
   created_at: string;
+  /** Precomputed server-side — message links need the partner's slug, not the thread's uuid. */
+  link: string | null;
 };
-
-/** Derives where clicking a notification should navigate to (there's no stored link column). */
-export function notificationLink(n: Pick<NotificationRow, "type" | "related_entity_id">): string | null {
-  switch (n.type) {
-    case "message":
-      return n.related_entity_id ? `/dashboard/messages/${n.related_entity_id}` : "/dashboard/messages";
-    case "swap_request":
-    case "swap_response":
-      return "/dashboard/swap-requests";
-    case "level_up":
-      return "/dashboard/profile";
-    default:
-      return null;
-  }
-}
 
 export async function createNotification(
   supabase: SupabaseClient,
@@ -40,6 +27,18 @@ export async function createNotification(
   });
 }
 
+function staticLink(type: NotificationType): string | null {
+  switch (type) {
+    case "swap_request":
+    case "swap_response":
+      return "/dashboard/swap-requests";
+    case "level_up":
+      return "/dashboard/profile";
+    default:
+      return null;
+  }
+}
+
 export async function getUserNotifications(
   supabase: SupabaseClient,
   userId: string,
@@ -51,7 +50,43 @@ export async function getUserNotifications(
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(limit);
-  return data ?? [];
+
+  const rows = data ?? [];
+
+  // Message notifications store the thread_id — resolve it to the partner's
+  // profile slug so the link matches the /dashboard/messages/[slug] route.
+  const messageThreadIds = [...new Set(rows.filter((r) => r.type === "message" && r.related_entity_id).map((r) => r.related_entity_id as string))];
+  let slugByThreadId = new Map<string, string>();
+
+  if (messageThreadIds.length > 0) {
+    const { data: participants } = await supabase
+      .from("thread_participants")
+      .select("thread_id, user_id")
+      .in("thread_id", messageThreadIds);
+
+    const partnerIdByThread = new Map<string, string>();
+    (participants ?? []).forEach((p) => {
+      if (p.user_id !== userId) partnerIdByThread.set(p.thread_id, p.user_id);
+    });
+
+    const partnerIds = [...new Set(partnerIdByThread.values())];
+    const { data: users } = await supabase.from("users").select("id, slug").in("id", partnerIds);
+    const slugById = new Map((users ?? []).map((u) => [u.id, u.slug]));
+
+    slugByThreadId = new Map(
+      [...partnerIdByThread.entries()].map(([threadId, partnerId]) => [threadId, slugById.get(partnerId) ?? ""])
+    );
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    link:
+      r.type === "message"
+        ? r.related_entity_id && slugByThreadId.get(r.related_entity_id)
+          ? `/dashboard/messages/${slugByThreadId.get(r.related_entity_id)}`
+          : "/dashboard/messages"
+        : staticLink(r.type),
+  }));
 }
 
 export async function getUnreadNotificationCount(supabase: SupabaseClient, userId: string): Promise<number> {

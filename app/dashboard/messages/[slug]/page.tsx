@@ -1,11 +1,11 @@
 import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getThreadParticipant, getThreadMessages } from "@/lib/messages";
+import { getOrCreateThread, getUserBySlug, getThreadMessages } from "@/lib/messages";
 import { markThreadMessageNotificationsRead } from "@/lib/notifications";
 import ChatPane from "@/components/messages/ChatPane";
 
-export default async function ThreadPage({ params }: { params: Promise<{ threadId: string }> }) {
-  const { threadId } = await params;
+export default async function ThreadPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -15,8 +15,13 @@ export default async function ThreadPage({ params }: { params: Promise<{ threadI
     redirect("/login");
   }
 
-  const partner = await getThreadParticipant(supabase, threadId, user.id);
-  if (!partner) {
+  const partner = await getUserBySlug(supabase, slug);
+  if (!partner || partner.id === user.id) {
+    notFound();
+  }
+
+  const { threadId, error } = await getOrCreateThread(supabase, user.id, partner.id);
+  if (error || !threadId) {
     notFound();
   }
 

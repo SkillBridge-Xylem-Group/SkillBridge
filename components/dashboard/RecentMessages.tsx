@@ -46,7 +46,7 @@ export default function RecentMessages() {
           <p className="text-sm text-slate-500">No conversations yet — message someone from their profile.</p>
         )}
         {threads.map((t) => (
-          <Link key={t.thread_id} href={`/dashboard/messages/${t.thread_id}`} className="flex items-start gap-3">
+          <Link key={t.thread_id} href={`/dashboard/messages/${t.partner.slug}`} className="flex items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
               {getInitials(t.partner.fullname)}
             </div>

@@ -11,7 +11,7 @@ export type MessageRow = {
 
 export type ThreadSummary = {
   thread_id: string;
-  partner: { id: string; fullname: string };
+  partner: { id: string; fullname: string; slug: string };
   lastMessage: { content: string; sent_at: string; sender_id: string } | null;
 };
 
@@ -58,12 +58,26 @@ export async function getOrCreateThread(
   return { threadId, error: null };
 }
 
-/** Returns the partner's id/name if `viewerId` is a participant of the thread, else null. */
+/** Permanently deletes a thread and everything in it (both participants lose access). */
+export async function deleteThread(supabase: SupabaseClient, threadId: string): Promise<{ error: string | null }> {
+  const { error: messagesError } = await supabase.from("messages").delete().eq("thread_id", threadId);
+  if (messagesError) return { error: messagesError.message };
+
+  const { error: participantsError } = await supabase.from("thread_participants").delete().eq("thread_id", threadId);
+  if (participantsError) return { error: participantsError.message };
+
+  const { error: threadError } = await supabase.from("message_threads").delete().eq("thread_id", threadId);
+  if (threadError) return { error: threadError.message };
+
+  return { error: null };
+}
+
+/** Returns the partner's id/name/slug if `viewerId` is a participant of the thread, else null. */
 export async function getThreadParticipant(
   supabase: SupabaseClient,
   threadId: string,
   viewerId: string
-): Promise<{ id: string; fullname: string } | null> {
+): Promise<{ id: string; fullname: string; slug: string } | null> {
   const { data: participants } = await supabase
     .from("thread_participants")
     .select("user_id")
@@ -75,8 +89,21 @@ export async function getThreadParticipant(
   const partnerId = ids.find((id) => id !== viewerId);
   if (!partnerId) return null;
 
-  const { data: partner } = await supabase.from("users").select("id, fullname").eq("id", partnerId).maybeSingle();
+  const { data: partner } = await supabase
+    .from("users")
+    .select("id, fullname, slug")
+    .eq("id", partnerId)
+    .maybeSingle();
   return partner ?? null;
+}
+
+/** Looks up a user by their profile slug (for slug-based message URLs). */
+export async function getUserBySlug(
+  supabase: SupabaseClient,
+  slug: string
+): Promise<{ id: string; fullname: string; slug: string } | null> {
+  const { data } = await supabase.from("users").select("id, fullname, slug").eq("slug", slug).maybeSingle();
+  return data ?? null;
 }
 
 export async function getThreadMessages(supabase: SupabaseClient, threadId: string): Promise<MessageRow[]> {
@@ -108,8 +135,8 @@ export async function getUserThreads(supabase: SupabaseClient, userId: string): 
   });
 
   const partnerIds = [...new Set(partnerIdByThread.values())];
-  const { data: users } = await supabase.from("users").select("id, fullname").in("id", partnerIds);
-  const nameById = new Map((users ?? []).map((u) => [u.id, u.fullname]));
+  const { data: users } = await supabase.from("users").select("id, fullname, slug").in("id", partnerIds);
+  const userById = new Map((users ?? []).map((u) => [u.id, u]));
 
   const { data: messages } = await supabase
     .from("messages")
@@ -125,9 +152,10 @@ export async function getUserThreads(supabase: SupabaseClient, userId: string): 
   return threadIds
     .map((threadId) => {
       const partnerId = partnerIdByThread.get(threadId) ?? "";
+      const partnerUser = userById.get(partnerId);
       return {
         thread_id: threadId,
-        partner: { id: partnerId, fullname: nameById.get(partnerId) ?? "Unknown" },
+        partner: { id: partnerId, fullname: partnerUser?.fullname ?? "Unknown", slug: partnerUser?.slug ?? "" },
         lastMessage: lastByThread.get(threadId) ?? null,
       };
     })

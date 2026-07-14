@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarCheck, Award, MessageCircle, Repeat, type LucideIcon } from "lucide-react";
-import { notificationLink, type NotificationRow, type NotificationType } from "@/lib/notifications";
+import type { NotificationRow, NotificationType } from "@/lib/notifications";
 
 const ICONS: Record<NotificationType, { icon: LucideIcon; bg: string; color: string }> = {
   message: { icon: MessageCircle, bg: "bg-slate-100", color: "text-slate-500" },
@@ -40,8 +40,7 @@ export default function NotificationsPanel() {
       );
       setUnreadCount((c) => Math.max(0, c - 1));
     }
-    const link = notificationLink(n);
-    if (link) router.push(link);
+    if (n.link) router.push(n.link);
   }
 
   return (
