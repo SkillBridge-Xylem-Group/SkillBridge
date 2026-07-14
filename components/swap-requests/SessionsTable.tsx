@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { SessionRequestSummary } from "@/lib/sessionRequests";
 import { completeSessionAction, cancelSessionAction, rescheduleSessionAction } from "@/lib/actions/sessionRequests";
+import ReviewModal from "./ReviewModal";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-slate-100 text-slate-600",
@@ -25,18 +26,26 @@ function formatDateTime(value: string | null) {
   });
 }
 
-function SessionRow({ session }: { session: SessionRequestSummary }) {
+function SessionRow({
+  session,
+  onReview,
+}: {
+  session: SessionRequestSummary;
+  onReview: (session: SessionRequestSummary) => void;
+}) {
   const [isPending, startTransition] = useTransition();
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [newTime, setNewTime] = useState("");
   const router = useRouter();
 
   const canManage = session.status === "accepted" || session.status === "rescheduled";
+  const canReview = session.status === "completed" && !session.hasReviewedPartner;
 
   function markComplete() {
     startTransition(async () => {
       await completeSessionAction(session.request_id);
       router.refresh();
+      onReview(session);
     });
   }
 
@@ -94,7 +103,9 @@ function SessionRow({ session }: { session: SessionRequestSummary }) {
         )}
       </td>
       <td className="py-4">
-        <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${STATUS_STYLES[session.status] ?? "bg-slate-100 text-slate-600"}`}>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${STATUS_STYLES[session.status] ?? "bg-slate-100 text-slate-600"}`}
+        >
           {session.status}
         </span>
       </td>
@@ -127,12 +138,27 @@ function SessionRow({ session }: { session: SessionRequestSummary }) {
             </button>
           </div>
         )}
+        {canReview && (
+          <button
+            type="button"
+            onClick={() => onReview(session)}
+            className="text-xs font-bold text-amber-600 hover:underline"
+          >
+            Leave Review
+          </button>
+        )}
+        {session.status === "completed" && session.hasReviewedPartner && (
+          <span className="text-xs font-semibold text-slate-400">Reviewed</span>
+        )}
       </td>
     </tr>
   );
 }
 
 export default function SessionsTable({ sessions }: { sessions: SessionRequestSummary[] }) {
+  const [reviewTarget, setReviewTarget] = useState<SessionRequestSummary | null>(null);
+  const router = useRouter();
+
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
       <h2 className="text-lg font-extrabold text-slate-900">Recent &amp; Upcoming Sessions</h2>
@@ -155,11 +181,21 @@ export default function SessionsTable({ sessions }: { sessions: SessionRequestSu
             </thead>
             <tbody className="divide-y divide-slate-100">
               {sessions.map((s) => (
-                <SessionRow key={s.request_id} session={s} />
+                <SessionRow key={s.request_id} session={s} onReview={setReviewTarget} />
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {reviewTarget && (
+        <ReviewModal
+          open
+          sessionRequestId={reviewTarget.request_id}
+          partner={reviewTarget.partner}
+          onClose={() => setReviewTarget(null)}
+          onSubmitted={() => router.refresh()}
+        />
       )}
     </div>
   );

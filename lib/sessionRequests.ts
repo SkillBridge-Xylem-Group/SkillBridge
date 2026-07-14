@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getUserSkills } from "@/lib/skillCatalog";
+import { getReviewedSessionIds } from "@/lib/reviews";
 import type { Skill } from "@/lib/types/profile";
 
 export type SessionStatus = "pending" | "accepted" | "declined" | "rescheduled" | "completed" | "cancelled";
@@ -12,6 +13,8 @@ export type SessionRequestSummary = {
   completed_at: string | null;
   created_at: string;
   isRequester: boolean;
+  /** True when the current user has already left a review for this session. */
+  hasReviewedPartner: boolean;
   partner: { id: string; fullname: string };
   topic: { skill_name: string; category: string } | null;
 };
@@ -54,6 +57,8 @@ export async function getUserSessions(supabase: SupabaseClient, userId: string):
     })
   );
 
+  const reviewedSessionIds = await getReviewedSessionIds(supabase, userId);
+
   return sessionRows.map((r) => {
     const isRequester = r.requester_id === userId;
     const partnerId = isRequester ? r.receiver_id : r.requester_id;
@@ -69,6 +74,7 @@ export async function getUserSessions(supabase: SupabaseClient, userId: string):
       completed_at: r.completed_at,
       created_at: r.created_at,
       isRequester,
+      hasReviewedPartner: reviewedSessionIds.has(r.request_id),
       partner: { id: partnerId, fullname: nameById.get(partnerId) ?? "Unknown" },
       topic: topicSkill ? { skill_name: topicSkill.skill_name, category: topicSkill.category } : null,
     };

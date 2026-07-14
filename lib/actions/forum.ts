@@ -3,14 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createQuestion, createAnswer, toggleAnswerVote } from "@/lib/forum";
+import { createNotification } from "@/lib/notifications";
 
 export async function createQuestionAction(title: string, content: string) {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be signed in to post." };
   if (!title.trim() || !content.trim()) return { error: "Title and content can't be empty." };
 
-  const { data, error } = await createQuestion(supabase, { userId: user.id, title: title.trim(), content: content.trim() });
+  const { data, error } = await createQuestion(supabase, {
+    userId: user.id,
+    title: title.trim(),
+    content: content.trim(),
+  });
   if (error) return { error: error.message };
 
   revalidatePath("/dashboard/forum");
@@ -19,12 +26,35 @@ export async function createQuestionAction(title: string, content: string) {
 
 export async function createAnswerAction(questionId: string, content: string) {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be signed in to reply." };
   if (!content.trim()) return { error: "Reply can't be empty." };
 
-  const { error } = await createAnswer(supabase, { questionId, userId: user.id, content: content.trim() });
+  const { data: question } = await supabase
+    .from("forum_questions")
+    .select("user_id, title")
+    .eq("question_id", questionId)
+    .maybeSingle();
+
+  const { error } = await createAnswer(supabase, {
+    questionId,
+    userId: user.id,
+    content: content.trim(),
+  });
   if (error) return { error: error.message };
+
+  if (question && question.user_id !== user.id) {
+    const { data: authorRow } = await supabase.from("users").select("fullname").eq("id", user.id).maybeSingle();
+    await createNotification(supabase, {
+      userId: question.user_id,
+      type: "forum_reply",
+      message: `${authorRow?.fullname ?? "Someone"} replied to "${question.title.slice(0, 60)}"`,
+      relatedEntityType: "forum_question",
+      relatedEntityId: questionId,
+    });
+  }
 
   revalidatePath(`/dashboard/forum/${questionId}`);
   return { success: true };
@@ -32,7 +62,9 @@ export async function createAnswerAction(questionId: string, content: string) {
 
 export async function toggleVoteAction(answerId: string, questionId: string) {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be signed in to vote." };
 
   const { error } = await toggleAnswerVote(supabase, { answerId, userId: user.id });
