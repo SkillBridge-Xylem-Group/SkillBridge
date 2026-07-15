@@ -25,6 +25,7 @@ export async function GET() {
     .from("users")
     .select(selectClause)
     .neq("id", user.id)
+    .neq("role", "admin")
     .order("trust_score", { ascending: false });
 
   if (candidatesError) {

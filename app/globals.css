@@ -30,6 +30,18 @@
   --color-fog: #e7e5e4;              /* hairline borders */
   --color-canvas: #fefeff;           /* page background */
 
+  /* Admin console chrome — the ink/fog pair above, repurposed as a dark
+     surface + light text, rather than a separate palette. Signals "admin
+     mode" while staying built from the same tokens as the rest of the app. */
+  --color-console: var(--color-carbon);
+  --color-console-text: var(--color-fog);
+
+  /* Status semantics — used by the status-dot pattern across Users and
+     Flagged Content, so "state" reads the same way everywhere in the
+     console. */
+  --color-status-attention: #f59e0b; /* pending / needs review */
+  --color-status-critical: #dc2626;  /* suspended / actioned */
+
   /* Typography — Jost (display/headings) + Inter (body/UI), standing in for
      Salesforce-Avant-Garde / Salesforce-Sans from the Slack-style skill,
      since those are proprietary and unavailable to load. */
