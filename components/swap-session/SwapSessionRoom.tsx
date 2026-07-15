@@ -70,6 +70,7 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
     toggleCamera,
     enableDevices,
     sendChat,
+    sendChatFile,
     hangUp,
   } = useSwapWebRtc({ requestId: session.requestId, userId, userName: viewerName });
 
@@ -143,10 +144,10 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
         </div>
       )}
 
-      <div className="grid flex-1 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid flex-1 grid-cols-1 gap-4 xl:grid-cols-[minmax(260px,34%)_minmax(0,66%)]">
         <div className="flex min-w-0 flex-col gap-3">
-          <div className="grid flex-1 grid-cols-1 gap-3 lg:grid-cols-2">
-            <div className="relative min-h-[220px] overflow-hidden rounded-2xl bg-slate-900 shadow-sm lg:min-h-[380px]">
+          <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
+            <div className="relative aspect-video overflow-hidden rounded-2xl bg-slate-900 shadow-sm xl:aspect-auto xl:min-h-[150px] xl:max-h-[200px]">
               <video
                 ref={bindRemoteVideo}
                 autoPlay
@@ -154,8 +155,8 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
                 className="h-full w-full object-cover"
               />
               {connectionState !== "connected" && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900/90 px-6 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-xl font-bold text-white">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-slate-900/90 px-4 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
                     {session.partner.fullname
                       .split(" ")
                       .filter(Boolean)
@@ -163,20 +164,20 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
                       .map((p) => p.charAt(0).toUpperCase())
                       .join("")}
                   </div>
-                  <p className="text-sm font-semibold text-white">{session.partner.fullname}</p>
-                  <p className="text-xs text-slate-300">
+                  <p className="text-xs font-semibold text-white">{session.partner.fullname}</p>
+                  <p className="text-[11px] text-slate-300">
                     {partnerPresent
-                      ? "Connecting audio & video…"
-                      : "Waiting for them to join this session."}
+                      ? "Connecting…"
+                      : "Waiting for them to join."}
                   </p>
                 </div>
               )}
-              <span className="absolute bottom-3 left-3 rounded-md bg-black/55 px-2 py-1 text-xs font-semibold text-white">
+              <span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white">
                 {session.partner.fullname}
               </span>
             </div>
 
-            <div className="relative min-h-[180px] overflow-hidden rounded-2xl bg-slate-800 shadow-sm lg:min-h-[380px]">
+            <div className="relative aspect-video overflow-hidden rounded-2xl bg-slate-800 shadow-sm xl:aspect-auto xl:min-h-[120px] xl:max-h-[160px]">
               <video
                 ref={bindLocalVideo}
                 autoPlay
@@ -185,8 +186,8 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
                 className={`h-full w-full object-cover ${cameraEnabled && hasCamera ? "" : "opacity-0"}`}
               />
               {(!hasCamera || !cameraEnabled) && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand text-lg font-bold text-white">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
                     {viewerName
                       .split(" ")
                       .filter(Boolean)
@@ -199,14 +200,14 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
                       type="button"
                       disabled={mediaBusy}
                       onClick={() => void enableDevices()}
-                      className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/25 disabled:opacity-50"
+                      className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-white/25 disabled:opacity-50"
                     >
                       {mediaBusy ? "Requesting…" : "Enable camera & mic"}
                     </button>
                   )}
                 </div>
               )}
-              <span className="absolute bottom-3 left-3 rounded-md bg-black/55 px-2 py-1 text-xs font-semibold text-white">
+              <span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white">
                 You
                 {hasMic && !micEnabled ? " · Mic off" : ""}
                 {hasCamera && !cameraEnabled ? " · Cam off" : ""}
@@ -280,12 +281,13 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
           </div>
         </div>
 
-        <div className="min-h-[360px] xl:min-h-[480px]">
+        <div className="min-h-[480px] xl:min-h-[560px]">
           <SessionChat
             messages={messages}
             userId={userId}
             partnerName={session.partner.fullname}
             onSend={sendChat}
+            onSendFile={sendChatFile}
             disabled={!roomOpen}
           />
         </div>
