@@ -10,6 +10,14 @@ type SignalPayload =
   | { type: "ice"; from: string; candidate: RTCIceCandidateInit }
   | { type: "hangup"; from: string };
 
+export type ChatMessage = {
+  id: string;
+  from: string;
+  fromName: string;
+  text: string;
+  at: number;
+};
+
 export type ConnectionState = "connecting" | "waiting" | "connecting-peer" | "connected" | "failed" | "ended";
 
 const ICE_SERVERS: RTCIceServer[] = [
@@ -20,19 +28,68 @@ const ICE_SERVERS: RTCIceServer[] = [
 type Options = {
   requestId: string;
   userId: string;
+  userName: string;
 };
 
-export function useSwapWebRtc({ requestId, userId }: Options) {
+function mediaErrorMessage(err: unknown): string {
+  if (!window.isSecureContext) {
+    return "Camera and microphone need a secure page (https or localhost). Open the app via https or http://localhost.";
+  }
+  const name = err && typeof err === "object" && "name" in err ? String((err as { name: string }).name) : "";
+  if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+    return "Permission denied. Allow camera and microphone for this site in your browser settings, then tap Enable devices.";
+  }
+  if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+    return "No camera or microphone was found on this device.";
+  }
+  if (name === "NotReadableError" || name === "TrackStartError") {
+    return "Camera or microphone is already in use by another app. Close it and try again.";
+  }
+  return "Could not access camera or microphone. Check browser permissions and try again.";
+}
+
+async function acquireMedia(): Promise<{ stream: MediaStream; warning: string | null }> {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error("MediaDevices API unavailable");
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+    });
+    return { stream, warning: null };
+  } catch (videoErr) {
+    // Fall back to audio-only so mic still works when camera is blocked/missing.
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      return {
+        stream,
+        warning: "Camera unavailable — microphone is on. You can still chat in text.",
+      };
+    } catch {
+      throw videoErr;
+    }
+  }
+}
+
+export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   const [connectionState, setConnectionState] = useState<ConnectionState>("connecting");
   const [mediaError, setMediaError] = useState<string | null>(null);
-  const [micEnabled, setMicEnabled] = useState(true);
-  const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [mediaWarning, setMediaWarning] = useState<string | null>(null);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [hasMic, setHasMic] = useState(false);
+  const [hasCamera, setHasCamera] = useState(false);
+  const [mediaReady, setMediaReady] = useState(false);
   const [partnerPresent, setPartnerPresent] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [mediaBusy, setMediaBusy] = useState(false);
 
-  const localVideoRef = useRef<HTMLVideoElement | null>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
-
+  const localVideoEl = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoEl = useRef<HTMLVideoElement | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const makingOfferRef = useRef(false);
@@ -40,21 +97,117 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
   const isPoliteRef = useRef(false);
   const offerStartedRef = useRef(false);
   const endedRef = useRef(false);
+  const partnerIdRef = useRef<string | null>(null);
+
+  const bindLocalVideo = useCallback((el: HTMLVideoElement | null) => {
+    localVideoEl.current = el;
+    if (el && localStreamRef.current) {
+      el.srcObject = localStreamRef.current;
+      void el.play().catch(() => undefined);
+    }
+  }, []);
+
+  const bindRemoteVideo = useCallback((el: HTMLVideoElement | null) => {
+    remoteVideoEl.current = el;
+    if (el && remoteStreamRef.current) {
+      el.srcObject = remoteStreamRef.current;
+      void el.play().catch(() => undefined);
+    }
+  }, []);
+
+  const syncLocalPreview = useCallback(() => {
+    const el = localVideoEl.current;
+    const stream = localStreamRef.current;
+    if (!el) return;
+    if (el.srcObject !== stream) el.srcObject = stream;
+    void el.play().catch(() => undefined);
+  }, []);
+
+  const syncTrackFlags = useCallback((stream: MediaStream | null) => {
+    const audio = stream?.getAudioTracks()[0] ?? null;
+    const video = stream?.getVideoTracks()[0] ?? null;
+    setHasMic(Boolean(audio));
+    setHasCamera(Boolean(video));
+    setMicEnabled(Boolean(audio?.enabled));
+    setCameraEnabled(Boolean(video?.enabled));
+    setMediaReady(Boolean(audio || video));
+  }, []);
+
+  const pushTracksToPeer = useCallback((stream: MediaStream) => {
+    const pc = pcRef.current;
+    if (!pc) return;
+
+    for (const track of stream.getTracks()) {
+      const sender = pc.getSenders().find((s) => s.track?.kind === track.kind);
+      if (sender) {
+        void sender.replaceTrack(track);
+      } else {
+        pc.addTrack(track, stream);
+      }
+    }
+  }, []);
+
+  const applyLocalStream = useCallback(
+    (stream: MediaStream, warning: string | null) => {
+      const prev = localStreamRef.current;
+      if (prev && prev !== stream) {
+        prev.getTracks().forEach((t) => t.stop());
+      }
+      localStreamRef.current = stream;
+      syncLocalPreview();
+      syncTrackFlags(stream);
+      setMediaError(null);
+      setMediaWarning(warning);
+      pushTracksToPeer(stream);
+
+      // Renegotiate if we already have a peer and just gained media.
+      if (pcRef.current && partnerIdRef.current && userId < partnerIdRef.current) {
+        offerStartedRef.current = false;
+      }
+    },
+    [pushTracksToPeer, syncLocalPreview, syncTrackFlags, userId]
+  );
+
+  const enableDevices = useCallback(async () => {
+    setMediaBusy(true);
+    try {
+      const { stream, warning } = await acquireMedia();
+      applyLocalStream(stream, warning);
+
+      const pc = pcRef.current;
+      if (pc && partnerIdRef.current) {
+        if (userId < partnerIdRef.current) {
+          offerStartedRef.current = false;
+          makingOfferRef.current = true;
+          try {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            if (pc.localDescription) {
+              await channelRef.current?.send({
+                type: "broadcast",
+                event: "signal",
+                payload: { type: "offer", from: userId, sdp: pc.localDescription } satisfies SignalPayload,
+              });
+            }
+          } finally {
+            makingOfferRef.current = false;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[swap-webrtc] enableDevices failed:", err);
+      setMediaError(mediaErrorMessage(err));
+      syncTrackFlags(localStreamRef.current);
+    } finally {
+      setMediaBusy(false);
+    }
+  }, [applyLocalStream, syncTrackFlags, userId]);
 
   useEffect(() => {
     let cancelled = false;
     let channel: RealtimeChannel | null = null;
     endedRef.current = false;
     offerStartedRef.current = false;
-
-    function attachLocal(stream: MediaStream) {
-      localStreamRef.current = stream;
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-    }
-
-    function attachRemote(stream: MediaStream) {
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = stream;
-    }
 
     async function sendSignal(payload: SignalPayload) {
       const ch = channelRef.current;
@@ -66,7 +219,8 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
       pcRef.current?.close();
       pcRef.current = null;
       offerStartedRef.current = false;
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+      remoteStreamRef.current = null;
+      if (remoteVideoEl.current) remoteVideoEl.current.srcObject = null;
     }
 
     function ensurePeerConnection() {
@@ -83,7 +237,11 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
       }
 
       const remote = new MediaStream();
-      attachRemote(remote);
+      remoteStreamRef.current = remote;
+      if (remoteVideoEl.current) {
+        remoteVideoEl.current.srcObject = remote;
+        void remoteVideoEl.current.play().catch(() => undefined);
+      }
 
       pc.ontrack = (event) => {
         const inbound = event.streams[0];
@@ -93,10 +251,14 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
               remote.addTrack(track);
             }
           }
-        } else {
+        } else if (!remote.getTracks().some((t) => t.id === event.track.id)) {
           remote.addTrack(event.track);
         }
-        attachRemote(remote);
+        remoteStreamRef.current = remote;
+        if (remoteVideoEl.current) {
+          remoteVideoEl.current.srcObject = remote;
+          void remoteVideoEl.current.play().catch(() => undefined);
+        }
         setConnectionState("connected");
       };
 
@@ -180,26 +342,28 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
 
     async function start() {
       setConnectionState("connecting");
-      setMediaError(null);
 
+      // Media first (best effort) — room still opens if devices fail.
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: { facingMode: "user" },
-        });
+        const { stream, warning } = await acquireMedia();
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
-        attachLocal(stream);
+        applyLocalStream(stream, warning);
       } catch (err) {
         console.error("[swap-webrtc] getUserMedia failed:", err);
-        setMediaError(
-          "Could not access camera or microphone. Check browser permissions and try again."
-        );
-        setConnectionState("failed");
-        return;
+        if (!cancelled) {
+          setMediaError(mediaErrorMessage(err));
+          setMediaReady(false);
+          setHasMic(false);
+          setHasCamera(false);
+          setMicEnabled(false);
+          setCameraEnabled(false);
+        }
       }
+
+      if (cancelled) return;
 
       const supabase = createSupabaseBrowserClient();
       channel = supabase.channel(`swap-session:${requestId}`, {
@@ -214,6 +378,12 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
         void handleSignal(payload as SignalPayload);
       });
 
+      channel.on("broadcast", { event: "chat" }, ({ payload }) => {
+        const msg = payload as ChatMessage;
+        if (!msg?.id || !msg.text) return;
+        setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+      });
+
       channel.on("presence", { event: "sync" }, () => {
         if (endedRef.current) return;
         const state = channel?.presenceState() ?? {};
@@ -222,12 +392,14 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
         setPartnerPresent(others.length > 0);
 
         if (others.length === 0) {
+          partnerIdRef.current = null;
           resetPeer();
           setConnectionState("waiting");
           return;
         }
 
         const partnerId = others[0];
+        partnerIdRef.current = partnerId;
         isPoliteRef.current = userId > partnerId;
 
         if (userId < partnerId) {
@@ -247,7 +419,7 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
       if (cancelled) return;
 
       if (status !== "SUBSCRIBED") {
-        setMediaError("Could not join the session room. Check your connection and try again.");
+        setMediaError((prev) => prev ?? "Could not join the session room. Check your connection and try again.");
         setConnectionState("failed");
         return;
       }
@@ -270,27 +442,91 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
       pcRef.current = null;
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
+      remoteStreamRef.current = null;
       if (channel) {
         const supabase = createSupabaseBrowserClient();
         void supabase.removeChannel(channel);
       }
       channelRef.current = null;
     };
+    // applyLocalStream is stable enough via refs; omit to avoid reconnect loops.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestId, userId]);
 
   const toggleMic = useCallback(() => {
     const track = localStreamRef.current?.getAudioTracks()[0];
-    if (!track) return;
+    if (!track) {
+      void enableDevices();
+      return;
+    }
     track.enabled = !track.enabled;
     setMicEnabled(track.enabled);
-  }, []);
+  }, [enableDevices]);
 
-  const toggleCamera = useCallback(() => {
-    const track = localStreamRef.current?.getVideoTracks()[0];
-    if (!track) return;
-    track.enabled = !track.enabled;
-    setCameraEnabled(track.enabled);
-  }, []);
+  const toggleCamera = useCallback(async () => {
+    const stream = localStreamRef.current;
+    const track = stream?.getVideoTracks().find((t) => t.readyState === "live");
+
+    if (track) {
+      track.enabled = !track.enabled;
+      setCameraEnabled(track.enabled);
+      syncLocalPreview();
+      return;
+    }
+
+    // No live camera track — request one and merge into the current stream.
+    setMediaBusy(true);
+    try {
+      const videoOnly = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      });
+      const videoTrack = videoOnly.getVideoTracks()[0];
+      if (!videoTrack) throw new Error("No video track");
+
+      if (stream) {
+        const stale = stream.getVideoTracks();
+        for (const t of stale) {
+          stream.removeTrack(t);
+          t.stop();
+        }
+        stream.addTrack(videoTrack);
+        applyLocalStream(stream, null);
+      } else {
+        applyLocalStream(videoOnly, null);
+      }
+    } catch (err) {
+      console.error("[swap-webrtc] camera enable failed:", err);
+      setMediaError(mediaErrorMessage(err));
+    } finally {
+      setMediaBusy(false);
+    }
+  }, [applyLocalStream, syncLocalPreview]);
+
+  const sendChat = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || !channelRef.current) return false;
+
+      const msg: ChatMessage = {
+        id: `${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        from: userId,
+        fromName: userName,
+        text: trimmed.slice(0, 2000),
+        at: Date.now(),
+      };
+
+      setMessages((prev) => [...prev, msg]);
+
+      await channelRef.current.send({
+        type: "broadcast",
+        event: "chat",
+        payload: msg,
+      });
+      return true;
+    },
+    [userId, userName]
+  );
 
   const hangUp = useCallback(async () => {
     endedRef.current = true;
@@ -304,20 +540,34 @@ export function useSwapWebRtc({ requestId, userId }: Options) {
     pcRef.current = null;
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
-    if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+    remoteStreamRef.current = null;
+    if (localVideoEl.current) localVideoEl.current.srcObject = null;
+    if (remoteVideoEl.current) remoteVideoEl.current.srcObject = null;
+    setMediaReady(false);
+    setHasMic(false);
+    setHasCamera(false);
+    setMicEnabled(false);
+    setCameraEnabled(false);
   }, [userId]);
 
   return {
-    localVideoRef,
-    remoteVideoRef,
+    bindLocalVideo,
+    bindRemoteVideo,
     connectionState,
     mediaError,
+    mediaWarning,
+    mediaReady,
+    mediaBusy,
     micEnabled,
     cameraEnabled,
+    hasMic,
+    hasCamera,
     partnerPresent,
+    messages,
     toggleMic,
     toggleCamera,
+    enableDevices,
+    sendChat,
     hangUp,
   };
 }
