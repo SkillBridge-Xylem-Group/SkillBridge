@@ -81,13 +81,14 @@ export async function respondToRequestAction(requestId: string, status: "accepte
     type: "swap_response",
     message:
       status === "accepted"
-        ? `${responderRow?.fullname ?? "Someone"} accepted your swap request`
+        ? `${responderRow?.fullname ?? "Someone"} accepted your swap request — open Join Session to start`
         : `${responderRow?.fullname ?? "Someone"} declined your swap request`,
     relatedEntityType: "session_request",
     relatedEntityId: requestId,
   });
 
   revalidatePath("/dashboard/swap-requests");
+  revalidatePath(`/dashboard/swap-session/${requestId}`);
   return { success: true };
 }
 
@@ -140,6 +141,7 @@ export async function completeSessionAction(requestId: string) {
   }
 
   revalidatePath("/dashboard/swap-requests");
+  revalidatePath(`/dashboard/swap-session/${requestId}`);
   return { success: true };
 }
 

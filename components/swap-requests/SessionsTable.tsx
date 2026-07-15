@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SessionRequestSummary } from "@/lib/sessionRequests";
 import { completeSessionAction, cancelSessionAction, rescheduleSessionAction } from "@/lib/actions/sessionRequests";
@@ -111,12 +112,18 @@ function SessionRow({
       </td>
       <td className="py-4">
         {canManage && !isRescheduling && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/dashboard/swap-session/${session.request_id}`}
+              className="text-xs font-bold text-brand hover:underline"
+            >
+              Join Session
+            </Link>
             <button
               type="button"
               disabled={isPending}
               onClick={markComplete}
-              className="text-xs font-bold text-brand hover:underline disabled:opacity-50"
+              className="text-xs font-bold text-slate-700 hover:underline disabled:opacity-50"
             >
               Mark Complete
             </button>
