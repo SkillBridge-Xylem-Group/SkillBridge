@@ -12,10 +12,12 @@ import {
   PhoneOff,
   CheckCircle2,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { useSwapWebRtc } from "@/hooks/useSwapWebRtc";
 import { completeSessionAction } from "@/lib/actions/sessionRequests";
 import type { SwapSessionRoomData } from "@/lib/swapSession";
+import SessionChat from "./SessionChat";
 
 type Props = {
   session: SwapSessionRoomData;
@@ -25,13 +27,11 @@ type Props = {
 
 function statusLabel(
   connectionState: ReturnType<typeof useSwapWebRtc>["connectionState"],
-  partnerPresent: boolean,
-  mediaError: string | null
+  partnerPresent: boolean
 ) {
-  if (mediaError) return mediaError;
   switch (connectionState) {
     case "connecting":
-      return "Starting camera and microphone…";
+      return "Joining session room…";
     case "waiting":
       return partnerPresent
         ? "Partner joined — connecting…"
@@ -53,20 +53,29 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
   const router = useRouter();
   const [isCompleting, startComplete] = useTransition();
   const {
-    localVideoRef,
-    remoteVideoRef,
+    bindLocalVideo,
+    bindRemoteVideo,
     connectionState,
     mediaError,
+    mediaWarning,
+    mediaReady,
+    mediaBusy,
     micEnabled,
     cameraEnabled,
+    hasMic,
+    hasCamera,
     partnerPresent,
+    messages,
     toggleMic,
     toggleCamera,
+    enableDevices,
+    sendChat,
     hangUp,
-  } = useSwapWebRtc({ requestId: session.requestId, userId });
+  } = useSwapWebRtc({ requestId: session.requestId, userId, userName: viewerName });
 
   const topic = session.topic?.skill_name ?? "Skill swap";
-  const label = statusLabel(connectionState, partnerPresent, mediaError);
+  const label = statusLabel(connectionState, partnerPresent);
+  const roomOpen = connectionState !== "ended";
 
   async function leave() {
     await hangUp();
@@ -83,7 +92,7 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-5rem)] flex-col gap-4 pb-20 lg:pb-6">
+    <div className="flex min-h-[calc(100vh-5rem)] flex-col gap-4 pb-24 lg:pb-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link
@@ -118,106 +127,168 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
       </div>
 
       <p className="text-sm text-slate-500">{label}</p>
+      {mediaWarning && <p className="text-sm text-amber-700">{mediaWarning}</p>}
+      {mediaError && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="min-w-0 flex-1">{mediaError}</p>
+          <button
+            type="button"
+            disabled={mediaBusy}
+            onClick={() => void enableDevices()}
+            className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-amber-900 ring-1 ring-amber-200 hover:bg-amber-100 disabled:opacity-50"
+          >
+            {mediaBusy ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+            Enable devices
+          </button>
+        </div>
+      )}
 
-      <div className="relative grid flex-1 grid-cols-1 gap-3 lg:grid-cols-2">
-        <div className="relative min-h-[240px] overflow-hidden rounded-2xl bg-slate-900 shadow-sm lg:min-h-[420px]">
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            className="h-full w-full object-cover"
-          />
-          {connectionState !== "connected" && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900/90 px-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-xl font-bold text-white">
-                {session.partner.fullname
-                  .split(" ")
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .map((p) => p.charAt(0).toUpperCase())
-                  .join("")}
-              </div>
-              <p className="text-sm font-semibold text-white">{session.partner.fullname}</p>
-              <p className="text-xs text-slate-300">
-                {partnerPresent ? "Connecting audio & video…" : "Share this session — waiting for them to join."}
-              </p>
+      <div className="grid flex-1 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="grid flex-1 grid-cols-1 gap-3 lg:grid-cols-2">
+            <div className="relative min-h-[220px] overflow-hidden rounded-2xl bg-slate-900 shadow-sm lg:min-h-[380px]">
+              <video
+                ref={bindRemoteVideo}
+                autoPlay
+                playsInline
+                className="h-full w-full object-cover"
+              />
+              {connectionState !== "connected" && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900/90 px-6 text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-xl font-bold text-white">
+                    {session.partner.fullname
+                      .split(" ")
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((p) => p.charAt(0).toUpperCase())
+                      .join("")}
+                  </div>
+                  <p className="text-sm font-semibold text-white">{session.partner.fullname}</p>
+                  <p className="text-xs text-slate-300">
+                    {partnerPresent
+                      ? "Connecting audio & video…"
+                      : "Waiting for them to join this session."}
+                  </p>
+                </div>
+              )}
+              <span className="absolute bottom-3 left-3 rounded-md bg-black/55 px-2 py-1 text-xs font-semibold text-white">
+                {session.partner.fullname}
+              </span>
             </div>
-          )}
-          <span className="absolute bottom-3 left-3 rounded-md bg-black/55 px-2 py-1 text-xs font-semibold text-white">
-            {session.partner.fullname}
-          </span>
+
+            <div className="relative min-h-[180px] overflow-hidden rounded-2xl bg-slate-800 shadow-sm lg:min-h-[380px]">
+              <video
+                ref={bindLocalVideo}
+                autoPlay
+                playsInline
+                muted
+                className={`h-full w-full object-cover ${cameraEnabled && hasCamera ? "" : "opacity-0"}`}
+              />
+              {(!hasCamera || !cameraEnabled) && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand text-lg font-bold text-white">
+                    {viewerName
+                      .split(" ")
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((p) => p.charAt(0).toUpperCase())
+                      .join("") || "You"}
+                  </div>
+                  {!mediaReady && (
+                    <button
+                      type="button"
+                      disabled={mediaBusy}
+                      onClick={() => void enableDevices()}
+                      className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/25 disabled:opacity-50"
+                    >
+                      {mediaBusy ? "Requesting…" : "Enable camera & mic"}
+                    </button>
+                  )}
+                </div>
+              )}
+              <span className="absolute bottom-3 left-3 rounded-md bg-black/55 px-2 py-1 text-xs font-semibold text-white">
+                You
+                {hasMic && !micEnabled ? " · Mic off" : ""}
+                {hasCamera && !cameraEnabled ? " · Cam off" : ""}
+              </span>
+            </div>
+          </div>
+
+          <div className="sticky bottom-16 z-10 flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur lg:static lg:bottom-auto">
+            <button
+              type="button"
+              onClick={() => void toggleMic()}
+              disabled={mediaBusy}
+              className={`inline-flex h-12 w-12 items-center justify-center rounded-full ${
+                !hasMic
+                  ? "bg-slate-200 text-slate-500 hover:bg-slate-300"
+                  : micEnabled
+                    ? "bg-slate-100 text-slate-800 hover:bg-slate-200"
+                    : "bg-red-500 text-white hover:bg-red-600"
+              }`}
+              aria-label={!hasMic ? "Enable microphone" : micEnabled ? "Mute microphone" : "Unmute microphone"}
+              title={!hasMic ? "Enable microphone" : micEnabled ? "Mute" : "Unmute"}
+            >
+              {hasMic && micEnabled ? <Mic size={20} /> : <MicOff size={20} />}
+            </button>
+            <button
+              type="button"
+              onClick={() => void toggleCamera()}
+              disabled={mediaBusy}
+              className={`inline-flex h-12 w-12 items-center justify-center rounded-full ${
+                !hasCamera
+                  ? "bg-slate-200 text-slate-500"
+                  : cameraEnabled
+                    ? "bg-slate-100 text-slate-800 hover:bg-slate-200"
+                    : "bg-red-500 text-white hover:bg-red-600"
+              }`}
+              aria-label={
+                !hasCamera ? "Enable camera" : cameraEnabled ? "Turn camera off" : "Turn camera on"
+              }
+              title={!hasCamera ? "Enable camera" : cameraEnabled ? "Camera off" : "Camera on"}
+            >
+              {hasCamera && cameraEnabled ? <Video size={20} /> : <VideoOff size={20} />}
+            </button>
+            {!mediaReady && (
+              <button
+                type="button"
+                disabled={mediaBusy}
+                onClick={() => void enableDevices()}
+                className="inline-flex h-12 items-center gap-2 rounded-full bg-slate-900 px-4 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50"
+              >
+                {mediaBusy ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                Enable devices
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => void leave()}
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-red-600 px-5 text-sm font-bold text-white hover:bg-red-700"
+            >
+              <PhoneOff size={18} />
+              Leave
+            </button>
+            <button
+              type="button"
+              disabled={isCompleting}
+              onClick={markComplete}
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-brand px-5 text-sm font-bold text-white hover:bg-brand-dark disabled:opacity-50"
+            >
+              <CheckCircle2 size={18} />
+              {isCompleting ? "Finishing…" : "Mark Complete"}
+            </button>
+          </div>
         </div>
 
-        <div className="relative min-h-[200px] overflow-hidden rounded-2xl bg-slate-800 shadow-sm lg:min-h-[420px]">
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className={`h-full w-full object-cover ${cameraEnabled ? "" : "opacity-0"}`}
+        <div className="min-h-[360px] xl:min-h-[480px]">
+          <SessionChat
+            messages={messages}
+            userId={userId}
+            partnerName={session.partner.fullname}
+            onSend={sendChat}
+            disabled={!roomOpen}
           />
-          {!cameraEnabled && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand text-lg font-bold text-white">
-                {viewerName
-                  .split(" ")
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .map((p) => p.charAt(0).toUpperCase())
-                  .join("") || "You"}
-              </div>
-            </div>
-          )}
-          <span className="absolute bottom-3 left-3 rounded-md bg-black/55 px-2 py-1 text-xs font-semibold text-white">
-            You {!micEnabled ? "· Mic off" : ""}
-          </span>
         </div>
-      </div>
-
-      <div className="sticky bottom-16 z-10 flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur lg:bottom-4">
-        <button
-          type="button"
-          onClick={toggleMic}
-          className={`inline-flex h-12 w-12 items-center justify-center rounded-full ${
-            micEnabled
-              ? "bg-slate-100 text-slate-800 hover:bg-slate-200"
-              : "bg-red-500 text-white hover:bg-red-600"
-          }`}
-          aria-label={micEnabled ? "Mute microphone" : "Unmute microphone"}
-          title={micEnabled ? "Mute" : "Unmute"}
-        >
-          {micEnabled ? <Mic size={20} /> : <MicOff size={20} />}
-        </button>
-        <button
-          type="button"
-          onClick={toggleCamera}
-          className={`inline-flex h-12 w-12 items-center justify-center rounded-full ${
-            cameraEnabled
-              ? "bg-slate-100 text-slate-800 hover:bg-slate-200"
-              : "bg-red-500 text-white hover:bg-red-600"
-          }`}
-          aria-label={cameraEnabled ? "Turn camera off" : "Turn camera on"}
-          title={cameraEnabled ? "Camera off" : "Camera on"}
-        >
-          {cameraEnabled ? <Video size={20} /> : <VideoOff size={20} />}
-        </button>
-        <button
-          type="button"
-          onClick={() => void leave()}
-          className="inline-flex h-12 items-center gap-2 rounded-full bg-red-600 px-5 text-sm font-bold text-white hover:bg-red-700"
-        >
-          <PhoneOff size={18} />
-          Leave
-        </button>
-        <button
-          type="button"
-          disabled={isCompleting}
-          onClick={markComplete}
-          className="inline-flex h-12 items-center gap-2 rounded-full bg-brand px-5 text-sm font-bold text-white hover:bg-brand-dark disabled:opacity-50"
-        >
-          <CheckCircle2 size={18} />
-          {isCompleting ? "Finishing…" : "Mark Complete"}
-        </button>
       </div>
     </div>
   );
