@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { uploadSessionChatFile } from "@/lib/swapSessionChatUpload";
 
 type SignalPayload =
   | { type: "offer"; from: string; sdp: RTCSessionDescriptionInit }
@@ -14,7 +15,8 @@ export type ChatAttachment = {
   name: string;
   mime: string;
   size: number;
-  dataUrl: string;
+  /** Signed Storage URL (or legacy data URL). */
+  url: string;
 };
 
 export type ChatMessage = {
@@ -25,9 +27,6 @@ export type ChatMessage = {
   at: number;
   attachment?: ChatAttachment;
 };
-
-/** Realtime broadcast payloads stay reliable under ~200KB. */
-const MAX_CHAT_FILE_BYTES = 180_000;
 
 export type ConnectionState = "connecting" | "waiting" | "connecting-peer" | "connected" | "failed" | "ended";
 
@@ -57,41 +56,6 @@ function mediaErrorMessage(err: unknown): string {
     return "Camera or microphone is already in use by another app. Close it and try again.";
   }
   return "Could not access camera or microphone. Check browser permissions and try again.";
-}
-
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error ?? new Error("File read failed"));
-    reader.readAsDataURL(file);
-  });
-}
-
-async function compressImageForChat(file: File): Promise<{ dataUrl: string; mime: string; size: number }> {
-  const bitmap = await createImageBitmap(file);
-  const maxEdge = 960;
-  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
-  const width = Math.max(1, Math.round(bitmap.width * scale));
-  const height = Math.max(1, Math.round(bitmap.height * scale));
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas unavailable");
-  ctx.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
-
-  let quality = 0.72;
-  let dataUrl = canvas.toDataURL("image/jpeg", quality);
-  while (dataUrl.length > MAX_CHAT_FILE_BYTES * 1.37 && quality > 0.35) {
-    quality -= 0.1;
-    dataUrl = canvas.toDataURL("image/jpeg", quality);
-  }
-
-  const size = Math.ceil((dataUrl.length - dataUrl.indexOf(",") - 1) * 0.75);
-  return { dataUrl, mime: "image/jpeg", size };
 }
 
 async function acquireMedia(): Promise<{ stream: MediaStream; warning: string | null }> {
@@ -586,47 +550,15 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     async (file: File, caption = "") => {
       if (!channelRef.current) return { ok: false as const, error: "Chat is not connected." };
 
-      let dataUrl: string;
-      let mime = file.type || "application/octet-stream";
-      let size = file.size;
-      let name = file.name || "file";
+      const uploaded = await uploadSessionChatFile({ requestId, userId, file });
+      if (!uploaded.ok) return uploaded;
 
-      try {
-        if (file.type.startsWith("image/")) {
-          const compressed = await compressImageForChat(file);
-          dataUrl = compressed.dataUrl;
-          mime = compressed.mime;
-          size = compressed.size;
-          name = file.name.replace(/\.\w+$/, "") + ".jpg";
-        } else {
-          if (file.size > MAX_CHAT_FILE_BYTES) {
-            return {
-              ok: false as const,
-              error: `File is too large (max ${Math.round(MAX_CHAT_FILE_BYTES / 1024)}KB for session chat).`,
-            };
-          }
-          dataUrl = await readFileAsDataUrl(file);
-        }
-      } catch (err) {
-        console.error("[swap-chat] file read failed:", err);
-        return { ok: false as const, error: "Could not read that file." };
-      }
-
-      // Approximate base64 payload size.
-      const payloadBytes = Math.ceil((dataUrl.length - dataUrl.indexOf(",") - 1) * 0.75);
-      if (payloadBytes > MAX_CHAT_FILE_BYTES) {
-        return {
-          ok: false as const,
-          error: `File is too large after processing (max ${Math.round(MAX_CHAT_FILE_BYTES / 1024)}KB).`,
-        };
-      }
-
-      const ok = await sendChat(caption, { name, mime, size, dataUrl });
+      const ok = await sendChat(caption, uploaded.attachment);
       return ok
         ? { ok: true as const }
         : { ok: false as const, error: "Could not send the file. Try again." };
     },
-    [sendChat]
+    [requestId, sendChat, userId]
   );
 
   const hangUp = useCallback(async () => {

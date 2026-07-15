@@ -103,10 +103,16 @@ export default function SessionChat({
                   )}
 
                   {attachment && isImage && (
-                    <a href={attachment.dataUrl} download={attachment.name} className="mb-2 block">
+                    <a
+                      href={attachment.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={attachment.name}
+                      className="mb-2 block"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={attachment.dataUrl}
+                        src={attachment.url}
                         alt={attachment.name}
                         className="max-h-56 max-w-full rounded-xl object-contain"
                       />
@@ -115,7 +121,9 @@ export default function SessionChat({
 
                   {attachment && !isImage && (
                     <a
-                      href={attachment.dataUrl}
+                      href={attachment.url}
+                      target="_blank"
+                      rel="noreferrer"
                       download={attachment.name}
                       className={`mb-2 flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold ${
                         mine ? "bg-white/15 text-white hover:bg-white/25" : "bg-white text-slate-700 hover:bg-slate-50"
@@ -188,9 +196,7 @@ export default function SessionChat({
             <Send size={16} />
           </button>
         </div>
-        <p className="mt-2 px-1 text-[11px] text-slate-400">
-          Images are compressed automatically. Other files up to ~180KB.
-        </p>
+        <p className="mt-2 px-1 text-[11px] text-slate-400">Files up to 20MB.</p>
       </form>
     </div>
   );
