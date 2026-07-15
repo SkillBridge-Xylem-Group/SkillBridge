@@ -12,6 +12,7 @@ import TipCard from "@/components/dashboard/TipCard";
 import OnboardingGate from "@/components/onboarding/OnboardingGate";
 import { deriveNameFromEmail } from "@/lib/deriveName";
 import { getSkillsByCategory } from "@/lib/skillCatalog";
+import { isAdminUser } from "@/lib/auth/isAdmin";
 
 export const metadata: Metadata = {
   title: "Dashboard | SkillBridge",
@@ -32,6 +33,10 @@ export default async function DashboardPage() {
     .select("fullname, bio, experience_points, level")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (await isAdminUser(supabase, user.id)) {
+    redirect("/dashboard/admin");
+  }
 
   const { count: offeredCount } = await supabase
     .from("user_skill_offered")

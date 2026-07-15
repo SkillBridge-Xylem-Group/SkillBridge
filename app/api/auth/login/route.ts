@@ -73,9 +73,22 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("fullname")
+    .select("fullname, is_suspended, suspended_reason")
     .eq("id", data.user.id)
     .maybeSingle();
+
+  if (profile?.is_suspended) {
+    await supabase.auth.signOut();
+    await authResponseDelay();
+    return NextResponse.json(
+      {
+        error: profile.suspended_reason
+          ? `Your account has been suspended: ${profile.suspended_reason}`
+          : "Your account has been suspended. Contact an administrator for help.",
+      },
+      { status: 403 }
+    );
+  }
 
   return NextResponse.json({
     message: "Login successful",
