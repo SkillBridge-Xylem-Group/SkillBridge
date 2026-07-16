@@ -10,6 +10,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  const needsAuth = protectedRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+
+  // Public pages (login/register/landing/etc.) skip the Supabase round-trip so
+  // first paint is not blocked on auth verification.
+  if (!needsAuth) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -31,13 +41,11 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const needsAuth = protectedRoutes.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
-
-  if (needsAuth && !user) {
+  if (!user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirectTo", `${pathname}${search}`);
     return NextResponse.redirect(loginUrl);

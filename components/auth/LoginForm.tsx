@@ -1,18 +1,26 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import PasswordField from "./PasswordField";
 import GoogleButton from "./GoogleButton";
 
-export default function LoginForm() {
+type LoginFormProps = {
+  redirectTo?: string | null;
+  urlError?: string | null;
+  justLoggedOut?: boolean;
+};
+
+export default function LoginForm({
+  redirectTo: redirectToProp,
+  urlError,
+  justLoggedOut = false,
+}: LoginFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = getSafeRedirectPath(searchParams.get("redirectTo"));
-  const urlError = searchParams.get("error");
+  const redirectTo = getSafeRedirectPath(redirectToProp);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -57,8 +65,8 @@ export default function LoginForm() {
         }
       }
 
-      router.push(redirectTo);
-      router.refresh();
+      // replace avoids stacking history; cookies are already set by the browser client
+      router.replace(redirectTo);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -82,6 +90,12 @@ export default function LoginForm() {
       {urlError === "confirmation-failed" && (
         <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           This link is invalid or has expired. Please request a new password reset link.
+        </p>
+      )}
+
+      {justLoggedOut && (
+        <p className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          You have been signed out. Please sign in again to continue.
         </p>
       )}
 

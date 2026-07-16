@@ -25,16 +25,11 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("fullname, bio, experience_points, level")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const { count: offeredCount } = await supabase
-    .from("user_skill_offered")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+  const [{ data: profile }, { count: offeredCount }, { count: wantedCount }] = await Promise.all([
+    supabase.from("users").select("fullname, bio, experience_points, level").eq("id", user.id).maybeSingle(),
+    supabase.from("user_skill_offered").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    supabase.from("user_skill_wanted").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+  ]);
 
   const displayName =
     profile?.fullname ||
@@ -44,13 +39,8 @@ export default async function DashboardPage() {
 
   // No dedicated "onboarding_completed" column exists, so infer it from
   // whether the user has a bio or has picked any skills yet.
-  const { count: wantedCount } = await supabase
-    .from("user_skill_wanted")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
   const showOnboarding = !profile?.bio && (offeredCount ?? 0) === 0 && (wantedCount ?? 0) === 0;
-  const skillsByCategory = await getSkillsByCategory(supabase);
+  const skillsByCategory = showOnboarding ? await getSkillsByCategory(supabase) : {};
 
   return (
     <DashboardLayout userName={displayName} level={profile?.level ?? 0} xp={profile?.experience_points ?? 0}>

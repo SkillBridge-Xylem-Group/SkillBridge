@@ -26,9 +26,16 @@ export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuPr
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function handleLogout() {
-    // TODO: hubungkan ke API auth (clear session/token) sebelum redirect.
-    router.push("/login");
+  async function handleLogout() {
+    try {
+      const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // Still leave the app even if sign-out fails.
+    }
+    // Soft client navigation — avoid full hard reload that re-downloads the login page.
+    router.replace("/login?loggedOut=1");
   }
 
   return (

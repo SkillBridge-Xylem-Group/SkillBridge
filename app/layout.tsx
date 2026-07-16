@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Jost, Inter } from "next/font/google";
+import { Jost, Inter, Dancing_Script } from "next/font/google";
 import { MotionConfig } from "framer-motion";
 import "./globals.css";
 
@@ -20,6 +20,13 @@ const bodyFont = Inter({
   subsets: ["latin"],
 });
 
+const scriptFont = Dancing_Script({
+  variable: "--font-script",
+  weight: ["700"],
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "SkillBridge",
   description: "Trade skills with people worldwide, at no cost, on SkillBridge.",
@@ -31,7 +38,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${displayFont.variable} ${bodyFont.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${displayFont.variable} ${bodyFont.variable} ${scriptFont.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col">
         <MotionConfig reducedMotion="user">{children}</MotionConfig>
       </body>
