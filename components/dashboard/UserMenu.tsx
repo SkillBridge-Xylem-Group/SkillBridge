@@ -45,25 +45,25 @@ export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuPr
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-3 rounded-full py-1 pl-1 pr-3 transition hover:bg-slate-100"
+        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-slate-100 sm:gap-3 sm:pr-3"
       >
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand sm:h-10 sm:w-10">
           {name.charAt(0).toUpperCase()}
         </div>
-        <div className="hidden text-left sm:block">
-          <p className="text-sm font-bold text-slate-900">{name}</p>
-          <p className="text-xs font-semibold text-brand">
+        <div className="hidden min-w-0 text-left lg:block">
+          <p className="truncate text-sm font-bold text-slate-900">{name}</p>
+          <p className="truncate text-xs font-semibold text-brand">
             {level}
             {xp ? ` · ${xp} XP` : ""}
           </p>
         </div>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={16} className={`hidden text-slate-400 transition-transform sm:block ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-2xl border border-slate-100 bg-white py-2 shadow-xl"
+          className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-2xl border border-slate-100 bg-white py-2 shadow-xl"
         >
           <Link
             href="/dashboard/profile"
