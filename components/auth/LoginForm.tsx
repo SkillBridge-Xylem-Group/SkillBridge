@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { PASSWORD_MAX_LENGTH } from "@/lib/auth/password";
@@ -12,13 +12,20 @@ import AuthHoneypot from "./AuthHoneypot";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import { signOutEverywhere } from "@/lib/auth/sign-out";
 
-export default function LoginForm() {
+type LoginFormProps = {
+  redirectTo?: string | null;
+  urlError?: string | null;
+  justLoggedOut?: boolean;
+};
+
+export default function LoginForm({
+  redirectTo: redirectToProp,
+  urlError,
+  justLoggedOut = false,
+}: LoginFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = getSafeRedirectPath(searchParams.get("redirectTo"));
-  const urlError = searchParams.get("error");
-  const justLoggedOut = searchParams.get("loggedOut") === "1";
-  const { website, setWebsite, guardPayload } = useFormGuard();
+  const redirectTo = getSafeRedirectPath(redirectToProp);
+  const { website, setWebsite } = useFormGuard();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -76,8 +83,8 @@ export default function LoginForm() {
         }
       }
 
-      router.push(redirectTo);
-      router.refresh();
+      // Cookies are already set by the browser client; one navigation is enough.
+      router.replace(redirectTo);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
