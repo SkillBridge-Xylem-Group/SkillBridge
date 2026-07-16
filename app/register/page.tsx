@@ -1,15 +1,5 @@
-import type { Metadata } from "next";
-import AuthShell from "@/components/auth/AuthShell";
-import RegisterForm from "@/components/auth/RegisterForm";
-
-export const metadata: Metadata = {
-  title: "Sign Up | SkillBridge",
-};
+import { redirect } from "next/navigation";
 
 export default function RegisterPage() {
-  return (
-    <AuthShell>
-      <RegisterForm />
-    </AuthShell>
-  );
+  redirect("/login?mode=signup");
 }

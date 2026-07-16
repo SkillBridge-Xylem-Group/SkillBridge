@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import AuthShell from "@/components/auth/AuthShell";
-import LoginForm from "@/components/auth/LoginForm";
+import SlidingAuthCard from "@/components/auth/SlidingAuthCard";
 
 export const metadata: Metadata = {
   title: "Sign In | SkillBridge",
@@ -9,10 +8,8 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <AuthShell>
-      <Suspense fallback={<div>Loading...</div>}>
-        <LoginForm />
-      </Suspense>
-    </AuthShell>
+    <Suspense fallback={<div className="auth-neu-page min-h-screen" />}>
+      <SlidingAuthCard />
+    </Suspense>
   );
 }

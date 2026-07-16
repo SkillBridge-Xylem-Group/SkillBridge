@@ -230,3 +230,103 @@ h4 {
 .nav-elevated {
   box-shadow: var(--shadow-nav-idle);
 }
+
+/* ------------------------------------------------------------------ */
+/* Neumorphic sliding auth card (login / register / forgot-password). */
+/* Deliberately its own soft-UI palette, separate from the flat brand  */
+/* tokens above — scoped to auth-neu-* classes so nothing else on the */
+/* site is affected.                                                  */
+/* ------------------------------------------------------------------ */
+:root {
+  --neu-bg: #e6eef8;
+  --neu-major: #005c97;
+  --neu-secondary: #63b9fb;
+  --neu-shadow-dark: #b8c2d0;
+  --neu-shadow-light: #ffffff;
+  --neu-grad: linear-gradient(135deg, #005c97 0%, #63b9fb 100%);
+  --neu-text: #1d1c1d;
+  --neu-text-muted: #6b7789;
+}
+
+.auth-neu-page {
+  background: var(--neu-bg);
+}
+
+.auth-neu-card {
+  background: var(--neu-bg);
+  box-shadow: 30px 30px 60px var(--neu-shadow-dark), -20px -20px 60px var(--neu-shadow-light);
+}
+
+.auth-neu-card-mobile {
+  background: var(--neu-bg);
+  box-shadow: 16px 16px 32px var(--neu-shadow-dark), -12px -12px 32px var(--neu-shadow-light);
+}
+
+.auth-neu-input {
+  width: 100%;
+  background: var(--neu-bg);
+  border: none;
+  border-radius: 20px;
+  padding: 16px 16px 16px 50px;
+  box-shadow: inset 6px 6px 12px var(--neu-shadow-dark), inset -6px -6px 12px var(--neu-shadow-light);
+  outline: none;
+  font-size: 0.95rem;
+  color: var(--neu-text);
+}
+.auth-neu-input::placeholder {
+  color: var(--neu-text-muted);
+}
+
+.auth-neu-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--neu-major);
+  pointer-events: none;
+}
+
+.auth-neu-button {
+  border: none;
+  border-radius: 20px;
+  background: var(--neu-grad);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 8px 8px 20px var(--neu-shadow-dark);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.auth-neu-button:active {
+  transform: scale(0.96);
+}
+.auth-neu-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-neu-ghost-button {
+  background: var(--neu-bg);
+  border: none;
+  border-radius: 20px;
+  color: var(--neu-text);
+  font-weight: 500;
+  box-shadow: 6px 6px 14px var(--neu-shadow-dark), -6px -6px 14px var(--neu-shadow-light);
+  transition: transform 0.15s ease;
+}
+.auth-neu-ghost-button:active {
+  transform: scale(0.97);
+}
+.auth-neu-ghost-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-neu-link {
+  color: var(--neu-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+.auth-neu-link:hover {
+  text-decoration: underline;
+}

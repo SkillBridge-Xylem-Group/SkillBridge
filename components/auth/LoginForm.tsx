@@ -2,17 +2,21 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { Mail } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { PASSWORD_MAX_LENGTH } from "@/lib/auth/password";
 import { useFormGuard } from "@/hooks/useFormGuard";
-import PasswordField from "./PasswordField";
+import NeumorphicPasswordField from "./NeumorphicPasswordField";
 import GoogleButton from "./GoogleButton";
 import AuthHoneypot from "./AuthHoneypot";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import { signOutEverywhere } from "@/lib/auth/sign-out";
 
-export default function LoginForm() {
+type LoginFormProps = {
+  onForgotPassword: () => void;
+  onSwitchToSignup: () => void;
+};
+
+export default function LoginForm({ onForgotPassword, onSwitchToSignup }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = getSafeRedirectPath(searchParams.get("redirectTo"));
@@ -86,11 +90,13 @@ export default function LoginForm() {
   }
 
   return (
-    <>
-      <h1 className="text-2xl font-medium sm:text-3xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
-        Welcome to SkillBridge
+    <div className="w-full max-w-sm">
+      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-major)" }}>
+        SkillBridge
       </h1>
-      <p className="mt-1 text-sm" style={{ color: "var(--color-mid-gray)" }}>Sign in to your account</p>
+      <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+        Sign in to your account
+      </p>
 
       {urlError === "confirm-email" && (
         <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -119,10 +125,8 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <AuthHoneypot value={website} onChange={setWebsite} />
 
-        <div>
-          <label htmlFor="email" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
-            Email
-          </label>
+        <div className="relative">
+          <Mail size={18} className="auth-neu-icon" />
           <input
             id="email"
             name="email"
@@ -130,55 +134,46 @@ export default function LoginForm() {
             required
             maxLength={254}
             autoComplete="email"
-            placeholder="Enter your email"
+            placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 w-full border px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none"
-            style={{
-              borderColor: "var(--color-fog)",
-              borderRadius: "12px",
-              color: "var(--color-carbon)",
-            }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-brand-blue)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-fog)")}
+            className="auth-neu-input"
           />
         </div>
 
-        <PasswordField
-          id="password"
-          label="Password"
-          value={password}
-          onChange={setPassword}
-          maxLength={PASSWORD_MAX_LENGTH}
-        />
+        <NeumorphicPasswordField id="password" value={password} onChange={setPassword} />
 
         <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2" style={{ color: "var(--color-charcoal)" }}>
+          <label className="flex items-center gap-2" style={{ color: "var(--neu-text-muted)" }}>
             <input
               type="checkbox"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
               className="h-4 w-4 rounded"
-              style={{ accentColor: "var(--color-brand-blue)" }}
+              style={{ accentColor: "var(--neu-major)" }}
             />
             Remember me
           </label>
-          <Link href="/forgot-password" className="font-medium hover:underline" style={{ color: "var(--color-brand-blue)" }}>
+          <button type="button" onClick={onForgotPassword} className="auth-neu-link text-sm">
             Forgot Password?
-          </Link>
+          </button>
         </div>
 
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-        <button type="submit" disabled={isSubmitting} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="auth-neu-button w-full py-3.5 text-sm"
+        >
           {isSubmitting ? "Signing In..." : "Sign In"}
         </button>
       </form>
 
-      <div className="mt-5 flex items-center gap-3 text-xs font-medium" style={{ color: "var(--color-mid-gray)" }}>
-        <div className="h-px flex-1" style={{ backgroundColor: "var(--color-fog)" }} />
+      <div className="mt-5 flex items-center gap-3 text-xs font-medium" style={{ color: "var(--neu-text-muted)" }}>
+        <div className="h-px flex-1" style={{ backgroundColor: "var(--neu-shadow-dark)" }} />
         or
-        <div className="h-px flex-1" style={{ backgroundColor: "var(--color-fog)" }} />
+        <div className="h-px flex-1" style={{ backgroundColor: "var(--neu-shadow-dark)" }} />
       </div>
 
       <div className="mt-5">
@@ -189,12 +184,12 @@ export default function LoginForm() {
         />
       </div>
 
-      <p className="mt-5 text-sm" style={{ color: "var(--color-charcoal)" }}>
+      <p className="mt-5 text-sm" style={{ color: "var(--neu-text-muted)" }}>
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="font-medium hover:underline" style={{ color: "var(--color-brand-blue)" }}>
+        <button type="button" onClick={onSwitchToSignup} className="auth-neu-link text-sm">
           Sign Up
-        </Link>
+        </button>
       </p>
-    </>
+    </div>
   );
 }

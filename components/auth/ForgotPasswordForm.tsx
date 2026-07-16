@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 import { useFormGuard } from "@/hooks/useFormGuard";
 import AuthHoneypot from "./AuthHoneypot";
 
-const GENERIC_SUCCESS_MESSAGE =
-  "If an account exists for this email, a reset link is on its way.";
+const GENERIC_SUCCESS_MESSAGE = "If an account exists for this email, a reset link is on its way.";
 
-export default function ForgotPasswordForm() {
+type ForgotPasswordFormProps = {
+  onBackToLogin: () => void;
+};
+
+export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
   const { website, setWebsite, guardPayload } = useFormGuard();
   const [email, setEmail] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -46,63 +48,54 @@ export default function ForgotPasswordForm() {
   }
 
   return (
-    <>
-      <h1 className="text-3xl font-medium sm:text-4xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
-        Forgot Password
+    <div className="w-full max-w-sm">
+      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-major)" }}>
+        Reset Password
       </h1>
-      <p className="mt-3" style={{ color: "var(--color-charcoal)" }}>
-        Enter your email and we&apos;ll send you a reset link.
+      <p className="mt-3 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+        Enter your email and we&apos;ll send you instructions to reset your password.
       </p>
 
       {successMessage ? (
-        <p
-          className="mt-8 px-4 py-3.5 text-sm font-medium"
-          style={{ backgroundColor: "var(--color-blue-wash)", color: "var(--color-brand-blue-deep)", borderRadius: "12px" }}
-        >
+        <p className="mt-6 rounded-2xl px-4 py-3.5 text-sm font-medium" style={{ color: "var(--neu-major)" }}>
           {successMessage}
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <AuthHoneypot value={website} onChange={setWebsite} />
 
-          <div>
-            <label htmlFor="email" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
-              Email Address
-            </label>
+          <div className="relative">
+            <Mail size={18} className="auth-neu-icon" />
             <input
-              id="email"
+              id="reset-email"
               name="email"
               type="email"
               required
               maxLength={254}
               autoComplete="email"
-              placeholder="name@example.com"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 w-full border px-4 py-3.5 text-sm placeholder:text-slate-400 focus:outline-none"
-              style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-brand-blue)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-fog)")}
+              className="auth-neu-input"
             />
           </div>
 
           {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-          <button type="submit" disabled={isSubmitting} className="btn-primary w-full gap-2 disabled:cursor-not-allowed disabled:opacity-60">
-            {isSubmitting ? "Sending..." : "Send Reset Link"}
-            <ArrowRight size={18} />
+          <button type="submit" disabled={isSubmitting} className="auth-neu-button w-full py-3.5 text-sm">
+            {isSubmitting ? "Sending..." : "Send Link"}
           </button>
         </form>
       )}
 
-      <Link
-        href="/login"
-        className="mx-auto mt-6 flex w-fit items-center gap-2 text-sm font-medium hover:underline"
-        style={{ color: "var(--color-brand-blue)" }}
+      <button
+        type="button"
+        onClick={onBackToLogin}
+        className="mx-auto mt-6 flex w-fit items-center gap-2 text-sm auth-neu-link"
       >
         <ArrowLeft size={16} />
-        Back to login
-      </Link>
-    </>
+        Back to Login
+      </button>
+    </div>
   );
 }

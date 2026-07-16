@@ -2,14 +2,18 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { User, Mail } from "lucide-react";
 import { isPasswordValid, PASSWORD_MAX_LENGTH } from "@/lib/auth/password";
-import PasswordField from "./PasswordField";
+import NeumorphicPasswordField from "./NeumorphicPasswordField";
 import PasswordRequirements from "./PasswordRequirements";
 import GoogleButton from "./GoogleButton";
+import AuthHoneypot from "./AuthHoneypot";
 
-export default function RegisterForm() {
+type RegisterFormProps = {
+  onSwitchToLogin: () => void;
+};
+
+export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -98,46 +102,36 @@ export default function RegisterForm() {
 
   if (confirmationMessage) {
     return (
-      <>
-        <h1 className="text-3xl font-medium sm:text-4xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
+      <div className="w-full max-w-sm text-center">
+        <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-major)" }}>
           Check your email
         </h1>
-        <p className="mt-4" style={{ color: "var(--color-charcoal)" }}>{confirmationMessage}</p>
-        <p className="mt-6 text-sm" style={{ color: "var(--color-charcoal)" }}>
-          <Link href="/login" className="font-medium hover:underline" style={{ color: "var(--color-brand-blue)" }}>
-            Back to Sign In
-          </Link>
+        <p className="mt-4 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+          {confirmationMessage}
         </p>
-      </>
+        <p className="mt-6 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+          <button type="button" onClick={onSwitchToLogin} className="auth-neu-link text-sm">
+            Back to Sign In
+          </button>
+        </p>
+      </div>
     );
   }
 
   return (
-    <>
-      <h1 className="text-2xl font-medium sm:text-3xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
-        Welcome to SkillBridge
+    <div className="w-full max-w-sm">
+      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-major)" }}>
+        Create Account
       </h1>
-      <p className="mt-1 text-sm" style={{ color: "var(--color-mid-gray)" }}>Create your account</p>
+      <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+        Join SkillBridge and start swapping skills
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-        {/* Honeypot — hidden from users, bots often fill this field */}
-        <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
-          <label htmlFor="website">Website</label>
-          <input
-            id="website"
-            name="website"
-            type="text"
-            tabIndex={-1}
-            autoComplete="off"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
-          />
-        </div>
+        <AuthHoneypot value={website} onChange={setWebsite} />
 
-        <div>
-          <label htmlFor="fullName" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
-            Full Name
-          </label>
+        <div className="relative">
+          <User size={18} className="auth-neu-icon" />
           <input
             id="fullName"
             name="fullName"
@@ -145,20 +139,15 @@ export default function RegisterForm() {
             required
             maxLength={100}
             autoComplete="name"
-            placeholder="Enter your full name"
+            placeholder="Full Name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="mt-1.5 w-full border px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none"
-            style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-brand-blue)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-fog)")}
+            className="auth-neu-input"
           />
         </div>
 
-        <div>
-          <label htmlFor="email" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
-            Email
-          </label>
+        <div className="relative">
+          <Mail size={18} className="auth-neu-icon" />
           <input
             id="email"
             name="email"
@@ -166,19 +155,16 @@ export default function RegisterForm() {
             required
             maxLength={254}
             autoComplete="email"
-            placeholder="Enter your email"
+            placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 w-full border px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none"
-            style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-brand-blue)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-fog)")}
+            className="auth-neu-input"
           />
         </div>
 
-        <PasswordField
+        <NeumorphicPasswordField
           id="password"
-          label="Password"
+          placeholder="Password"
           value={password}
           onChange={setPassword}
           autoComplete="new-password"
@@ -192,10 +178,9 @@ export default function RegisterForm() {
           open={passwordFocused || (password.length > 0 && !isPasswordValid(password))}
         />
 
-        <PasswordField
+        <NeumorphicPasswordField
           id="confirmPassword"
-          label="Confirm Password"
-          placeholder="Re-enter your password"
+          placeholder="Confirm Password"
           value={confirmPassword}
           onChange={setConfirmPassword}
           autoComplete="new-password"
@@ -204,15 +189,19 @@ export default function RegisterForm() {
 
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-        <button type="submit" disabled={isSubmitting} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="auth-neu-button w-full py-3.5 text-sm"
+        >
           {isSubmitting ? "Signing Up..." : "Sign Up"}
         </button>
       </form>
 
-      <div className="mt-5 flex items-center gap-3 text-xs font-medium" style={{ color: "var(--color-mid-gray)" }}>
-        <div className="h-px flex-1" style={{ backgroundColor: "var(--color-fog)" }} />
+      <div className="mt-5 flex items-center gap-3 text-xs font-medium" style={{ color: "var(--neu-text-muted)" }}>
+        <div className="h-px flex-1" style={{ backgroundColor: "var(--neu-shadow-dark)" }} />
         or
-        <div className="h-px flex-1" style={{ backgroundColor: "var(--color-fog)" }} />
+        <div className="h-px flex-1" style={{ backgroundColor: "var(--neu-shadow-dark)" }} />
       </div>
 
       <div className="mt-5">
@@ -223,12 +212,12 @@ export default function RegisterForm() {
         />
       </div>
 
-      <p className="mt-5 text-sm" style={{ color: "var(--color-charcoal)" }}>
+      <p className="mt-5 text-sm" style={{ color: "var(--neu-text-muted)" }}>
         Already have an account?{" "}
-        <Link href="/login" className="font-medium hover:underline" style={{ color: "var(--color-brand-blue)" }}>
+        <button type="button" onClick={onSwitchToLogin} className="auth-neu-link text-sm">
           Sign In
-        </Link>
+        </button>
       </p>
-    </>
+    </div>
   );
 }

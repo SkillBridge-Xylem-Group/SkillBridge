@@ -10,12 +10,7 @@ export default function GoogleButton({ label, onClick, disabled = false }: Googl
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex w-full items-center justify-center gap-3 border bg-white py-3.5 text-base transition disabled:cursor-not-allowed disabled:opacity-60"
-      style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
-      onMouseEnter={(e) => {
-        if (!disabled) e.currentTarget.style.backgroundColor = "var(--color-blue-wash)";
-      }}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+      className="auth-neu-ghost-button flex w-full items-center justify-center gap-3 py-3.5 text-base"
     >
       <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
         <path

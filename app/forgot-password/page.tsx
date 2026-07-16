@@ -1,15 +1,5 @@
-import type { Metadata } from "next";
-import AuthShell from "@/components/auth/AuthShell";
-import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
-
-export const metadata: Metadata = {
-  title: "Forgot Password | SkillBridge",
-};
+import { redirect } from "next/navigation";
 
 export default function ForgotPasswordPage() {
-  return (
-    <AuthShell>
-      <ForgotPasswordForm />
-    </AuthShell>
-  );
+  redirect("/login?mode=reset");
 }
