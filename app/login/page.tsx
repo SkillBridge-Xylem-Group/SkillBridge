@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import AuthShell from "@/components/auth/AuthShell";
 import LoginForm from "@/components/auth/LoginForm";
 
@@ -7,12 +6,20 @@ export const metadata: Metadata = {
   title: "Sign In | SkillBridge",
 };
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ redirectTo?: string; error?: string; loggedOut?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+
   return (
     <AuthShell>
-      <Suspense fallback={<div>Loading...</div>}>
-        <LoginForm />
-      </Suspense>
+      <LoginForm
+        redirectTo={params.redirectTo}
+        urlError={params.error}
+        justLoggedOut={params.loggedOut === "1"}
+      />
     </AuthShell>
   );
 }

@@ -32,8 +32,9 @@ export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuPr
     try {
       await signOutEverywhere();
     } finally {
-      // Hard navigation + cache-bust so back-button / bfcache cannot reopen a live session.
-      window.location.replace(`/login?loggedOut=1&t=${Date.now()}`);
+      // Hard navigation clears bfcache so a signed-out session cannot reopen.
+      // Keep static asset caching (no cache-bust query) for faster login paint.
+      window.location.replace("/login?loggedOut=1");
     }
   }
 
