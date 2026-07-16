@@ -8,10 +8,10 @@ import RecentForumDiscussions from "@/components/dashboard/RecentForumDiscussion
 import RecentMessages from "@/components/dashboard/RecentMessages";
 import QuickActions from "@/components/dashboard/QuickActions";
 import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
-import TipCard from "@/components/dashboard/TipCard";
 import OnboardingGate from "@/components/onboarding/OnboardingGate";
 import { deriveNameFromEmail } from "@/lib/deriveName";
 import { getSkillsByCategory } from "@/lib/skillCatalog";
+import { isAdminUser } from "@/lib/auth/isAdmin";
 
 export const metadata: Metadata = {
   title: "Dashboard | SkillBridge",
@@ -27,16 +27,19 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("fullname, bio, experience_points, level")
-    .eq("id", user.id)
-    .maybeSingle();
+  const [{ data: profile }, isAdmin] = await Promise.all([
+    supabase.from("users").select("fullname, bio, experience_points, level").eq("id", user.id).maybeSingle(),
+    isAdminUser(supabase, user.id),
+  ]);
 
-  const { count: offeredCount } = await supabase
-    .from("user_skill_offered")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+  if (isAdmin) {
+    redirect("/dashboard/admin");
+  }
+
+  const [{ count: offeredCount }, { count: wantedCount }] = await Promise.all([
+    supabase.from("user_skill_offered").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    supabase.from("user_skill_wanted").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+  ]);
 
   const displayName =
     profile?.fullname ||
@@ -46,17 +49,12 @@ export default async function DashboardPage() {
 
   // No dedicated "onboarding_completed" column exists, so infer it from
   // whether the user has a bio or has picked any skills yet.
-  const { count: wantedCount } = await supabase
-    .from("user_skill_wanted")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
   const showOnboarding = !profile?.bio && (offeredCount ?? 0) === 0 && (wantedCount ?? 0) === 0;
-  const skillsByCategory = await getSkillsByCategory(supabase);
+  const skillsByCategory = showOnboarding ? await getSkillsByCategory(supabase) : {};
 
   return (
     <DashboardLayout userName={displayName} level={profile?.level ?? 0} xp={profile?.experience_points ?? 0}>
-      <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <WelcomeBanner name={displayName} />
           <TopRatedMembers />
@@ -69,7 +67,6 @@ export default async function DashboardPage() {
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
             <NotificationsPanel />
           </div>
-          <TipCard />
         </div>
       </div>
 

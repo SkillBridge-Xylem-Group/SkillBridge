@@ -1,20 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 import ForgotPasswordForm from "./ForgotPasswordForm";
 
 type Mode = "login" | "signup" | "reset";
 
-function parseMode(value: string | null): Mode {
+function parseMode(value: string | undefined): Mode {
   return value === "signup" || value === "reset" ? value : "login";
 }
 
-export default function SlidingAuthCard() {
-  const searchParams = useSearchParams();
-  const [mode, setMode] = useState<Mode>(() => parseMode(searchParams.get("mode")));
+type SlidingAuthCardProps = {
+  initialMode?: string;
+  redirectTo?: string;
+  urlError?: string;
+  justLoggedOut?: boolean;
+};
+
+export default function SlidingAuthCard({ initialMode, redirectTo, urlError, justLoggedOut }: SlidingAuthCardProps) {
+  const [mode, setMode] = useState<Mode>(() => parseMode(initialMode));
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Hover-to-switch on desktop only — meaningless on touch, and locked out
@@ -67,7 +72,13 @@ export default function SlidingAuthCard() {
               mode === "reset" ? "-translate-y-[120%] opacity-0" : "translate-y-0 opacity-100"
             }`}
           >
-            <LoginForm onForgotPassword={() => setMode("reset")} onSwitchToSignup={() => setMode("signup")} />
+            <LoginForm
+              redirectTo={redirectTo}
+              urlError={urlError}
+              justLoggedOut={justLoggedOut}
+              onForgotPassword={() => setMode("reset")}
+              onSwitchToSignup={() => setMode("signup")}
+            />
           </div>
           <div
             className={`absolute inset-0 flex flex-col items-center justify-center px-12 transition-all duration-700 ${
@@ -153,7 +164,13 @@ export default function SlidingAuthCard() {
             </div>
 
             {mode === "login" ? (
-              <LoginForm onForgotPassword={() => setMode("reset")} onSwitchToSignup={() => setMode("signup")} />
+              <LoginForm
+                redirectTo={redirectTo}
+                urlError={urlError}
+                justLoggedOut={justLoggedOut}
+                onForgotPassword={() => setMode("reset")}
+                onSwitchToSignup={() => setMode("signup")}
+              />
             ) : (
               <RegisterForm onSwitchToLogin={() => setMode("login")} />
             )}

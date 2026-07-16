@@ -51,9 +51,11 @@ export const securityHeaders: Array<{ key: string; value: string }> = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
+    // Allow Skill Swap sessions to request camera/mic on this origin only.
+    // `camera=()` / `microphone=()` silently blocks getUserMedia with no browser prompt.
     key: "Permissions-Policy",
     value:
-      "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+      "camera=(self), microphone=(self), geolocation=(), payment=(), usb=(), interest-cohort=()",
   },
   { key: "X-DNS-Prefetch-Control", value: "on" },
   // Allow Google OAuth redirects / popups while isolating other cross-origin windows.

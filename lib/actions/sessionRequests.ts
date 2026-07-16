@@ -81,13 +81,14 @@ export async function respondToRequestAction(requestId: string, status: "accepte
     type: "swap_response",
     message:
       status === "accepted"
-        ? `${responderRow?.fullname ?? "Someone"} accepted your swap request`
+        ? `${responderRow?.fullname ?? "Someone"} accepted your swap request — open Join Session to start`
         : `${responderRow?.fullname ?? "Someone"} declined your swap request`,
     relatedEntityType: "session_request",
     relatedEntityId: requestId,
   });
 
   revalidatePath("/dashboard/swap-requests");
+  revalidatePath(`/dashboard/swap-session/${requestId}`);
   return { success: true };
 }
 
@@ -115,9 +116,32 @@ export async function completeSessionAction(requestId: string) {
       awardSessionCompletionXp(supabase, full.requester_id),
       awardSessionCompletionXp(supabase, full.receiver_id),
     ]);
+
+    const [{ data: requesterRow }, { data: receiverRow }] = await Promise.all([
+      supabase.from("users").select("fullname").eq("id", full.requester_id).maybeSingle(),
+      supabase.from("users").select("fullname").eq("id", full.receiver_id).maybeSingle(),
+    ]);
+
+    await Promise.all([
+      createNotification(supabase, {
+        userId: full.requester_id,
+        type: "review_prompt",
+        message: `Session completed — please rate and review ${receiverRow?.fullname ?? "your partner"}`,
+        relatedEntityType: "session_request",
+        relatedEntityId: requestId,
+      }),
+      createNotification(supabase, {
+        userId: full.receiver_id,
+        type: "review_prompt",
+        message: `Session completed — please rate and review ${requesterRow?.fullname ?? "your partner"}`,
+        relatedEntityType: "session_request",
+        relatedEntityId: requestId,
+      }),
+    ]);
   }
 
   revalidatePath("/dashboard/swap-requests");
+  revalidatePath(`/dashboard/swap-session/${requestId}`);
   return { success: true };
 }
 

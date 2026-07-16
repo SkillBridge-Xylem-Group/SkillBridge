@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ThreadList from "@/components/messages/ThreadList";
+import MessagesShell from "@/components/messages/MessagesShell";
 import { getUserThreads } from "@/lib/messages";
 
 export const metadata: Metadata = {
@@ -34,10 +35,7 @@ export default async function MessagesLayout({ children }: { children: ReactNode
       level={viewerRow?.level ?? 0}
       xp={viewerRow?.experience_points ?? 0}
     >
-      <div className="mt-6 flex h-[calc(100vh-9rem)] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-        <ThreadList threads={threads} />
-        <div className="min-w-0 flex-1">{children}</div>
-      </div>
+      <MessagesShell list={<ThreadList threads={threads} />}>{children}</MessagesShell>
     </DashboardLayout>
   );
 }

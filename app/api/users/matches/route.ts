@@ -65,12 +65,14 @@ export async function GET() {
           .from("users")
           .select(selectClause)
           .in("id", matchedUserIds)
+          .neq("role", "admin")
           .order("trust_score", { ascending: false })
           .limit(3)
       : await supabase
           .from("users")
           .select(selectClause)
           .neq("id", user.id)
+          .neq("role", "admin")
           .gt("trust_score", 0)
           .order("trust_score", { ascending: false })
           .limit(3);

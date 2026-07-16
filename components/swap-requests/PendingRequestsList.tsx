@@ -22,9 +22,14 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
   function confirmAccept(requestId: string) {
     if (!scheduledTime) return;
     startTransition(async () => {
-      await respondToRequestAction(requestId, "accepted", new Date(scheduledTime).toISOString());
+      await respondToRequestAction(
+        requestId,
+        "accepted",
+        new Date(scheduledTime).toISOString()
+      );
       setSchedulingId(null);
       setScheduledTime("");
+      // Stay on swap-requests; user joins via Join Session when ready.
       router.refresh();
     });
   }
