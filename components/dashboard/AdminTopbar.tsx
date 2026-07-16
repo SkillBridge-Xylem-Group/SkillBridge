@@ -17,8 +17,8 @@ export default function AdminTopbar({ userName }: AdminTopbarProps) {
   const pathname = usePathname();
 
   return (
-    <div className="sticky top-0 z-30 border-b border-slate-100/80 bg-[#F7F7FB]/95 backdrop-blur lg:border-0 lg:bg-transparent lg:backdrop-blur-none">
-      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8 lg:justify-end lg:px-10 lg:py-6">
+    <div className="sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8 lg:justify-end lg:px-10 lg:py-3">
         <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"

@@ -29,7 +29,8 @@ export default function Topbar({
 
   return (
     <>
-      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-slate-100/80 bg-[#F7F7FB]/95 px-4 py-3 backdrop-blur sm:px-8 lg:justify-end lg:border-0 lg:bg-transparent lg:px-10 lg:py-6 lg:backdrop-blur-none">
+      {/* Always solid — transparent lg styles used to float icons over Quick Actions. */}
+      <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-8 lg:justify-end lg:px-10 lg:py-3">
         <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"
@@ -52,15 +53,15 @@ export default function Topbar({
           </Link>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <Link
             href="/dashboard/messages"
             aria-label="Messages"
-            className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95"
           >
             <MessageSquare size={20} />
             {unreadMessageCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
                 {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
               </span>
             )}

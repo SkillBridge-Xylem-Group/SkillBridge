@@ -60,7 +60,7 @@ export default async function DashboardLayout({
           levelNumber={shellLevel}
           trustScore={trustScore}
         />
-        <main className="px-4 pb-24 sm:px-8 lg:px-10 lg:pb-10">{children}</main>
+        <main className="px-4 pb-24 pt-4 sm:px-8 lg:px-10 lg:pb-10 lg:pt-5">{children}</main>
       </div>
 
       <MobileBottomNav />

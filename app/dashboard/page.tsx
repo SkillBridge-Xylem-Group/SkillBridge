@@ -54,7 +54,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardLayout userName={displayName} level={profile?.level ?? 0} xp={profile?.experience_points ?? 0}>
-      <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <WelcomeBanner name={displayName} />
           <TopRatedMembers />
