@@ -8,7 +8,6 @@ import RecentForumDiscussions from "@/components/dashboard/RecentForumDiscussion
 import RecentMessages from "@/components/dashboard/RecentMessages";
 import QuickActions from "@/components/dashboard/QuickActions";
 import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
-import TipCard from "@/components/dashboard/TipCard";
 import OnboardingGate from "@/components/onboarding/OnboardingGate";
 import { deriveNameFromEmail } from "@/lib/deriveName";
 import { getSkillsByCategory } from "@/lib/skillCatalog";
@@ -68,7 +67,6 @@ export default async function DashboardPage() {
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
             <NotificationsPanel />
           </div>
-          <TipCard />
         </div>
       </div>
 
