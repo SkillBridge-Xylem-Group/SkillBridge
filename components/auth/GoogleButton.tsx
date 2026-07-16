@@ -10,12 +10,8 @@ export default function GoogleButton({ label, onClick, disabled = false }: Googl
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex w-full items-center justify-center gap-3 border bg-white py-3.5 text-base transition disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-3 border bg-white py-3.5 text-base transition-[background-color,transform,filter] duration-150 ease-out hover:bg-[var(--color-blue-wash)] active:scale-[0.98] active:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100"
       style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
-      onMouseEnter={(e) => {
-        if (!disabled) e.currentTarget.style.backgroundColor = "var(--color-blue-wash)";
-      }}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
     >
       <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
         <path
