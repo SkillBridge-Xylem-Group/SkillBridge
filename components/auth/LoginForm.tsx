@@ -40,6 +40,16 @@ export default function LoginForm({
     void signOutEverywhere();
   }, [justLoggedOut]);
 
+  // Drop sticky auth-unavailable from the URL so a one-off timeout does not
+  // keep blocking the user psychologically after the form is usable again.
+  useEffect(() => {
+    if (urlError !== "auth-unavailable" || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("error")) return;
+    url.searchParams.delete("error");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [urlError]);
+
   async function handleGoogleSignIn() {
     setError("");
     setIsGoogleLoading(true);
@@ -113,7 +123,7 @@ export default function LoginForm({
 
       {urlError === "auth-unavailable" && (
         <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Sign-in service is temporarily unavailable. Please try again in a moment.
+          We could not verify your session just now. You can still sign in below.
         </p>
       )}
 
