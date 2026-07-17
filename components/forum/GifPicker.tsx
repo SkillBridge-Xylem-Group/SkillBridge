@@ -59,7 +59,7 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
   }, [query, loadGifs]);
 
   return (
-    <div className="absolute bottom-full left-0 z-20 mb-2 w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
         <div className="relative min-w-0 flex-1">
           <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -82,15 +82,15 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
         </button>
       </div>
 
-      <div className="max-h-72 overflow-y-auto p-2">
+      <div className="max-h-80 overflow-y-auto p-3 sm:max-h-96">
         {loading ? (
-          <p className="px-2 py-8 text-center text-sm text-slate-500">Loading GIFs…</p>
+          <p className="px-2 py-12 text-center text-sm text-slate-500">Loading GIFs…</p>
         ) : error ? (
-          <p className="px-2 py-8 text-center text-sm text-red-600">{error}</p>
+          <p className="px-2 py-12 text-center text-sm text-red-600">{error}</p>
         ) : gifs.length === 0 ? (
-          <p className="px-2 py-8 text-center text-sm text-slate-500">No GIFs found.</p>
+          <p className="px-2 py-12 text-center text-sm text-slate-500">No GIFs found.</p>
         ) : (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {gifs.map((gif) => (
               <button
                 key={gif.id}
@@ -100,7 +100,7 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
                 title={gif.title}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={gif.url} alt={gif.title} className="h-28 w-full object-cover" loading="lazy" />
+                <img src={gif.url} alt={gif.title} className="aspect-square w-full object-cover" loading="lazy" />
               </button>
             ))}
           </div>
