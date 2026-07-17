@@ -4,6 +4,7 @@ export type ForumQuestionSummary = {
   question_id: string;
   title: string;
   content: string;
+  image_url: string | null;
   created_at: string;
   author: { id: string; fullname: string };
   answer_count: number;
@@ -23,6 +24,7 @@ export type ForumQuestionDetail = {
   question_id: string;
   title: string;
   content: string;
+  image_url: string | null;
   created_at: string;
   author: { id: string; fullname: string };
 };
@@ -38,7 +40,7 @@ export async function getForumQuestions(
 ): Promise<ForumQuestionSummary[]> {
   let query = supabase
     .from("forum_questions")
-    .select("question_id, title, content, created_at, user_id, users(fullname), forum_answers(count)")
+    .select("question_id, title, content, image_url, created_at, user_id, users(fullname), forum_answers(count)")
     .order("created_at", { ascending: false })
     .limit(opts.limit ?? 100);
 
@@ -53,6 +55,7 @@ export async function getForumQuestions(
     question_id: q.question_id,
     title: q.title,
     content: q.content,
+    image_url: (q as { image_url?: string | null }).image_url ?? null,
     created_at: q.created_at,
     author: { id: q.user_id, fullname: unwrapUser(q.users).fullname },
     answer_count: (q as { forum_answers?: { count: number }[] }).forum_answers?.[0]?.count ?? 0,
@@ -70,7 +73,7 @@ export async function getForumQuestions(
 export async function getQuestionDetail(supabase: SupabaseClient, questionId: string): Promise<ForumQuestionDetail | null> {
   const { data } = await supabase
     .from("forum_questions")
-    .select("question_id, title, content, created_at, user_id, users(fullname)")
+    .select("question_id, title, content, image_url, created_at, user_id, users(fullname)")
     .eq("question_id", questionId)
     .maybeSingle();
 
@@ -80,6 +83,7 @@ export async function getQuestionDetail(supabase: SupabaseClient, questionId: st
     question_id: data.question_id,
     title: data.title,
     content: data.content,
+    image_url: (data as { image_url?: string | null }).image_url ?? null,
     created_at: data.created_at,
     author: { id: data.user_id, fullname: unwrapUser(data.users).fullname },
   };
@@ -114,10 +118,18 @@ export async function getAnswers(supabase: SupabaseClient, questionId: string, c
   return rows;
 }
 
-export async function createQuestion(supabase: SupabaseClient, params: { userId: string; title: string; content: string }) {
+export async function createQuestion(
+  supabase: SupabaseClient,
+  params: { userId: string; title: string; content: string; imageUrl?: string | null }
+) {
   return supabase
     .from("forum_questions")
-    .insert({ user_id: params.userId, title: params.title, content: params.content })
+    .insert({
+      user_id: params.userId,
+      title: params.title,
+      content: params.content,
+      image_url: params.imageUrl ?? null,
+    })
     .select("question_id")
     .single();
 }
