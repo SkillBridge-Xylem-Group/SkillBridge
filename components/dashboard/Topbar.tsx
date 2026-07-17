@@ -67,7 +67,7 @@ export default function Topbar({
             )}
           </Link>
           <NotificationBell notifications={notifications} unreadCount={unreadCount} onReload={reload} />
-          <UserMenu name={userName} level={level} xp={xp} />
+          <UserMenu name={userName} />
         </div>
       </div>
 

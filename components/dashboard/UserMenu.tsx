@@ -7,11 +7,9 @@ import { signOutEverywhere } from "@/lib/auth/sign-out";
 
 type UserMenuProps = {
   name: string;
-  level?: string;
-  xp?: number;
 };
 
-export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuProps) {
+export default function UserMenu({ name }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -52,10 +50,6 @@ export default function UserMenu({ name, level = "Level 0", xp = 0 }: UserMenuPr
         </div>
         <div className="hidden min-w-0 text-left lg:block">
           <p className="truncate text-sm font-bold text-slate-900">{name}</p>
-          <p className="truncate text-xs font-semibold text-brand">
-            {level}
-            {xp ? ` · ${xp} XP` : ""}
-          </p>
         </div>
         <ChevronDown size={16} className={`hidden text-slate-400 transition-transform sm:block ${open ? "rotate-180" : ""}`} />
       </button>
