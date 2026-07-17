@@ -59,7 +59,7 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
   }, [query, loadGifs]);
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
       <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
         <div className="relative min-w-0 flex-1">
           <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -72,6 +72,7 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
             autoFocus
           />
         </div>
+        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Powered by GIPHY</span>
         <button
           type="button"
           onClick={onClose}
@@ -82,7 +83,7 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
         </button>
       </div>
 
-      <div className="max-h-80 overflow-y-auto p-3 sm:max-h-96">
+      <div className="h-80 overflow-y-auto p-2">
         {loading ? (
           <p className="px-2 py-12 text-center text-sm text-slate-500">Loading GIFs…</p>
         ) : error ? (
@@ -90,7 +91,7 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
         ) : gifs.length === 0 ? (
           <p className="px-2 py-12 text-center text-sm text-slate-500">No GIFs found.</p>
         ) : (
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2">
             {gifs.map((gif) => (
               <button
                 key={gif.id}
@@ -105,10 +106,6 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
             ))}
           </div>
         )}
-      </div>
-
-      <div className="border-t border-slate-100 px-3 py-2 text-right">
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Powered by GIPHY</span>
       </div>
     </div>
   );
