@@ -21,6 +21,8 @@ function contentSecurityPolicy(): string {
       "https://images.unsplash.com",
       "https://*.supabase.co",
       "https://*.googleusercontent.com",
+      "https://*.giphy.com",
+      "https://i.giphy.com",
     ].join(" "),
     [
       "connect-src 'self'",
