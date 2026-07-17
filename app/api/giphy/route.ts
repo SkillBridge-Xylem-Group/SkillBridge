@@ -1,11 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+type GiphyImage = {
+  url: string;
+  width?: string;
+  height?: string;
+};
+
 type GiphyGif = {
   id: string;
   title: string;
   images: {
-    fixed_width?: { url: string; width: string; height: string };
-    downsized_medium?: { url: string };
+    fixed_width?: GiphyImage;
+    downsized_medium?: GiphyImage;
   };
 };
 
