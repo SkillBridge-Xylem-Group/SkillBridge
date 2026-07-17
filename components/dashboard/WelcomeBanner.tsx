@@ -12,20 +12,6 @@ export default function WelcomeBanner({ name }: WelcomeBannerProps) {
         <p className="mt-3 max-w-lg text-slate-500">
           You&apos;re all set! Start exploring the community, request skill swaps, and help others grow.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <a
-            href="/dashboard/browse-people"
-            className="btn-pill bg-brand px-6 py-3 text-sm text-white shadow-lg shadow-brand/30 hover:bg-brand-dark"
-          >
-            Browse People
-          </a>
-          <a
-            href="/dashboard/forum"
-            className="btn-pill border-2 border-brand px-6 py-3 text-sm text-brand hover:bg-brand-light"
-          >
-            Explore Forum
-          </a>
-        </div>
       </div>
 
       <img
