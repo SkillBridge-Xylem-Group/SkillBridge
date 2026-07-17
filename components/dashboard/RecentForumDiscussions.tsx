@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { MessageSquareText, MessageCircle } from "lucide-react";
 
 type RecentQuestion = {
@@ -9,7 +10,30 @@ type RecentQuestion = {
   authorName: string;
   createdAt: string;
   replyCount: number;
+  imageUrl: string | null;
 };
+
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (Number.isNaN(diffMs)) return "";
+  const mins = Math.floor(diffMs / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(months / 12)}y ago`;
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export default function RecentForumDiscussions() {
   const [questions, setQuestions] = useState<RecentQuestion[]>([]);
@@ -33,6 +57,7 @@ export default function RecentForumDiscussions() {
             authorName: question.author_name ?? "Unknown",
             createdAt: question.created_at,
             replyCount: question.reply_count ?? 0,
+            imageUrl: question.image_url ?? null,
           }))
         );
       } catch (err: any) {
@@ -46,51 +71,75 @@ export default function RecentForumDiscussions() {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-extrabold text-slate-900">Recent Forum Discussions</h2>
-        <a href="/dashboard/forum" className="text-sm font-bold text-brand hover:underline">
+    <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-500">Recent Discussions</h2>
+        <Link href="/dashboard/forum" className="text-sm font-bold text-brand hover:underline">
           View all
-        </a>
+        </Link>
       </div>
 
-      <div className="mt-4 divide-y divide-slate-100">
+      <div className="mt-2 space-y-1">
         {loading ? (
-          Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
-                <MessageSquareText size={18} />
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="rounded-xl px-2 py-3">
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-5 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200" />
-                <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-slate-200" />
-              </div>
-              <div className="flex shrink-0 items-center gap-4 text-xs font-semibold text-slate-500">
-                <div className="h-3 w-10 animate-pulse rounded bg-slate-200" />
-                <div className="h-3 w-10 animate-pulse rounded bg-slate-200" />
+              <div className="mt-2 flex items-start gap-3">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200" />
+                  <div className="h-3 w-16 animate-pulse rounded bg-slate-200" />
+                </div>
+                <div className="h-16 w-16 shrink-0 animate-pulse rounded-lg bg-slate-200" />
               </div>
             </div>
           ))
         ) : error ? (
           <div className="py-6 text-center text-sm text-red-600">{error}</div>
+        ) : questions.length === 0 ? (
+          <div className="py-6 text-center text-sm text-slate-500">No discussions yet.</div>
         ) : (
-          questions.map((question) => (
-            <div key={question.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
-                <MessageSquareText size={18} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-slate-900">{question.title}</p>
-                <p className="mt-0.5 text-xs text-slate-500">
-                  Asked by {question.authorName} · {new Date(question.createdAt).toLocaleString()}
+          questions.map((question, index) => (
+            <Link
+              key={question.id}
+              href={`/dashboard/forum/${question.id}`}
+              className={`block rounded-xl px-2 py-3 transition hover:bg-slate-50 ${
+                index > 0 ? "border-t border-slate-100" : ""
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-light text-[9px] font-bold text-brand">
+                  {initials(question.authorName)}
+                </span>
+                <p className="min-w-0 truncate text-xs font-semibold text-slate-600">
+                  {question.authorName}
+                  <span className="font-normal text-slate-400"> · {formatRelativeTime(question.createdAt)}</span>
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-4 text-xs font-semibold text-slate-500">
-                <span className="flex items-center gap-1">
-                  <MessageCircle size={14} /> {question.replyCount}
-                </span>
+
+              <div className="mt-1.5 flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 text-sm font-bold text-slate-900">{question.title}</p>
+                  <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-slate-500">
+                    <MessageCircle size={13} />
+                    {question.replyCount} {question.replyCount === 1 ? "comment" : "comments"}
+                  </p>
+                </div>
+
+                {question.imageUrl ? (
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={question.imageUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  </div>
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand">
+                    <MessageSquareText size={20} />
+                  </div>
+                )}
               </div>
-            </div>
+            </Link>
           ))
         )}
       </div>
