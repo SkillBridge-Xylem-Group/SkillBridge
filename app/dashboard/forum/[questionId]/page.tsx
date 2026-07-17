@@ -22,6 +22,13 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
     .eq("id", user.id)
     .maybeSingle();
 
+  const userInitials = (viewerRow?.fullname ?? "?")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p: string) => p.charAt(0).toUpperCase())
+    .join("");
+
   const question = await getQuestionDetail(supabase, questionId);
   if (!question) notFound();
 
@@ -46,7 +53,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
           ) : null}
         </div>
 
-        <AnswerComposer questionId={questionId} />
+        <AnswerComposer questionId={questionId} userInitials={userInitials} />
 
         <div className="space-y-3">
           {answers.length === 0 ? (

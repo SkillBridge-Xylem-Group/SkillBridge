@@ -4,6 +4,9 @@
 alter table public.forum_questions
   add column if not exists image_url text null;
 
+alter table public.forum_answers
+  add column if not exists image_url text null;
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'forum-images',
