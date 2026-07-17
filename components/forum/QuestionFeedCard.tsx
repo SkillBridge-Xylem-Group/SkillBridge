@@ -33,23 +33,37 @@ export default function QuestionFeedCard({ question }: { question: ForumQuestion
   return (
     <Link
       href={`/dashboard/forum/${question.question_id}`}
-      className="flex items-start justify-between gap-4 border-b border-slate-100 py-5 transition hover:bg-slate-50/60 last:border-b-0"
+      className="block border-b border-slate-100 py-5 transition hover:bg-slate-50/60 last:border-b-0"
     >
-      <div className="flex min-w-0 items-start gap-3">
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${colorFor(question.author.id)}`}>
+      <div className="flex items-start gap-3">
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${colorFor(question.author.id)}`}
+        >
           {initials}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-sm text-slate-500">
             <span className="font-bold text-slate-900">{question.author.fullname}</span> · {timeAgo(question.created_at)}
           </p>
           <h3 className="mt-0.5 text-base font-extrabold text-slate-900">{question.title}</h3>
-          <p className="mt-1 line-clamp-1 text-sm text-slate-600">{question.content}</p>
+          {question.content ? (
+            <p className="mt-1 line-clamp-2 text-sm text-slate-600">{question.content}</p>
+          ) : null}
+          {question.image_url ? (
+            <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={question.image_url}
+                alt=""
+                className="max-h-80 w-full object-cover"
+              />
+            </div>
+          ) : null}
+          <div className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500">
+            <MessageCircle size={16} />
+            {question.answer_count}
+          </div>
         </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pt-1 text-sm font-semibold text-slate-500">
-        <MessageCircle size={16} />
-        {question.answer_count}
       </div>
     </Link>
   );

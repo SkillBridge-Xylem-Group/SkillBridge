@@ -5,18 +5,32 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createQuestion, createAnswer, toggleAnswerVote } from "@/lib/forum";
 import { createNotification } from "@/lib/notifications";
 
-export async function createQuestionAction(title: string, content: string) {
+export async function createQuestionAction(title: string, content: string, imageUrl?: string | null) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be signed in to post." };
-  if (!title.trim() || !content.trim()) return { error: "Title and content can't be empty." };
+  if (!title.trim()) return { error: "Title can't be empty." };
+  if (!content.trim() && !imageUrl?.trim()) {
+    return { error: "Add some details or an image before posting." };
+  }
+
+  const safeImageUrl =
+    imageUrl &&
+    /^https:\/\/[a-z0-9.-]+\.supabase\.co\/storage\/v1\/object\/public\/forum-images\//i.test(imageUrl)
+      ? imageUrl
+      : null;
+
+  if (imageUrl?.trim() && !safeImageUrl) {
+    return { error: "Invalid image URL." };
+  }
 
   const { data, error } = await createQuestion(supabase, {
     userId: user.id,
     title: title.trim(),
     content: content.trim(),
+    imageUrl: safeImageUrl,
   });
   if (error) return { error: error.message };
 
