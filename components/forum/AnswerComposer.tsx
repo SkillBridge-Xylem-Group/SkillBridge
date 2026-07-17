@@ -248,11 +248,14 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
 
         {error ? <p className="px-4 pb-2 text-xs font-medium text-red-600">{error}</p> : null}
 
+        {showGifPicker ? (
+          <div className="border-t border-slate-100 px-3 py-3">
+            <GifPicker onSelect={onSelectGif} onClose={() => setShowGifPicker(false)} />
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-3 py-2.5">
-          <div className="relative flex items-center gap-0.5">
-            {showGifPicker ? (
-              <GifPicker onSelect={onSelectGif} onClose={() => setShowGifPicker(false)} />
-            ) : null}
+          <div className="flex items-center gap-0.5">
             <input
               ref={imageInputRef}
               type="file"
