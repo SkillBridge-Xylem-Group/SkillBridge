@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createQuestion, createAnswer, toggleAnswerVote } from "@/lib/forum";
 import { createNotification } from "@/lib/notifications";
+import { getSafeForumImageUrl } from "@/lib/forumImageUrl";
 
 export async function createQuestionAction(title: string, content: string, imageUrl?: string | null) {
   const supabase = await createSupabaseServerClient();
@@ -16,11 +17,7 @@ export async function createQuestionAction(title: string, content: string, image
     return { error: "Add some details or an image before posting." };
   }
 
-  const safeImageUrl =
-    imageUrl &&
-    /^https:\/\/[a-z0-9.-]+\.supabase\.co\/storage\/v1\/object\/public\/forum-images\//i.test(imageUrl)
-      ? imageUrl
-      : null;
+  const safeImageUrl = getSafeForumImageUrl(imageUrl);
 
   if (imageUrl?.trim() && !safeImageUrl) {
     return { error: "Invalid image URL." };
@@ -48,11 +45,7 @@ export async function createAnswerAction(questionId: string, content: string, im
     return { error: "Add a comment or an image before posting." };
   }
 
-  const safeImageUrl =
-    imageUrl &&
-    /^https:\/\/[a-z0-9.-]+\.supabase\.co\/storage\/v1\/object\/public\/forum-images\//i.test(imageUrl)
-      ? imageUrl
-      : null;
+  const safeImageUrl = getSafeForumImageUrl(imageUrl);
 
   if (imageUrl?.trim() && !safeImageUrl) {
     return { error: "Invalid image URL." };

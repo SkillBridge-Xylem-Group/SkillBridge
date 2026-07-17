@@ -6,6 +6,7 @@ import { Bold, Code, Image as ImageIcon, Italic, Link2, Strikethrough, Video, X 
 import { createAnswerAction } from "@/lib/actions/forum";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
+import GifPicker from "./GifPicker";
 
 type AnswerComposerProps = {
   questionId: string;
@@ -25,22 +26,27 @@ function wrapSelection(
   return { next, cursor: start + before.length + selected.length + after.length };
 }
 
+function revokeBlobPreview(url: string | null) {
+  if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+}
+
 export default function AnswerComposer({ questionId, userInitials }: AnswerComposerProps) {
   const [expanded, setExpanded] = useState(false);
   const [content, setContent] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [remoteImageUrl, setRemoteImageUrl] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showFormat, setShowFormat] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const gifInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   useEffect(() => {
     return () => {
-      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      revokeBlobPreview(imagePreview);
     };
   }, [imagePreview]);
 
@@ -52,11 +58,12 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
     setContent("");
     setError("");
     setShowFormat(false);
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setShowGifPicker(false);
+    revokeBlobPreview(imagePreview);
     setImagePreview(null);
     setImageFile(null);
+    setRemoteImageUrl(null);
     if (imageInputRef.current) imageInputRef.current.value = "";
-    if (gifInputRef.current) gifInputRef.current.value = "";
   }
 
   function cancel() {
@@ -65,30 +72,42 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
     setExpanded(false);
   }
 
-  function onPickImage(file: File | undefined, isGif = false) {
+  function onPickImage(file: File | undefined) {
     setError("");
+    setShowGifPicker(false);
     if (!file) return;
-    const okType = isGif ? file.type === "image/gif" : file.type.startsWith("image/");
-    if (!okType) {
-      setError(isGif ? "Please choose a GIF file." : "Please choose an image file.");
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file.");
       return;
     }
     if (file.size > MAX_FORUM_IMAGE_BYTES) {
       setError("File is too large (max 10MB).");
       return;
     }
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    revokeBlobPreview(imagePreview);
+    setRemoteImageUrl(null);
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
     setExpanded(true);
   }
 
-  function clearImage() {
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImagePreview(null);
+  function onSelectGif(url: string) {
+    setError("");
+    revokeBlobPreview(imagePreview);
     setImageFile(null);
     if (imageInputRef.current) imageInputRef.current.value = "";
-    if (gifInputRef.current) gifInputRef.current.value = "";
+    setRemoteImageUrl(url);
+    setImagePreview(url);
+    setShowGifPicker(false);
+    setExpanded(true);
+  }
+
+  function clearImage() {
+    revokeBlobPreview(imagePreview);
+    setImagePreview(null);
+    setImageFile(null);
+    setRemoteImageUrl(null);
+    if (imageInputRef.current) imageInputRef.current.value = "";
   }
 
   function applyFormat(kind: "bold" | "italic" | "strike" | "code" | "link") {
@@ -113,6 +132,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
   function addVideoLink() {
     const url = window.prompt("Paste a video link (YouTube, Vimeo, etc.)");
     if (!url?.trim()) return;
+    setShowGifPicker(false);
     setExpanded(true);
     setContent((prev) => (prev.trim() ? `${prev.trim()}\n\n${url.trim()}` : url.trim()));
     textareaRef.current?.focus();
@@ -121,7 +141,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
   function submit() {
     startTransition(async () => {
       setError("");
-      let imageUrl: string | null = null;
+      let imageUrl: string | null = remoteImageUrl;
 
       if (imageFile) {
         const supabase = createSupabaseBrowserClient();
@@ -151,7 +171,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
     });
   }
 
-  const canSubmit = content.trim().length > 0 || !!imageFile;
+  const canSubmit = content.trim().length > 0 || !!imageFile || !!remoteImageUrl;
 
   if (!expanded) {
     return (
@@ -176,7 +196,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
         {userInitials}
       </div>
 
-      <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="relative min-w-0 flex-1 overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm">
         <textarea
           ref={textareaRef}
           value={content}
@@ -189,7 +209,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
         {imagePreview ? (
           <div className="relative mx-4 mb-3 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imagePreview} alt="Upload preview" className="max-h-56 w-full object-contain" />
+            <img src={imagePreview} alt="Attachment preview" className="max-h-56 w-full object-contain" />
             <button
               type="button"
               onClick={clearImage}
@@ -229,24 +249,23 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
         {error ? <p className="px-4 pb-2 text-xs font-medium text-red-600">{error}</p> : null}
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-3 py-2.5">
-          <div className="flex items-center gap-0.5">
+          <div className="relative flex items-center gap-0.5">
+            {showGifPicker ? (
+              <GifPicker onSelect={onSelectGif} onClose={() => setShowGifPicker(false)} />
+            ) : null}
             <input
               ref={imageInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               className="hidden"
-              onChange={(e) => onPickImage(e.target.files?.[0], false)}
-            />
-            <input
-              ref={gifInputRef}
-              type="file"
-              accept="image/gif"
-              className="hidden"
-              onChange={(e) => onPickImage(e.target.files?.[0], true)}
+              onChange={(e) => onPickImage(e.target.files?.[0])}
             />
             <button
               type="button"
-              onClick={() => imageInputRef.current?.click()}
+              onClick={() => {
+                setShowGifPicker(false);
+                imageInputRef.current?.click();
+              }}
               disabled={isPending}
               className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50"
               aria-label="Add image"
@@ -264,16 +283,24 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
             </button>
             <button
               type="button"
-              onClick={() => gifInputRef.current?.click()}
+              onClick={() => setShowGifPicker((open) => !open)}
               disabled={isPending}
-              className="flex h-9 items-center justify-center rounded-lg px-2 text-xs font-extrabold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50"
+              className={`flex h-9 items-center justify-center rounded-lg px-2 text-xs font-extrabold transition disabled:opacity-50 ${
+                showGifPicker
+                  ? "bg-slate-100 text-slate-800"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+              }`}
               aria-label="Add GIF"
+              aria-expanded={showGifPicker}
             >
               GIF
             </button>
             <button
               type="button"
-              onClick={() => setShowFormat((v) => !v)}
+              onClick={() => {
+                setShowGifPicker(false);
+                setShowFormat((v) => !v);
+              }}
               disabled={isPending}
               className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-extrabold transition disabled:opacity-50 ${
                 showFormat ? "bg-slate-100 text-slate-800" : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
