@@ -196,7 +196,6 @@ export default function SessionChat({
             <Send size={16} />
           </button>
         </div>
-        <p className="mt-2 px-1 text-[11px] text-slate-400">Files up to 20MB.</p>
       </form>
     </div>
   );
