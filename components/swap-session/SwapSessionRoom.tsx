@@ -110,21 +110,26 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
             <span className="font-semibold text-slate-800">{session.partner.fullname}</span>
           </p>
         </div>
-        <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm">
-          {connectionState === "connected" ? (
-            <span className="inline-flex items-center gap-2 text-emerald-700">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-              Live
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-2">
-              {(connectionState === "connecting" || connectionState === "connecting-peer") && (
-                <Loader2 size={14} className="animate-spin" />
-              )}
-              {partnerPresent ? "Partner in room" : "You are in the room"}
-            </span>
-          )}
-        </div>
+        {(connectionState === "connected" ||
+          connectionState === "connecting" ||
+          connectionState === "connecting-peer" ||
+          partnerPresent) && (
+          <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm">
+            {connectionState === "connected" ? (
+              <span className="inline-flex items-center gap-2 text-emerald-700">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                Live
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2">
+                {(connectionState === "connecting" || connectionState === "connecting-peer") && (
+                  <Loader2 size={14} className="animate-spin" />
+                )}
+                {partnerPresent ? "Partner in room" : null}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <p className="text-sm text-slate-500">{label}</p>
