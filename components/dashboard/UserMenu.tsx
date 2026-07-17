@@ -43,9 +43,9 @@ export default function UserMenu({ name }: UserMenuProps) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-slate-100 sm:gap-3 sm:pr-3"
+        className="flex items-center gap-2 rounded-full py-0.5 pl-0.5 pr-1.5 transition hover:bg-slate-100 sm:gap-2.5 sm:pr-2.5"
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand sm:h-10 sm:w-10">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
           {name.charAt(0).toUpperCase()}
         </div>
         <div className="hidden min-w-0 text-left lg:block">

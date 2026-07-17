@@ -30,34 +30,34 @@ export default function Topbar({
   return (
     <>
       {/* Always solid — transparent lg styles used to float icons over Quick Actions. */}
-      <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-8 lg:justify-end lg:px-10 lg:py-3">
+      <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-1.5 sm:px-8 lg:justify-end lg:px-10 lg:py-1.5">
         <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"
             aria-label="Open navigation menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(true)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
           >
-            <Menu size={22} />
+            <Menu size={20} />
           </button>
           <Link href="/dashboard" className="inline-flex min-w-0 items-center gap-2">
             <Image
               src="/images/logo-mark.png"
               alt=""
-              width={36}
-              height={36}
-              className="h-9 w-9 shrink-0"
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0"
             />
             <span className="truncate text-base font-extrabold text-brand">SkillBridge</span>
           </Link>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
           <Link
             href="/dashboard/messages"
             aria-label="Messages"
-            className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95"
           >
             <MessageSquare size={20} />
             {unreadMessageCount > 0 && (
