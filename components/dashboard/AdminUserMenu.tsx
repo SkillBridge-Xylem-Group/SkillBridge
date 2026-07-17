@@ -40,9 +40,9 @@ export default function AdminUserMenu({ name }: AdminUserMenuProps) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-3 rounded-full py-1 pl-1 pr-3 transition hover:bg-slate-100"
+        className="flex items-center gap-2.5 rounded-full py-0.5 pl-0.5 pr-2.5 transition hover:bg-slate-100"
       >
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
           {name.charAt(0).toUpperCase()}
         </div>
         <div className="hidden text-left sm:block">

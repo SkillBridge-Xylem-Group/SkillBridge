@@ -86,7 +86,7 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
         aria-label="Notifications"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`relative flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95 ${
+        className={`relative flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95 ${
           open ? "bg-slate-100 text-slate-700" : ""
         }`}
       >
