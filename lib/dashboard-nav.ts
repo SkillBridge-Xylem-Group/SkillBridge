@@ -9,7 +9,7 @@ export type DashboardNavItem = {
 };
 
 export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
-  { label: "Dashboard", shortLabel: "Home", href: "/dashboard", icon: Home },
+  { label: "Home", shortLabel: "Home", href: "/dashboard", icon: Home },
   { label: "Browse People", shortLabel: "Browse", href: "/dashboard/browse-people", icon: Users },
   { label: "Skill Swap Requests", shortLabel: "Swaps", href: "/dashboard/swap-requests", icon: Repeat2 },
   { label: "Community Forum", shortLabel: "Forum", href: "/dashboard/forum", icon: MessagesSquare },
