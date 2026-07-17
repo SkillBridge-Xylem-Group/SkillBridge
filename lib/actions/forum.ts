@@ -38,13 +38,25 @@ export async function createQuestionAction(title: string, content: string, image
   return { success: true, questionId: data?.question_id };
 }
 
-export async function createAnswerAction(questionId: string, content: string) {
+export async function createAnswerAction(questionId: string, content: string, imageUrl?: string | null) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be signed in to reply." };
-  if (!content.trim()) return { error: "Reply can't be empty." };
+  if (!content.trim() && !imageUrl?.trim()) {
+    return { error: "Add a comment or an image before posting." };
+  }
+
+  const safeImageUrl =
+    imageUrl &&
+    /^https:\/\/[a-z0-9.-]+\.supabase\.co\/storage\/v1\/object\/public\/forum-images\//i.test(imageUrl)
+      ? imageUrl
+      : null;
+
+  if (imageUrl?.trim() && !safeImageUrl) {
+    return { error: "Invalid image URL." };
+  }
 
   const { data: question } = await supabase
     .from("forum_questions")
@@ -56,6 +68,7 @@ export async function createAnswerAction(questionId: string, content: string) {
     questionId,
     userId: user.id,
     content: content.trim(),
+    imageUrl: safeImageUrl,
   });
   if (error) return { error: error.message };
 
