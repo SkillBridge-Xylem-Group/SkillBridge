@@ -6,7 +6,6 @@ import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 import TopRatedMembers from "@/components/dashboard/TopRatedMembers";
 import RecentForumDiscussions from "@/components/dashboard/RecentForumDiscussions";
 import RecentMessages from "@/components/dashboard/RecentMessages";
-import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
 import OnboardingGate from "@/components/onboarding/OnboardingGate";
 import { deriveNameFromEmail } from "@/lib/deriveName";
 import { getSkillsByCategory } from "@/lib/skillCatalog";
@@ -61,9 +60,6 @@ export default async function DashboardPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-            <NotificationsPanel />
-          </div>
           <RecentForumDiscussions />
         </div>
       </div>

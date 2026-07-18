@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, MessageSquare } from "lucide-react";
+import type { SidebarCommunity } from "@/lib/forumCommunities";
 import UserMenu from "./UserMenu";
 import NotificationBell from "./NotificationBell";
 import { MobileNavDrawer } from "./MobileNav";
@@ -15,6 +16,7 @@ type TopbarProps = {
   xp?: number;
   levelNumber?: number;
   trustScore?: number | null;
+  communities?: SidebarCommunity[];
 };
 
 export default function Topbar({
@@ -23,13 +25,13 @@ export default function Topbar({
   xp = 0,
   levelNumber = 0,
   trustScore = null,
+  communities = [],
 }: TopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { notifications, unreadCount, unreadMessageCount, reload } = useRealtimeNotifications();
 
   return (
     <>
-      {/* Always solid — transparent lg styles used to float icons over Quick Actions. */}
       <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-1.5 sm:px-8 lg:justify-end lg:px-10 lg:py-1.5">
         <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
@@ -77,6 +79,7 @@ export default function Topbar({
         level={levelNumber}
         experiencePoints={xp}
         trustScore={trustScore}
+        communities={communities}
       />
     </>
   );

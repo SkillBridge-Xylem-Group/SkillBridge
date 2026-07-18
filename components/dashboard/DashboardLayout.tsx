@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserReviews } from "@/lib/reviews";
 import { isAppLocale, type AppLocale } from "@/lib/i18n/locales";
+import { listUserSidebarCommunities, type SidebarCommunity } from "@/lib/forumCommunities";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
@@ -33,16 +34,20 @@ export default async function DashboardLayout({
   let shellXp = xp ?? 0;
   let trustScore: number | null = null;
   let initialLocale: AppLocale | null = null;
+  let communities: SidebarCommunity[] = [];
 
   if (user) {
-    const [profileResult, reviews] = await Promise.all([
+    const [profileResult, reviews, sidebarCommunities] = await Promise.all([
       supabase
         .from("users")
         .select("fullname, experience_points, level, language")
         .eq("id", user.id)
         .maybeSingle(),
       getUserReviews(supabase, user.id),
+      listUserSidebarCommunities(supabase, user.id),
     ]);
+
+    communities = sidebarCommunities;
 
     let row = profileResult.data as {
       fullname: string | null;
@@ -74,7 +79,12 @@ export default async function DashboardLayout({
   return (
     <LocaleProvider initialLocale={initialLocale}>
       <div className="flex min-h-screen bg-[#F7F7FB]">
-        <Sidebar level={shellLevel} experiencePoints={shellXp} trustScore={trustScore} />
+        <Sidebar
+          level={shellLevel}
+          experiencePoints={shellXp}
+          trustScore={trustScore}
+          communities={communities}
+        />
 
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar
@@ -83,6 +93,7 @@ export default async function DashboardLayout({
             xp={shellXp}
             levelNumber={shellLevel}
             trustScore={trustScore}
+            communities={communities}
           />
           <main
             className={
