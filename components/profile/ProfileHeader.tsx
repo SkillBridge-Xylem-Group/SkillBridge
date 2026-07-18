@@ -1,29 +1,39 @@
 "use client";
 
-import { useState } from "react";
-import { Pencil, Calendar, Clock, Check, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Pencil, Calendar, Clock, Check, X, Camera } from "lucide-react";
+import { uploadAvatar } from "@/lib/avatarUpload";
 
 type ProfileHeaderProps = {
+  userId: string;
   fullname: string;
   memberSince: string;
   timezone: string;
   bio: string | null;
+  avatarUrl: string | null;
   onSaveProfile: (name: string, bio: string) => Promise<void>;
+  onAvatarChange: (nextUrl: string) => Promise<void>;
   profileError: string;
 };
 
 export default function ProfileHeader({
+  userId,
   fullname,
   memberSince,
   timezone,
   bio,
+  avatarUrl,
   onSaveProfile,
+  onAvatarChange,
   profileError,
 }: ProfileHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(fullname);
   const [draftBio, setDraftBio] = useState(bio ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function startEdit() {
     setDraftName(fullname);
@@ -38,6 +48,23 @@ export default function ProfileHeader({
     setIsEditing(false);
   }
 
+  async function onPickPhoto(file: File | undefined) {
+    if (!file) return;
+    setPhotoError("");
+    setIsUploadingPhoto(true);
+    try {
+      const result = await uploadAvatar({ userId, file });
+      if (!result.ok) {
+        setPhotoError(result.error);
+        return;
+      }
+      await onAvatarChange(result.url);
+    } finally {
+      setIsUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   const initials = fullname
     .split(" ")
     .filter(Boolean)
@@ -46,11 +73,38 @@ export default function ProfileHeader({
     .join("");
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+    <div className="nb-card p-6">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-brand-light text-3xl font-extrabold text-brand">
-            {initials}
+          <div className="relative shrink-0">
+            <div
+              className="nb-avatar flex h-24 w-24 items-center justify-center overflow-hidden text-3xl"
+              style={{ background: avatarUrl ? "#fff" : "var(--neu-indigo)", color: "#fff" }}
+            >
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt={fullname} className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => onPickPhoto(e.target.files?.[0])}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingPhoto}
+              aria-label="Change profile photo"
+              className="nb-icon-btn absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center disabled:opacity-60"
+              style={{ background: "var(--neu-yellow)", color: "var(--neu-ink)" }}
+            >
+              <Camera size={16} />
+            </button>
           </div>
 
           <div>
@@ -60,12 +114,12 @@ export default function ProfileHeader({
                 value={draftName}
                 onChange={(e) => setDraftName(e.target.value)}
                 placeholder="Your name"
-                className="rounded-xl border border-slate-200 px-3 py-1.5 text-2xl font-extrabold text-slate-900 focus:border-brand focus:outline-none"
+                className="nb-input px-3 py-1.5 text-2xl font-extrabold nb-heading"
               />
             ) : (
-              <h1 className="text-2xl font-extrabold text-slate-900">{fullname}</h1>
+              <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--neu-ink)" }}>{fullname}</h1>
             )}
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
               <span className="flex items-center gap-1.5">
                 <Calendar size={14} />
                 Member since {memberSince}
@@ -75,6 +129,10 @@ export default function ProfileHeader({
                 {timezone}
               </span>
             </div>
+            {isUploadingPhoto && (
+              <p className="mt-1.5 text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>Uploading photo...</p>
+            )}
+            {photoError && <p className="mt-1.5 text-xs font-medium text-red-600">{photoError}</p>}
           </div>
         </div>
 
@@ -82,7 +140,8 @@ export default function ProfileHeader({
           <button
             type="button"
             onClick={startEdit}
-            className="flex items-center gap-1.5 self-start rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+            className="nb-btn flex items-center gap-1.5 self-start bg-white px-4 py-2 text-sm"
+            style={{ color: "var(--neu-ink)" }}
           >
             <Pencil size={14} />
             Edit Profile
@@ -90,7 +149,7 @@ export default function ProfileHeader({
         )}
       </div>
 
-      <div className="mt-5 border-t border-slate-100 pt-5">
+      <div className="mt-5 pt-5" style={{ borderTop: "2px solid #f0ecfa" }}>
         {isEditing ? (
           <div>
             <textarea
@@ -99,7 +158,7 @@ export default function ProfileHeader({
               rows={3}
               maxLength={300}
               placeholder="Tell the community a bit about yourself..."
-              className="w-full resize-none rounded-xl border border-slate-200 p-3 text-sm text-slate-700 focus:border-brand focus:outline-none"
+              className="nb-input w-full resize-none p-3 text-sm"
             />
             {profileError && <p className="mt-2 text-sm font-medium text-red-600">{profileError}</p>}
 
@@ -108,7 +167,8 @@ export default function ProfileHeader({
                 type="button"
                 onClick={save}
                 disabled={isSaving}
-                className="btn-pill flex items-center gap-1.5 bg-brand px-4 py-2 text-sm text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                className="nb-btn flex items-center gap-1.5 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ background: "var(--neu-indigo)" }}
               >
                 <Check size={14} />
                 {isSaving ? "Saving..." : "Save Profile"}
@@ -117,7 +177,8 @@ export default function ProfileHeader({
                 type="button"
                 onClick={() => setIsEditing(false)}
                 disabled={isSaving}
-                className="btn-pill flex items-center gap-1.5 border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="nb-btn flex items-center gap-1.5 bg-white px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ color: "var(--neu-ink)" }}
               >
                 <X size={14} />
                 Cancel
@@ -125,7 +186,7 @@ export default function ProfileHeader({
             </div>
           </div>
         ) : (
-          <p className="text-sm leading-relaxed text-slate-600">
+          <p className="text-sm leading-relaxed" style={{ color: "var(--neu-text-muted)" }}>
             {bio || "Add a short bio so the community can get to know you."}
           </p>
         )}

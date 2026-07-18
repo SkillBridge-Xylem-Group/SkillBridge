@@ -41,12 +41,12 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
       xp={viewerRow?.experience_points ?? 0}
     >
       <div className="mx-auto max-w-2xl space-y-6 pt-6">
-        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <p className="text-sm font-bold text-slate-900">{question.author.fullname}</p>
-          <h1 className="mt-1 text-xl font-extrabold text-slate-900">{question.title}</h1>
-          {question.content ? <p className="mt-2 text-sm text-slate-700">{question.content}</p> : null}
+        <div className="nb-card p-6">
+          <p className="text-sm font-bold" style={{ color: "var(--neu-ink)" }}>{question.author.fullname}</p>
+          <h1 className="mt-1 text-xl font-extrabold nb-heading">{question.title}</h1>
+          {question.content ? <p className="mt-2 text-sm" style={{ color: "var(--neu-ink)" }}>{question.content}</p> : null}
           {question.image_url ? (
-            <div className="mt-4 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+            <div className="mt-4 overflow-hidden rounded-xl" style={{ border: "2.5px solid var(--neu-ink)" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={question.image_url} alt="" className="max-h-[32rem] w-full object-contain" />
             </div>
@@ -57,7 +57,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
 
         <div className="space-y-3">
           {answers.length === 0 ? (
-            <p className="text-center text-sm text-slate-500">No replies yet — be the first to answer.</p>
+            <p className="text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>No replies yet — be the first to answer.</p>
           ) : (
             answers
               .slice()

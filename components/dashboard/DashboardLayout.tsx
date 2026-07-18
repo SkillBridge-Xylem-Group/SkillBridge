@@ -27,12 +27,13 @@ export default async function DashboardLayout({
   let shellLevel = level ?? 0;
   let shellXp = xp ?? 0;
   let trustScore: number | null = null;
+  let avatarUrl: string | null = null;
 
   if (user) {
     const [{ data: row }, reviews] = await Promise.all([
       supabase
         .from("users")
-        .select("fullname, experience_points, level")
+        .select("fullname, experience_points, level, avatar_url")
         .eq("id", user.id)
         .maybeSingle(),
       getUserReviews(supabase, user.id),
@@ -44,12 +45,13 @@ export default async function DashboardLayout({
       }
       shellLevel = row.level ?? shellLevel;
       shellXp = row.experience_points ?? shellXp;
+      avatarUrl = row.avatar_url ?? null;
     }
     trustScore = reviews.trustScore;
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F7F7FB]">
+    <div className="nb-page flex min-h-screen">
       <Sidebar level={shellLevel} experiencePoints={shellXp} trustScore={trustScore} />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -59,6 +61,7 @@ export default async function DashboardLayout({
           xp={shellXp}
           levelNumber={shellLevel}
           trustScore={trustScore}
+          avatarUrl={avatarUrl}
         />
         <main className="px-4 pb-24 pt-4 sm:px-8 lg:px-10 lg:pb-10 lg:pt-5">{children}</main>
       </div>

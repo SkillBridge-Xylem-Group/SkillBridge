@@ -59,25 +59,26 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
   }, [query, loadGifs]);
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
-      <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5">
+    <div className="w-full overflow-hidden rounded-xl bg-white" style={{ border: "2.5px solid var(--neu-ink)", boxShadow: "6px 6px 0 var(--neu-ink)" }}>
+      <div className="flex items-center gap-2 px-3 py-2.5" style={{ borderBottom: "2px solid #f0ecfa" }}>
         <div className="relative min-w-0 flex-1">
-          <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--neu-text-muted)" }} />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search GIPHY"
-            className="w-full rounded-full border border-slate-200 bg-slate-50 py-2 pl-8 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand/40 focus:bg-white focus:outline-none"
+            className="nb-input w-full py-2 pl-8 pr-3 text-sm"
             autoFocus
           />
         </div>
-        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Powered by GIPHY</span>
+        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>Powered by GIPHY</span>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close GIF picker"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-slate-100"
+          style={{ color: "var(--neu-text-muted)" }}
         >
           <X size={16} />
         </button>
@@ -85,11 +86,11 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
 
       <div className="h-80 overflow-y-auto p-2">
         {loading ? (
-          <p className="px-2 py-12 text-center text-sm text-slate-500">Loading GIFs…</p>
+          <p className="px-2 py-12 text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>Loading GIFs…</p>
         ) : error ? (
           <p className="px-2 py-12 text-center text-sm text-red-600">{error}</p>
         ) : gifs.length === 0 ? (
-          <p className="px-2 py-12 text-center text-sm text-slate-500">No GIFs found.</p>
+          <p className="px-2 py-12 text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>No GIFs found.</p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {gifs.map((gif) => (
@@ -97,7 +98,8 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
                 key={gif.id}
                 type="button"
                 onClick={() => onSelect(gif.url)}
-                className="overflow-hidden rounded-lg bg-slate-100 transition hover:ring-2 hover:ring-brand/40"
+                className="overflow-hidden rounded-lg bg-slate-100 transition hover:ring-2"
+                style={{ ["--tw-ring-color" as string]: "var(--neu-indigo)" }}
                 title={gif.title}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

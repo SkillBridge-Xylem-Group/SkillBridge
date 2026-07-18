@@ -9,11 +9,17 @@ import ReviewModal from "./ReviewModal";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-slate-100 text-slate-600",
-  accepted: "bg-emerald-100 text-emerald-700",
-  rescheduled: "bg-amber-100 text-amber-700",
-  completed: "bg-blue-100 text-blue-700",
+  accepted: "text-white",
+  rescheduled: "text-[var(--neu-ink)]",
+  completed: "text-white",
   declined: "bg-red-100 text-red-700",
   cancelled: "bg-slate-100 text-slate-400",
+};
+
+const STATUS_BG: Record<string, string> = {
+  accepted: "var(--neu-teal)",
+  rescheduled: "var(--neu-yellow)",
+  completed: "var(--neu-indigo)",
 };
 
 function formatDateTime(value: string | null) {
@@ -70,31 +76,33 @@ function SessionRow({
   return (
     <tr>
       <td className="py-4">
-        <p className="font-bold text-slate-900">{session.topic?.skill_name ?? "Skill swap session"}</p>
-        <p className="text-slate-500">{session.topic?.category ?? ""}</p>
+        <p className="font-bold" style={{ color: "var(--neu-ink)" }}>{session.topic?.skill_name ?? "Skill swap session"}</p>
+        <p style={{ color: "var(--neu-text-muted)" }}>{session.topic?.category ?? ""}</p>
       </td>
-      <td className="py-4 text-slate-700">{session.partner.fullname}</td>
-      <td className="py-4 text-slate-600">
+      <td className="py-4" style={{ color: "var(--neu-ink)" }}>{session.partner.fullname}</td>
+      <td className="py-4" style={{ color: "var(--neu-text-muted)" }}>
         {isRescheduling ? (
           <div className="flex flex-wrap items-center gap-2">
             <input
               type="datetime-local"
               value={newTime}
               onChange={(e) => setNewTime(e.target.value)}
-              className="rounded-lg border border-slate-200 px-2 py-1 text-xs focus:border-brand focus:outline-none"
+              className="nb-input px-2 py-1 text-xs"
             />
             <button
               type="button"
               disabled={isPending || !newTime}
               onClick={confirmReschedule}
-              className="btn-pill bg-brand px-3 py-1 text-xs text-white hover:bg-brand-dark disabled:opacity-50"
+              className="nb-btn px-3 py-1 text-xs text-white disabled:opacity-50"
+              style={{ background: "var(--neu-indigo)" }}
             >
               Save
             </button>
             <button
               type="button"
               onClick={() => setIsRescheduling(false)}
-              className="btn-pill border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 hover:bg-slate-50"
+              className="nb-btn bg-white px-3 py-1 text-xs"
+              style={{ color: "var(--neu-ink)" }}
             >
               Cancel
             </button>
@@ -106,6 +114,7 @@ function SessionRow({
       <td className="py-4">
         <span
           className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${STATUS_STYLES[session.status] ?? "bg-slate-100 text-slate-600"}`}
+          style={{ border: "2px solid var(--neu-ink)", background: STATUS_BG[session.status] }}
         >
           {session.status}
         </span>
@@ -115,7 +124,8 @@ function SessionRow({
           <div className="flex w-[11.5rem] flex-col gap-1.5">
             <Link
               href={`/dashboard/swap-session/${session.request_id}`}
-              className="btn-pill bg-brand px-3 py-1.5 text-xs text-white hover:bg-brand-dark"
+              className="nb-btn px-3 py-1.5 text-xs text-white"
+              style={{ background: "var(--neu-indigo)" }}
             >
               Join Session
             </Link>
@@ -123,7 +133,8 @@ function SessionRow({
               type="button"
               disabled={isPending}
               onClick={markComplete}
-              className="btn-pill border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:border-brand/40 hover:bg-slate-50 disabled:opacity-50"
+              className="nb-btn bg-white px-3 py-1.5 text-xs disabled:opacity-50"
+              style={{ color: "var(--neu-ink)" }}
             >
               Mark Complete
             </button>
@@ -131,7 +142,8 @@ function SessionRow({
               type="button"
               disabled={isPending}
               onClick={() => setIsRescheduling(true)}
-              className="btn-pill border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              className="nb-btn bg-white px-3 py-1.5 text-xs disabled:opacity-50"
+              style={{ color: "var(--neu-ink)" }}
             >
               Reschedule
             </button>
@@ -139,7 +151,7 @@ function SessionRow({
               type="button"
               disabled={isPending}
               onClick={cancel}
-              className="btn-pill border border-red-200 bg-white px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+              className="nb-btn bg-white px-3 py-1.5 text-xs text-red-600 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -149,13 +161,17 @@ function SessionRow({
           <button
             type="button"
             onClick={() => onReview(session)}
-            className="btn-pill border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-700 hover:bg-amber-100"
+            className="nb-btn px-3 py-1.5 text-xs"
+            style={{ background: "var(--neu-yellow)", color: "var(--neu-ink)" }}
           >
             Leave Review
           </button>
         )}
         {session.status === "completed" && session.hasReviewedPartner && (
-          <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+          <span
+            className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+            style={{ background: "#f0ecfa", color: "var(--neu-text-muted)", border: "2px solid var(--neu-ink)" }}
+          >
             Reviewed
           </span>
         )}
@@ -169,18 +185,18 @@ export default function SessionsTable({ sessions }: { sessions: SessionRequestSu
   const router = useRouter();
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
-      <h2 className="text-lg font-extrabold text-slate-900">Recent &amp; Upcoming Sessions</h2>
+    <div className="nb-card p-6 sm:p-8">
+      <h2 className="text-lg font-extrabold nb-heading">Recent &amp; Upcoming Sessions</h2>
 
       {sessions.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">
+        <p className="mt-4 text-sm" style={{ color: "var(--neu-text-muted)" }}>
           No sessions yet. Send a swap request from someone&apos;s profile to get started.
         </p>
       ) : (
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
-              <tr className="text-xs font-bold uppercase tracking-widest text-slate-400">
+              <tr className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--neu-text-muted)" }}>
                 <th className="pb-3 font-bold">Session Info</th>
                 <th className="pb-3 font-bold">Swap Partner</th>
                 <th className="pb-3 font-bold">Date &amp; Time</th>
@@ -188,7 +204,7 @@ export default function SessionsTable({ sessions }: { sessions: SessionRequestSu
                 <th className="pb-3 font-bold">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y" style={{ borderColor: "#f0ecfa" }}>
               {sessions.map((s) => (
                 <SessionRow key={s.request_id} session={s} onReview={setReviewTarget} />
               ))}

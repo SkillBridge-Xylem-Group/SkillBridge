@@ -27,13 +27,17 @@ export default function EmojiPicker({ onSelect }: { onSelect: (emoji: string) =>
         type="button"
         aria-label="Add emoji"
         onClick={() => setOpen((o) => !o)}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-100"
+        style={{ color: "var(--neu-text-muted)" }}
       >
         <Smile size={18} />
       </button>
 
       {open && (
-        <div className="absolute bottom-12 left-0 z-20 grid w-64 grid-cols-6 gap-1 rounded-2xl border border-slate-100 bg-white p-3 shadow-xl">
+        <div
+          className="absolute bottom-12 left-0 z-20 grid w-64 grid-cols-6 gap-1 rounded-2xl bg-white p-3"
+          style={{ border: "2.5px solid var(--neu-ink)", boxShadow: "6px 6px 0 var(--neu-ink)" }}
+        >
           {EMOJIS.map((emoji) => (
             <button
               key={emoji}

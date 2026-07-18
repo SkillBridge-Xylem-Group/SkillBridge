@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, Eye, EyeOff } from "lucide-react";
+import { Lock, Eye, EyeOff, type LucideIcon } from "lucide-react";
 
 type NeumorphicPasswordFieldProps = {
   id: string;
@@ -12,6 +12,8 @@ type NeumorphicPasswordFieldProps = {
   maxLength?: number;
   onFocus?: () => void;
   onBlur?: () => void;
+  iconColor?: string;
+  icon?: LucideIcon;
 };
 
 /** Password input for the neumorphic sliding auth card — kept separate from
@@ -25,12 +27,14 @@ export default function NeumorphicPasswordField({
   maxLength,
   onFocus,
   onBlur,
+  iconColor,
+  icon: Icon = Lock,
 }: NeumorphicPasswordFieldProps) {
   const [visible, setVisible] = useState(false);
 
   return (
     <div className="relative w-full">
-      <Lock size={18} className="auth-neu-icon" />
+      <Icon size={18} className="auth-neu-icon" style={iconColor ? { color: iconColor } : undefined} />
       <input
         id={id}
         name={id}

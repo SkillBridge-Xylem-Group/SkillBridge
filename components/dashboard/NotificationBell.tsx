@@ -22,8 +22,8 @@ type NotificationBellProps = {
 
 const TYPE_META: Record<NotificationType, { icon: LucideIcon; label: string; tone: string }> = {
   message: { icon: MessageCircle, label: "Message", tone: "bg-slate-100 text-slate-600" },
-  swap_request: { icon: Repeat, label: "Swap request", tone: "bg-[var(--color-blue-wash)] text-[var(--color-brand-blue)]" },
-  swap_response: { icon: CalendarCheck, label: "Swap update", tone: "bg-[var(--color-blue-wash)] text-[var(--color-brand-blue)]" },
+  swap_request: { icon: Repeat, label: "Swap request", tone: "bg-[#ede9fb] text-[var(--neu-indigo)]" },
+  swap_response: { icon: CalendarCheck, label: "Swap update", tone: "bg-[#ede9fb] text-[var(--neu-indigo)]" },
   level_up: { icon: Award, label: "Level up", tone: "bg-emerald-50 text-emerald-600" },
   forum_reply: { icon: MessagesSquare, label: "Forum", tone: "bg-sky-50 text-sky-600" },
   review_prompt: { icon: Star, label: "Review", tone: "bg-amber-50 text-amber-600" },
@@ -86,24 +86,26 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
         aria-label="Notifications"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`relative flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95 ${
-          open ? "bg-slate-100 text-slate-700" : ""
-        }`}
+        className={`nb-icon-btn relative flex h-10 w-10 items-center justify-center ${open ? "-translate-x-0.5 -translate-y-0.5" : ""}`}
+        style={{ color: "var(--neu-ink)" }}
       >
-        <Bell size={20} />
+        <Bell size={19} />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+          <span
+            className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none text-white"
+            style={{ background: "var(--neu-coral)", border: "2px solid var(--neu-ink)" }}
+          >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 z-30 mt-2 w-[min(22.5rem,calc(100vw-1.25rem))] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+        <div className="nb-card absolute right-0 z-30 mt-2 w-[min(22.5rem,calc(100vw-1.25rem))] overflow-hidden !rounded-2xl bg-white">
           <div className="flex items-center justify-between gap-3 px-4 pb-2.5 pt-3.5">
             <div>
-              <p className="text-[15px] font-semibold text-slate-900">Notifications</p>
-              <p className="text-xs text-slate-500">
+              <p className="text-[15px] font-semibold nb-heading">Notifications</p>
+              <p className="text-xs" style={{ color: "var(--neu-text-muted)" }}>
                 {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"}
               </p>
             </div>
@@ -111,7 +113,8 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="rounded-full px-2.5 py-1 text-xs font-semibold text-[var(--color-brand-blue)] transition hover:bg-[var(--color-blue-wash)] active:scale-95"
+                className="rounded-full px-2.5 py-1 text-xs font-semibold transition hover:bg-[#f3eefc] active:scale-95"
+                style={{ color: "var(--neu-indigo)" }}
               >
                 Mark all read
               </button>
@@ -139,7 +142,7 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
                     type="button"
                     onClick={() => handleOpenNotification(n)}
                     className={`flex w-full items-start gap-3 px-3.5 py-3 text-left transition hover:bg-slate-50 active:bg-slate-100/80 ${
-                      !n.is_read ? "bg-[var(--color-blue-wash)]/55" : ""
+                      !n.is_read ? "bg-[#f3eefc]" : ""
                     }`}
                   >
                     <div
@@ -166,7 +169,8 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
 
                     {!n.is_read && (
                       <span
-                        className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[var(--color-brand-blue)]"
+                        className="mt-2 h-2 w-2 shrink-0 rounded-full"
+                        style={{ background: "var(--neu-indigo)" }}
                         aria-label="Unread"
                       />
                     )}
@@ -186,7 +190,8 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
                     setOpen(false);
                     router.push("/dashboard/swap-requests");
                   }}
-                  className="w-full rounded-xl py-2.5 text-center text-sm font-semibold text-[var(--color-brand-blue)] transition hover:bg-[var(--color-blue-wash)] active:scale-[0.99]"
+                  className="w-full rounded-xl py-2.5 text-center text-sm font-semibold transition hover:bg-[#f3eefc] active:scale-[0.99]"
+                  style={{ color: "var(--neu-indigo)" }}
                 >
                   View swap requests
                 </button>

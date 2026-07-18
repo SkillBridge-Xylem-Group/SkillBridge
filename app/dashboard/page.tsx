@@ -61,7 +61,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+          <div className="nb-card p-6">
             <NotificationsPanel />
           </div>
           <RecentForumDiscussions />

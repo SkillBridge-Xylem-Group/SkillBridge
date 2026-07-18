@@ -51,7 +51,8 @@ export function MobileNavDrawer({
         onClick={onClose}
       />
       <aside
-        className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col border-r border-slate-100 bg-white shadow-xl"
+        className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col bg-white shadow-xl"
+        style={{ borderRight: "3px solid var(--neu-ink)" }}
         role="dialog"
         aria-modal="true"
         aria-label="Navigation"
@@ -65,7 +66,7 @@ export function MobileNavDrawer({
               height={40}
               className="h-10 w-10 shrink-0"
             />
-            <span className="text-lg font-extrabold text-brand">SkillBridge</span>
+            <span className="text-lg font-extrabold nb-heading">SkillBridge</span>
           </Link>
           <button
             type="button"
@@ -86,9 +87,7 @@ export function MobileNavDrawer({
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                  active ? "bg-brand-light text-brand" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                }`}
+                className={`nb-nav-link flex items-center gap-3 px-4 py-3 text-sm ${active ? "active" : ""}`}
               >
                 <Icon size={18} />
                 {item.label}
@@ -98,10 +97,8 @@ export function MobileNavDrawer({
           <Link
             href="/dashboard/messages"
             onClick={onClose}
-            className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-              pathname.startsWith("/dashboard/messages")
-                ? "bg-brand-light text-brand"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            className={`nb-nav-link flex items-center gap-3 px-4 py-3 text-sm ${
+              pathname.startsWith("/dashboard/messages") ? "active" : ""
             }`}
           >
             <MessageSquare size={18} />
@@ -110,7 +107,7 @@ export function MobileNavDrawer({
         </nav>
 
         {!hideProgress && (
-          <div className="border-t border-slate-100 p-4">
+          <div className="p-4" style={{ borderTop: "2.5px solid var(--neu-ink)" }}>
             <YourProgress level={level} experiencePoints={experiencePoints} trustScore={trustScore} />
           </div>
         )}
@@ -126,7 +123,8 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      style={{ borderTop: "3px solid var(--neu-ink)" }}
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-between px-1 pt-1">
         {DASHBOARD_NAV_ITEMS.map((item) => {
@@ -136,9 +134,8 @@ export function MobileBottomNav() {
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-bold ${
-                  active ? "text-brand" : "text-slate-400"
-                }`}
+                className="flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-bold"
+                style={{ color: active ? "var(--neu-indigo)" : "var(--neu-text-muted)" }}
               >
                 <Icon size={20} strokeWidth={active ? 2.5 : 2} />
                 <span className="truncate">{item.shortLabel}</span>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Jost, Inter, Dancing_Script } from "next/font/google";
+import { Jost, Inter, Dancing_Script, Baloo_2, Poppins } from "next/font/google";
 import { MotionConfig } from "framer-motion";
 import "./globals.css";
 
@@ -27,6 +27,21 @@ const scriptFont = Dancing_Script({
   display: "swap",
 });
 
+// Landing page + login/signup/reset-password card + reset-password page use
+// their own "playful" type system (Baloo 2 headings, Poppins body) instead
+// of the Jost/Inter pair the rest of the app uses.
+const playfulFont = Baloo_2({
+  variable: "--font-baloo",
+  weight: ["500", "600", "700", "800"],
+  subsets: ["latin"],
+});
+
+const friendlyFont = Poppins({
+  variable: "--font-poppins",
+  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "SkillBridge",
   description: "Trade skills with people worldwide, at no cost, on SkillBridge.",
@@ -46,7 +61,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${displayFont.variable} ${bodyFont.variable} ${scriptFont.variable} h-full antialiased`}
+      className={`${displayFont.variable} ${bodyFont.variable} ${scriptFont.variable} ${playfulFont.variable} ${friendlyFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <MotionConfig reducedMotion="user">{children}</MotionConfig>

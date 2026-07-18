@@ -49,7 +49,7 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
 
   return (
     <div className="w-full max-w-sm">
-      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-major)" }}>
+      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-teal)", fontFamily: "var(--font-playful)" }}>
         Reset Password
       </h1>
       <p className="mt-3 text-sm" style={{ color: "var(--neu-text-muted)" }}>
@@ -65,7 +65,7 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
           <AuthHoneypot value={website} onChange={setWebsite} />
 
           <div className="relative">
-            <Mail size={18} className="auth-neu-icon" />
+            <Mail size={18} className="auth-neu-icon" style={{ color: "var(--neu-teal)" }} />
             <input
               id="reset-email"
               name="email"

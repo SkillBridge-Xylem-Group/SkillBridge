@@ -36,27 +36,37 @@ export default function AnswerCard({ answer, questionId }: { answer: ForumAnswer
     .join("");
 
   return (
-    <div className={`rounded-xl border p-4 ${answer.isTopAnswer ? "border-amber-300 bg-amber-50" : "border-slate-100 bg-white"}`}>
+    <div
+      className="rounded-xl p-4"
+      style={{
+        border: "2.5px solid var(--neu-ink)",
+        background: answer.isTopAnswer ? "#fffbea" : "#fff",
+        boxShadow: answer.isTopAnswer ? "4px 4px 0 var(--neu-yellow)" : "none",
+      }}
+    >
       {answer.isTopAnswer && (
-        <div className="mb-2 flex items-center gap-1.5 text-xs font-bold text-amber-600">
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-bold" style={{ color: "var(--neu-orange)" }}>
           <Crown size={14} />
           Top Answer
         </div>
       )}
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+          style={{ background: "var(--neu-indigo)", border: "2px solid var(--neu-ink)" }}
+        >
           {initials}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 text-sm">
-            <span className="font-bold text-slate-900">{answer.author.fullname}</span>
-            <span className="text-slate-400">· {timeAgo(answer.created_at)}</span>
+            <span className="font-bold" style={{ color: "var(--neu-ink)" }}>{answer.author.fullname}</span>
+            <span style={{ color: "var(--neu-text-muted)" }}>· {timeAgo(answer.created_at)}</span>
           </div>
           {answer.content ? (
-            <FormattedContent text={answer.content} className="mt-1 space-y-1 text-sm text-slate-700" />
+            <FormattedContent text={answer.content} className="mt-1 space-y-1 text-sm" />
           ) : null}
           {answer.image_url ? (
-            <div className="mt-3 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+            <div className="mt-3 overflow-hidden rounded-lg" style={{ border: "2px solid var(--neu-ink)" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={answer.image_url} alt="" className="max-h-80 w-full object-contain" />
             </div>
@@ -66,9 +76,12 @@ export default function AnswerCard({ answer, questionId }: { answer: ForumAnswer
           type="button"
           onClick={vote}
           disabled={isPending}
-          className={`flex flex-col items-center gap-0.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold disabled:opacity-50 ${
-            answer.hasVoted ? "border-brand bg-brand-light text-brand" : "border-slate-200 text-slate-500 hover:border-brand/40"
-          }`}
+          className="flex flex-col items-center gap-0.5 rounded-lg px-2.5 py-1.5 text-xs font-bold disabled:opacity-50"
+          style={{
+            border: "2px solid var(--neu-ink)",
+            background: answer.hasVoted ? "var(--neu-indigo)" : "#fff",
+            color: answer.hasVoted ? "#fff" : "var(--neu-text-muted)",
+          }}
         >
           <ArrowBigUp size={16} fill={answer.hasVoted ? "currentColor" : "none"} />
           {answer.vote_count}

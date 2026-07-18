@@ -69,36 +69,41 @@ export default function BrowsePeopleGrid() {
 
   return (
     <div className="mt-6">
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+      <div className="nb-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--neu-text-muted)" }} />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or skill..."
-            className="w-full rounded-full border border-slate-200 py-2.5 pl-9 pr-4 text-sm text-slate-700 outline-none focus:border-brand/50"
+            className="nb-input w-full rounded-full py-2.5 pl-10 pr-4 text-sm"
           />
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal size={16} className="shrink-0 text-slate-400" />
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="min-w-0 flex-1 rounded-full border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-brand/50 sm:flex-none"
-            >
-              {categoryOptions.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            className="nb-icon-btn flex h-11 w-11 shrink-0 items-center justify-center"
+            style={{ color: "var(--neu-text-muted)" }}
+            aria-hidden
+          >
+            <SlidersHorizontal size={16} />
           </div>
+
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="nb-input min-w-[9.5rem] flex-1 rounded-full px-4 py-2.5 text-sm font-semibold sm:flex-none sm:w-48"
+          >
+            {categoryOptions.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
 
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="w-full rounded-full border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-brand/50 sm:w-auto"
+            className="nb-input min-w-[9.5rem] flex-1 rounded-full px-4 py-2.5 text-sm font-semibold sm:flex-none sm:w-48"
           >
             <option value="rating">Highest Rated</option>
             <option value="reviews">Most Reviews</option>
@@ -107,38 +112,37 @@ export default function BrowsePeopleGrid() {
         </div>
       </div>
 
-      {loading && <p className="mt-6 text-sm text-slate-500">Loading people...</p>}
+      {loading && <p className="mt-6 text-sm" style={{ color: "var(--neu-text-muted)" }}>Loading people...</p>}
       {!loading && error && <p className="mt-6 text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (
         <>
-          <p className="mt-4 text-sm text-slate-500">
+          <p className="mt-4 text-sm" style={{ color: "var(--neu-text-muted)" }}>
             {filtered.length} {filtered.length === 1 ? "person" : "people"} found
           </p>
 
           {filtered.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-10 text-center shadow-sm">
-              <p className="text-sm font-semibold text-slate-600">No matches yet</p>
-              <p className="mt-1 text-sm text-slate-400">Try a different search term or category.</p>
+            <div className="nb-card mt-4 p-10 text-center">
+              <p className="text-sm font-semibold" style={{ color: "var(--neu-ink)" }}>No matches yet</p>
+              <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>Try a different search term or category.</p>
             </div>
           ) : (
             <div className="mt-4 grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((p) => {
+              {filtered.map((p, i) => {
                 const tags = p.tags.slice(0, 3);
+                const avatarColors = ["var(--neu-coral)", "var(--neu-indigo)", "var(--neu-teal)", "var(--neu-purple)", "var(--neu-orange)"];
+                const tagColors = ["var(--neu-yellow)", "var(--neu-teal)", "var(--neu-coral)", "var(--neu-purple)", "var(--neu-orange)"];
                 return (
-                  <article
-                    key={p.id}
-                    className="flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
-                  >
+                  <article key={p.id} className="nb-card flex h-full flex-col p-5">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+                      <div className="nb-avatar h-12 w-12 text-sm" style={{ background: avatarColors[i % avatarColors.length] }}>
                         {getInitials(p.name)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-slate-900" title={p.name}>
+                        <p className="truncate text-sm font-bold" style={{ color: "var(--neu-ink)" }} title={p.name}>
                           {p.name}
                         </p>
-                        <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                        <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>
                           <Star size={13} className="shrink-0 fill-amber-400 text-amber-400" />
                           <span className="truncate">
                             {p.rating > 0
@@ -152,23 +156,25 @@ export default function BrowsePeopleGrid() {
                     <div className="mt-5 flex min-h-[3.5rem] items-start">
                       {tags.length > 0 ? (
                         <div className="flex flex-wrap content-start gap-1.5">
-                          {tags.map((t) => (
+                          {tags.map((t, ti) => (
                             <span
                               key={t}
-                              className="w-fit shrink-0 rounded-full bg-brand-light px-2.5 py-1 text-[11px] font-semibold text-brand"
+                              className="nb-tag w-fit shrink-0"
+                              style={{ background: tagColors[ti % tagColors.length], fontSize: "11px", padding: "4px 10px" }}
                             >
                               {t}
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-xs font-medium text-slate-400">No skills listed</span>
+                        <span className="text-xs font-medium" style={{ color: "var(--neu-text-muted)" }}>No skills listed</span>
                       )}
                     </div>
 
                     <a
                       href={`/dashboard/profile/${p.slug}`}
-                      className="mt-auto inline-flex w-fit self-center items-center justify-center rounded-full border-2 border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand/40 hover:text-brand"
+                      className="nb-btn mt-auto w-full bg-white py-2 text-sm"
+                      style={{ color: "var(--neu-ink)", boxShadow: "none" }}
                     >
                       View Profile
                     </a>

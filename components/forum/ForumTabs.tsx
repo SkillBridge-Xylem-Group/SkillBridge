@@ -8,7 +8,7 @@ const TABS: { key: "latest" | "popular" | "unanswered"; label: string }[] = [
 
 export default function ForumTabs({ active, search }: { active: string; search?: string }) {
   return (
-    <div className="flex items-center gap-6 border-b border-slate-100 px-6">
+    <div className="flex items-center gap-6 px-6" style={{ borderBottom: "2.5px solid #f0ecfa" }}>
       {TABS.map((tab) => {
         const isActive = active === tab.key;
         const params = new URLSearchParams();
@@ -19,11 +19,16 @@ export default function ForumTabs({ active, search }: { active: string; search?:
           <Link
             key={tab.key}
             href={`/dashboard/forum?${params.toString()}`}
-            className={`border-b-2 py-3 text-sm font-bold ${
-              isActive ? "border-brand text-brand" : "border-transparent text-slate-500 hover:text-slate-700"
-            }`}
+            className="relative py-3 text-sm font-bold"
+            style={{ color: isActive ? "var(--neu-indigo)" : "var(--neu-text-muted)" }}
           >
             {tab.label}
+            {isActive && (
+              <span
+                className="absolute inset-x-0 -bottom-[2px] h-[3px] rounded-full"
+                style={{ background: "var(--neu-indigo)" }}
+              />
+            )}
           </Link>
         );
       })}

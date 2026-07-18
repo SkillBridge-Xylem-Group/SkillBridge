@@ -15,25 +15,29 @@ export default function YourProgress({
   const progress = Math.min(100, (xpIntoLevel / xpGoal) * 100);
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-5">
-      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Your Progress</p>
+    <div className="nb-card-sm p-5" style={{ background: "#fbfaff" }}>
+      <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--neu-text-muted)" }}>
+        Your Progress
+      </p>
 
-      <div className="mt-3 flex items-center justify-between">
-        <span className="text-sm font-extrabold text-slate-900">Level {level}</span>
-        <span className="text-xs font-semibold text-slate-400">
+      <div className="mt-3 flex items-baseline justify-between">
+        <span className="text-sm font-extrabold nb-heading">Level {level}</span>
+        <span className="text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>
           {xpIntoLevel} / {xpGoal} XP
         </span>
       </div>
-      <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100">
-        <div className="h-1.5 rounded-full bg-brand transition-all" style={{ width: `${progress}%` }} />
+      <div className="mt-2 h-2 w-full overflow-hidden rounded-full" style={{ background: "#e9e4f7", border: "1.5px solid var(--neu-ink)" }}>
+        <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "var(--neu-indigo)" }} />
       </div>
 
       <div className="mt-4">
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Trust Score</p>
-        <p className="mt-1 text-sm font-bold text-slate-900">
+        <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--neu-text-muted)" }}>
+          Trust Score
+        </p>
+        <p className="mt-1 text-sm font-bold nb-heading">
           {trustScore != null ? trustScore.toFixed(1) : "—"}
         </p>
-        {trustScore == null && <p className="text-xs text-slate-400">No ratings yet</p>}
+        {trustScore == null && <p className="text-xs" style={{ color: "var(--neu-text-muted)" }}>No ratings yet</p>}
       </div>
     </div>
   );

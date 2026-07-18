@@ -15,6 +15,7 @@ type TopbarProps = {
   xp?: number;
   levelNumber?: number;
   trustScore?: number | null;
+  avatarUrl?: string | null;
 };
 
 export default function Topbar({
@@ -23,6 +24,7 @@ export default function Topbar({
   xp = 0,
   levelNumber = 0,
   trustScore = null,
+  avatarUrl = null,
 }: TopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { notifications, unreadCount, unreadMessageCount, reload } = useRealtimeNotifications();
@@ -30,7 +32,10 @@ export default function Topbar({
   return (
     <>
       {/* Always solid — transparent lg styles used to float icons over Quick Actions. */}
-      <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-1.5 sm:px-8 lg:justify-end lg:px-10 lg:py-1.5">
+      <div
+        className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 bg-white px-4 py-3 sm:px-8 lg:justify-end lg:px-8 lg:py-4"
+        style={{ borderBottom: "3px solid var(--neu-ink)" }}
+      >
         <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"
@@ -49,25 +54,29 @@ export default function Topbar({
               height={32}
               className="h-8 w-8 shrink-0"
             />
-            <span className="truncate text-base font-extrabold text-brand">SkillBridge</span>
+            <span className="truncate text-base font-extrabold nb-heading">SkillBridge</span>
           </Link>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link
             href="/dashboard/messages"
             aria-label="Messages"
-            className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 active:scale-95"
+            className="nb-icon-btn relative flex h-10 w-10 items-center justify-center"
+            style={{ color: "var(--neu-ink)" }}
           >
-            <MessageSquare size={20} />
+            <MessageSquare size={19} />
             {unreadMessageCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+              <span
+                className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none text-white"
+                style={{ background: "var(--neu-coral)", border: "2px solid var(--neu-ink)" }}
+              >
                 {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
               </span>
             )}
           </Link>
           <NotificationBell notifications={notifications} unreadCount={unreadCount} onReload={reload} />
-          <UserMenu name={userName} />
+          <UserMenu name={userName} avatarUrl={avatarUrl} />
         </div>
       </div>
 

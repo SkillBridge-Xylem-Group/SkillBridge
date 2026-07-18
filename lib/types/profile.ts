@@ -8,6 +8,7 @@ export type Profile = {
   user_id: string;
   fullname: string;
   bio: string | null;
+  avatar_url: string | null;
   timezone: string;
   experience_points: number;
   level: number;

@@ -95,7 +95,7 @@ export default function SlidingAuthCard({ initialMode, redirectTo, urlError, jus
         >
           {mode === "signup" ? (
             <>
-              <h1 className="text-3xl font-semibold">Welcome Back!</h1>
+              <h1 className="text-3xl font-semibold" style={{ fontFamily: "var(--font-playful)" }}>Welcome Back!</h1>
               <p className="mt-4 max-w-xs text-sm text-white/90">
                 Already have an account? Sign in to keep swapping skills with the community.
               </p>
@@ -110,7 +110,7 @@ export default function SlidingAuthCard({ initialMode, redirectTo, urlError, jus
             </>
           ) : (
             <>
-              <h1 className="text-3xl font-semibold">Hello Learner!</h1>
+              <h1 className="text-3xl font-semibold" style={{ fontFamily: "var(--font-playful)" }}>Hello Learner!</h1>
               <p className="mt-4 max-w-xs text-sm text-white/90">
                 Enter your details and start your skill-swapping journey with SkillBridge.
               </p>

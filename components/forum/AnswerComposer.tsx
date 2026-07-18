@@ -176,13 +176,17 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
   if (!expanded) {
     return (
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-light text-xs font-bold text-brand">
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+          style={{ background: "var(--neu-indigo)", border: "2px solid var(--neu-ink)" }}
+        >
           {userInitials}
         </div>
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-400 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+          className="nb-input min-w-0 flex-1 px-4 py-3 text-left text-sm"
+          style={{ color: "var(--neu-text-muted)" }}
         >
           Join the conversation
         </button>
@@ -196,18 +200,19 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
         {userInitials}
       </div>
 
-      <div className="relative min-w-0 flex-1 overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="relative min-w-0 flex-1 overflow-visible rounded-xl bg-white" style={{ border: "2.5px solid var(--neu-ink)" }}>
         <textarea
           ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Join the conversation"
           rows={4}
-          className="w-full resize-y border-0 bg-transparent px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-0"
+          className="w-full resize-y border-0 bg-transparent px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-0"
+          style={{ color: "var(--neu-ink)" }}
         />
 
         {imagePreview ? (
-          <div className="relative mx-4 mb-3 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+          <div className="relative mx-4 mb-3 overflow-hidden rounded-lg" style={{ border: "2px solid var(--neu-ink)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={imagePreview} alt="Attachment preview" className="max-h-56 w-full object-contain" />
             <button
@@ -223,7 +228,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
         ) : null}
 
         {showFormat ? (
-          <div className="flex flex-wrap items-center gap-1 border-t border-slate-100 px-3 py-2">
+          <div className="flex flex-wrap items-center gap-1 px-3 py-2" style={{ borderTop: "2px solid #f0ecfa" }}>
             {(
               [
                 ["bold", Bold, "Bold"],
@@ -237,7 +242,8 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
                 key={kind}
                 type="button"
                 onClick={() => applyFormat(kind)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                className="flex h-8 w-8 items-center justify-center rounded-lg transition hover:bg-slate-100"
+                style={{ color: "var(--neu-text-muted)" }}
                 aria-label={label}
               >
                 <Icon size={16} />
@@ -248,7 +254,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
 
         {error ? <p className="px-4 pb-2 text-xs font-medium text-red-600">{error}</p> : null}
 
-        <div className="relative flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-3 py-2.5">
+        <div className="relative flex flex-wrap items-center justify-between gap-2 px-3 py-2.5" style={{ borderTop: "2px solid #f0ecfa" }}>
           {showGifPicker ? (
             <div className="absolute left-3 top-full z-30 mt-1 w-[65%] min-w-[280px] max-w-[420px]">
               <GifPicker onSelect={onSelectGif} onClose={() => setShowGifPicker(false)} />
@@ -269,7 +275,8 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
                 imageInputRef.current?.click();
               }}
               disabled={isPending}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50"
+              className="flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-slate-100 disabled:opacity-50"
+              style={{ color: "var(--neu-text-muted)" }}
               aria-label="Add image"
             >
               <ImageIcon size={18} />
@@ -278,7 +285,8 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
               type="button"
               onClick={addVideoLink}
               disabled={isPending}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50"
+              className="flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-slate-100 disabled:opacity-50"
+              style={{ color: "var(--neu-text-muted)" }}
               aria-label="Add video link"
             >
               <Video size={18} />
@@ -287,11 +295,8 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
               type="button"
               onClick={() => setShowGifPicker((open) => !open)}
               disabled={isPending}
-              className={`flex h-9 items-center justify-center rounded-lg px-2 text-xs font-extrabold transition disabled:opacity-50 ${
-                showGifPicker
-                  ? "bg-slate-100 text-slate-800"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-              }`}
+              className="flex h-9 items-center justify-center rounded-lg px-2 text-xs font-extrabold transition hover:bg-slate-100 disabled:opacity-50"
+              style={{ color: showGifPicker ? "var(--neu-ink)" : "var(--neu-text-muted)", background: showGifPicker ? "#f0ecfa" : "transparent" }}
               aria-label="Add GIF"
               aria-expanded={showGifPicker}
             >
@@ -304,9 +309,8 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
                 setShowFormat((v) => !v);
               }}
               disabled={isPending}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-extrabold transition disabled:opacity-50 ${
-                showFormat ? "bg-slate-100 text-slate-800" : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-              }`}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-extrabold transition hover:bg-slate-100 disabled:opacity-50"
+              style={{ color: showFormat ? "var(--neu-ink)" : "var(--neu-text-muted)", background: showFormat ? "#f0ecfa" : "transparent" }}
               aria-label="Formatting"
             >
               Aa
@@ -318,7 +322,8 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
               type="button"
               onClick={cancel}
               disabled={isPending}
-              className="btn-pill border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="nb-btn bg-white px-4 py-1.5 text-xs disabled:opacity-50"
+              style={{ color: "var(--neu-ink)" }}
             >
               Cancel
             </button>
@@ -326,7 +331,8 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
               type="button"
               onClick={submit}
               disabled={isPending || !canSubmit}
-              className="btn-pill bg-brand px-4 py-1.5 text-xs font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
+              className="nb-btn px-4 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ background: "var(--neu-indigo)" }}
             >
               {isPending ? "Posting..." : "Comment"}
             </button>

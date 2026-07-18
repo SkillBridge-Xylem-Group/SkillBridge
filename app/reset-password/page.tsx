@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import AuthShell from "@/components/auth/AuthShell";
 import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 
 export const metadata: Metadata = {
@@ -8,8 +7,10 @@ export const metadata: Metadata = {
 
 export default function ResetPasswordPage() {
   return (
-    <AuthShell>
-      <ResetPasswordForm />
-    </AuthShell>
+    <div className="auth-neu-page flex min-h-screen items-center justify-center p-4 sm:p-6">
+      <div className="auth-neu-card relative w-full max-w-[520px] overflow-hidden rounded-[50px] px-10 py-14 sm:px-16">
+        <ResetPasswordForm />
+      </div>
+    </div>
   );
 }

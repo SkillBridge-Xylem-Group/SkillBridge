@@ -103,7 +103,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   if (confirmationMessage) {
     return (
       <div className="w-full max-w-sm text-center">
-        <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-major)" }}>
+        <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-coral)", fontFamily: "var(--font-playful)" }}>
           Check your email
         </h1>
         <p className="mt-4 text-sm" style={{ color: "var(--neu-text-muted)" }}>
@@ -120,7 +120,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
 
   return (
     <div className="w-full max-w-sm">
-      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-major)" }}>
+      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-coral)", fontFamily: "var(--font-playful)" }}>
         Create Account
       </h1>
       <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
@@ -131,7 +131,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         <AuthHoneypot value={website} onChange={setWebsite} />
 
         <div className="relative">
-          <User size={18} className="auth-neu-icon" />
+          <User size={18} className="auth-neu-icon" style={{ color: "var(--neu-coral)" }} />
           <input
             id="fullName"
             name="fullName"
@@ -147,7 +147,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         </div>
 
         <div className="relative">
-          <Mail size={18} className="auth-neu-icon" />
+          <Mail size={18} className="auth-neu-icon" style={{ color: "var(--neu-yellow)" }} />
           <input
             id="email"
             name="email"
@@ -171,6 +171,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           maxLength={PASSWORD_MAX_LENGTH}
           onFocus={() => setPasswordFocused(true)}
           onBlur={() => setPasswordFocused(false)}
+          iconColor="var(--neu-teal)"
         />
 
         <PasswordRequirements
@@ -185,6 +186,7 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           onChange={setConfirmPassword}
           autoComplete="new-password"
           maxLength={PASSWORD_MAX_LENGTH}
+          iconColor="var(--neu-purple)"
         />
 
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}

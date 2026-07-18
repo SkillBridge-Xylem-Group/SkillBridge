@@ -1,25 +1,25 @@
 import Hero from "@/components/landing/Hero";
+import Showcase from "@/components/landing/Showcase";
 import HowItWorks from "@/components/landing/HowItWorks";
-import CommunityTrust from "@/components/landing/CommunityTrust";
-import GrowingTogether from "@/components/landing/GrowingTogether";
-import FeatureGrid from "@/components/landing/FeatureGrid";
-import Testimonials from "@/components/landing/Testimonials";
-import FinalCta from "@/components/landing/FinalCta";
+import SkillsMarquee from "@/components/landing/SkillsMarquee";
+import JoinSection from "@/components/landing/JoinSection";
 import Footer from "@/components/landing/Footer";
 
-// Each section below now animates its own entrance (Framer Motion
-// whileInView + staggerChildren on its card grid), so sections no longer
-// need to be wrapped in the old <Reveal> component.
 export default function Home() {
   return (
-    <main>
+    <main
+      style={{
+        background: "linear-gradient(135deg, #fdf3e7 0%, #f3eefc 45%, #e3edfb 100%)",
+        backgroundAttachment: "fixed",
+        fontFamily: "var(--font-friendly)",
+        color: "var(--neu-ink)",
+      }}
+    >
       <Hero />
+      <Showcase />
       <HowItWorks />
-      <CommunityTrust />
-      <GrowingTogether />
-      <FeatureGrid />
-      <Testimonials />
-      <FinalCta />
+      <SkillsMarquee />
+      <JoinSection />
       <Footer />
     </main>
   );

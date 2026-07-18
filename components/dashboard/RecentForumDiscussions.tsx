@@ -71,10 +71,10 @@ export default function RecentForumDiscussions() {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+    <div className="nb-card p-4">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-500">Recent Discussions</h2>
-        <Link href="/dashboard/forum" className="text-sm font-bold text-brand hover:underline">
+        <h2 className="text-sm font-extrabold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>Recent Discussions</h2>
+        <Link href="/dashboard/forum" className="text-sm font-bold hover:underline" style={{ color: "var(--neu-indigo)" }}>
           View all
         </Link>
       </div>
@@ -105,36 +105,41 @@ export default function RecentForumDiscussions() {
             <Link
               key={question.id}
               href={`/dashboard/forum/${question.id}`}
-              className={`block rounded-xl px-2 py-3 transition hover:bg-slate-50 ${
-                index > 0 ? "border-t border-slate-100" : ""
-              }`}
+              className="block rounded-xl px-2 py-3 transition hover:bg-slate-50"
+              style={index > 0 ? { borderTop: "2px solid #f0ecfa" } : undefined}
             >
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-light text-[9px] font-bold text-brand">
+                <span
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                  style={{ background: "var(--neu-indigo)" }}
+                >
                   {initials(question.authorName)}
                 </span>
-                <p className="min-w-0 truncate text-xs font-semibold text-slate-600">
+                <p className="min-w-0 truncate text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>
                   {question.authorName}
-                  <span className="font-normal text-slate-400"> · {formatRelativeTime(question.createdAt)}</span>
+                  <span className="font-normal"> · {formatRelativeTime(question.createdAt)}</span>
                 </p>
               </div>
 
               <div className="mt-1.5 flex items-start gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="line-clamp-2 text-sm font-bold text-slate-900">{question.title}</p>
-                  <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-slate-500">
+                  <p className="line-clamp-2 text-sm font-bold" style={{ color: "var(--neu-ink)" }}>{question.title}</p>
+                  <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>
                     <MessageCircle size={13} />
                     {question.replyCount} {question.replyCount === 1 ? "comment" : "comments"}
                   </p>
                 </div>
 
                 {question.imageUrl ? (
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg" style={{ border: "2px solid var(--neu-ink)" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={question.imageUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
                   </div>
                 ) : (
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand">
+                  <div
+                    className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg text-white"
+                    style={{ background: "var(--neu-purple)", border: "2px solid var(--neu-ink)" }}
+                  >
                     <MessageSquareText size={20} />
                   </div>
                 )}

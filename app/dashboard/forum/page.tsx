@@ -55,11 +55,11 @@ export default async function ForumPage({
         <div className="space-y-6 lg:col-span-2">
           <QuestionComposer userInitials={userInitials} />
 
-          <div className="rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="nb-card overflow-hidden">
             <ForumTabs active={activeTab} search={q} />
             <div className="px-6">
               {questions.length === 0 ? (
-                <p className="py-8 text-center text-sm text-slate-500">
+                <p className="py-8 text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>
                   {q ? `No questions found for "${q}".` : "No questions yet — be the first to post!"}
                 </p>
               ) : (

@@ -21,19 +21,19 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
   }, [threads, query]);
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-slate-50/70">
-      <div className="border-b border-slate-200/80 bg-white px-4 pb-3 pt-4">
+    <div className="flex h-full w-full flex-col overflow-hidden" style={{ background: "#f8f6fd" }}>
+      <div className="bg-white px-4 pb-3 pt-4" style={{ borderBottom: "2.5px solid var(--neu-ink)" }}>
         <div className="mb-3">
-          <h1 className="text-lg font-extrabold text-slate-900">Messages</h1>
+          <h1 className="text-lg font-extrabold nb-heading" style={{ color: "var(--neu-ink)" }}>Messages</h1>
         </div>
         <label className="relative block">
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--neu-text-muted)" }} />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search conversations"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/10"
+            className="nb-input w-full py-2.5 pl-9 pr-3 text-sm"
           />
         </label>
       </div>
@@ -41,22 +41,22 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
       <div className="flex-1 overflow-y-auto">
         {threads.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-12 text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm ring-1 ring-slate-100">
+            <div
+              className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white"
+              style={{ border: "2px solid var(--neu-ink)", color: "var(--neu-text-muted)" }}
+            >
               <MessageSquare size={22} />
             </div>
-            <p className="text-sm font-semibold text-slate-700">No conversations yet</p>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+            <p className="text-sm font-semibold" style={{ color: "var(--neu-ink)" }}>No conversations yet</p>
+            <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--neu-text-muted)" }}>
               Visit someone&apos;s profile and tap Message to start chatting.
             </p>
-            <Link
-              href="/dashboard/browse-people"
-              className="mt-4 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-dark active:scale-95"
-            >
+            <Link href="/dashboard/browse-people" className="nb-btn mt-4 px-4 py-2 text-xs text-white" style={{ background: "var(--neu-indigo)" }}>
               Browse people
             </Link>
           </div>
         ) : filtered.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-slate-500">No chats match “{query.trim()}”.</p>
+          <p className="px-4 py-8 text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>No chats match "{query.trim()}".</p>
         ) : (
           <ul className="space-y-0.5 p-2">
             {filtered.map((t) => {
@@ -66,29 +66,25 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
                 <li key={t.thread_id}>
                   <Link
                     href={`/dashboard/messages/${t.partner.slug}`}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-3 transition active:scale-[0.99] ${
-                      active
-                        ? "bg-white shadow-sm ring-1 ring-brand/15"
-                        : "hover:bg-white/80"
-                    }`}
+                    className="flex items-center gap-3 rounded-xl px-3 py-3 transition active:scale-[0.99]"
+                    style={active ? { background: "#fff", border: "2px solid var(--neu-ink)" } : undefined}
                   >
                     <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                        active ? "bg-brand text-white" : "bg-brand-light text-brand"
-                      }`}
+                      className="nb-avatar flex h-11 w-11 shrink-0 items-center justify-center text-sm"
+                      style={{ background: active ? "var(--neu-indigo)" : "#fff", color: active ? "#fff" : "var(--neu-ink)" }}
                     >
                       {getInitials(t.partner.fullname)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-semibold text-slate-900">{t.partner.fullname}</p>
+                        <p className="truncate text-sm font-semibold" style={{ color: "var(--neu-ink)" }}>{t.partner.fullname}</p>
                         {t.lastMessage?.sent_at && (
-                          <span className="shrink-0 text-[11px] text-slate-400">
+                          <span className="shrink-0 text-[11px]" style={{ color: "var(--neu-text-muted)" }}>
                             {formatRelativeTime(t.lastMessage.sent_at)}
                           </span>
                         )}
                       </div>
-                      <p className={`mt-0.5 truncate text-xs leading-snug ${active ? "text-slate-600" : "text-slate-500"}`}>
+                      <p className="mt-0.5 truncate text-xs leading-snug" style={{ color: "var(--neu-text-muted)" }}>
                         {preview}
                       </p>
                     </div>

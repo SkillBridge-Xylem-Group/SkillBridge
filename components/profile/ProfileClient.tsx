@@ -27,6 +27,7 @@ export default function ProfileClient({
   const router = useRouter();
   const [fullname, setFullname] = useState(profile.fullname);
   const [bio, setBio] = useState(profile.bio);
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
   const [offered, setOffered] = useState<Skill[]>(initialOffered);
   const [wanted, setWanted] = useState<Skill[]>(initialWanted);
   const [profileError, setProfileError] = useState("");
@@ -56,6 +57,27 @@ export default function ProfileClient({
 
     // Refresh so the topbar/sidebar (rendered server-side from the same
     // profiles row) pick up the new name too.
+    router.refresh();
+  }
+
+  async function handleAvatarChange(nextUrl: string) {
+    setProfileError("");
+    const previous = avatarUrl;
+    setAvatarUrl(nextUrl);
+
+    const res = await fetch("/api/profile/avatar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ avatarUrl: nextUrl }),
+    });
+
+    if (!res.ok) {
+      setAvatarUrl(previous);
+      const data = await res.json().catch(() => null);
+      setProfileError(data?.error ?? "Failed to save photo. Please try again.");
+      return;
+    }
+
     router.refresh();
   }
 
@@ -102,18 +124,20 @@ export default function ProfileClient({
   return (
     <>
       <ProfileHeader
+        userId={profile.user_id}
         fullname={fullname}
         memberSince={memberSince}
         timezone={timezoneDisplay}
         bio={bio}
+        avatarUrl={avatarUrl}
         onSaveProfile={handleSaveProfile}
+        onAvatarChange={handleAvatarChange}
         profileError={profileError}
       />
 
       <SkillsPanel
         icon={GraduationCap}
-        iconBg="bg-brand-light"
-        iconColor="text-brand"
+        iconColor="var(--neu-indigo)"
         title="Skills I Offer"
         skills={offered}
         availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}
@@ -123,8 +147,7 @@ export default function ProfileClient({
 
       <SkillsPanel
         icon={Target}
-        iconBg="bg-indigo-100"
-        iconColor="text-indigo-600"
+        iconColor="var(--neu-coral)"
         title="Skills I Want to Learn"
         skills={wanted}
         availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}

@@ -27,7 +27,7 @@ export default async function ProfilePage() {
 
   const { data: row } = await supabase
     .from("users")
-    .select("fullname, bio, timezone, experience_points, level, trust_score")
+    .select("fullname, bio, avatar_url, timezone, experience_points, level, trust_score")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -39,6 +39,7 @@ export default async function ProfilePage() {
       user.user_metadata?.name ||
       (user.email ? deriveNameFromEmail(user.email) : "there"),
     bio: row?.bio ?? null,
+    avatar_url: row?.avatar_url ?? null,
     timezone: row?.timezone ?? "UTC",
     experience_points: row?.experience_points ?? 0,
     level: row?.level ?? 0,

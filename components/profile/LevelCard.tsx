@@ -15,24 +15,27 @@ export default function LevelCard({ level, experiencePoints }: LevelCardProps) {
   const remaining = Math.max(0, nextLevelAt - experiencePoints);
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+    <div className="nb-card-sm p-6">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-light text-brand">
+        <div
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white"
+          style={{ background: "var(--neu-indigo)", border: "2px solid var(--neu-ink)" }}
+        >
           <Award size={20} />
         </div>
-        <h2 className="text-lg font-extrabold text-slate-900">Level</h2>
+        <h2 className="text-lg font-extrabold nb-heading" style={{ color: "var(--neu-ink)" }}>Level</h2>
       </div>
 
-      <p className="mt-4 text-4xl font-extrabold text-slate-900">{level}</p>
+      <p className="mt-4 text-4xl font-extrabold nb-heading" style={{ color: "var(--neu-ink)" }}>{level}</p>
 
-      <p className="mt-2 text-sm font-semibold text-slate-400">
+      <p className="mt-2 text-sm font-semibold" style={{ color: "var(--neu-text-muted)" }}>
         {experiencePoints} / {nextLevelAt} XP
       </p>
-      <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
-        <div className="h-2 rounded-full bg-brand transition-all" style={{ width: `${progress}%` }} />
+      <div className="mt-2 h-2.5 w-full rounded-full" style={{ background: "#f0ecfa", border: "1.5px solid var(--neu-ink)" }}>
+        <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "var(--neu-indigo)" }} />
       </div>
 
-      <p className="mt-3 text-sm text-slate-500">
+      <p className="mt-3 text-sm" style={{ color: "var(--neu-text-muted)" }}>
         {remaining} XP until Level {level + 1}
       </p>
     </div>

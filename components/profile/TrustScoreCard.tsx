@@ -8,21 +8,24 @@ type TrustScoreCardProps = {
 
 export default function TrustScoreCard({ trustScore, reviewCount }: TrustScoreCardProps) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+    <div className="nb-card-sm p-6">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
+        <div
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white"
+          style={{ background: "var(--neu-teal)", border: "2px solid var(--neu-ink)" }}
+        >
           <ShieldCheck size={20} />
         </div>
-        <h2 className="flex items-center gap-1.5 text-lg font-extrabold text-slate-900">
+        <h2 className="flex items-center gap-1.5 text-lg font-extrabold nb-heading" style={{ color: "var(--neu-ink)" }}>
           Trust Score
-          <Info size={14} className="text-slate-300" />
+          <Info size={14} style={{ color: "var(--neu-text-muted)" }} />
         </h2>
       </div>
 
-      <p className="mt-4 flex items-baseline gap-2 text-4xl font-extrabold text-slate-900">
+      <p className="mt-4 flex items-baseline gap-2 text-4xl font-extrabold nb-heading" style={{ color: "var(--neu-ink)" }}>
         {trustScore != null ? trustScore.toFixed(1) : "—"}
         {trustScore != null && reviewCount != null && (
-          <span className="text-sm font-semibold text-slate-400">
+          <span className="text-sm font-semibold" style={{ color: "var(--neu-text-muted)" }}>
             ({reviewCount} review{reviewCount === 1 ? "" : "s"})
           </span>
         )}
@@ -30,8 +33,8 @@ export default function TrustScoreCard({ trustScore, reviewCount }: TrustScoreCa
 
       {trustScore == null && (
         <>
-          <p className="mt-2 text-sm font-semibold text-slate-400">No ratings yet</p>
-          <p className="mt-1 text-sm text-slate-500">Complete your first swap to build your Trust Score.</p>
+          <p className="mt-2 text-sm font-semibold" style={{ color: "var(--neu-text-muted)" }}>No ratings yet</p>
+          <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>Complete your first swap to build your Trust Score.</p>
         </>
       )}
     </div>

@@ -53,19 +53,24 @@ export default function NotificationsPanel() {
     <div>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-extrabold text-slate-900">Notifications</h2>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <h2 className="text-lg font-extrabold nb-heading">Notifications</h2>
+          <p className="mt-0.5 text-xs" style={{ color: "var(--neu-text-muted)" }}>
             {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"}
           </p>
         </div>
         {unreadCount > 0 && (
-          <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white">{unreadCount} new</span>
+          <span
+            className="rounded-full px-2.5 py-1 text-xs font-bold text-white"
+            style={{ background: "var(--neu-indigo)", border: "2px solid var(--neu-ink)" }}
+          >
+            {unreadCount} new
+          </span>
         )}
       </div>
 
       <div className="mt-4 space-y-1.5">
         {preview.length === 0 ? (
-          <p className="rounded-xl bg-slate-50 px-3 py-4 text-sm text-slate-500">You&apos;re all caught up.</p>
+          <p className="rounded-xl px-3 py-4 text-sm" style={{ background: "#fbfaff", color: "var(--neu-text-muted)" }}>You&apos;re all caught up.</p>
         ) : (
           preview.map((n) => {
             const { icon: Icon, bg, color, label } = ICONS[n.type] ?? ICONS.message;
@@ -75,7 +80,7 @@ export default function NotificationsPanel() {
                 type="button"
                 onClick={() => handleClick(n)}
                 className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-slate-50 active:scale-[0.99] ${
-                  !n.is_read ? "bg-brand-light/70" : ""
+                  !n.is_read ? "bg-[#f3eefc]" : ""
                 }`}
               >
                 <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${bg} ${color}`}>
@@ -83,18 +88,19 @@ export default function NotificationsPanel() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-                    <span className="text-[11px] text-slate-400">{formatRelativeTime(n.created_at)}</span>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>{label}</p>
+                    <span className="text-[11px]" style={{ color: "var(--neu-text-muted)" }}>{formatRelativeTime(n.created_at)}</span>
                   </div>
                   <p
-                    className={`mt-0.5 line-clamp-2 text-sm leading-snug ${
-                      !n.is_read ? "font-semibold text-slate-900" : "font-medium text-slate-700"
-                    }`}
+                    className="mt-0.5 line-clamp-2 text-sm leading-snug"
+                    style={{ color: "var(--neu-ink)", fontWeight: !n.is_read ? 600 : 500 }}
                   >
                     {n.message}
                   </p>
                 </div>
-                {!n.is_read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand" aria-label="Unread" />}
+                {!n.is_read && (
+                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full" style={{ background: "var(--neu-indigo)" }} aria-label="Unread" />
+                )}
               </button>
             );
           })

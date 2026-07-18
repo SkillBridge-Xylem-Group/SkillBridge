@@ -7,9 +7,10 @@ import { signOutEverywhere } from "@/lib/auth/sign-out";
 
 type UserMenuProps = {
   name: string;
+  avatarUrl?: string | null;
 };
 
-export default function UserMenu({ name }: UserMenuProps) {
+export default function UserMenu({ name, avatarUrl = null }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -43,26 +44,32 @@ export default function UserMenu({ name }: UserMenuProps) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-full py-0.5 pl-0.5 pr-1.5 transition hover:bg-slate-100 sm:gap-2.5 sm:pr-2.5"
+        className="nb-chip flex items-center gap-2 py-1 pl-1 pr-2.5 transition hover:-translate-x-0.5 hover:-translate-y-0.5 sm:gap-2.5 sm:pr-3.5"
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
-          {name.charAt(0).toUpperCase()}
+        <div className="nb-avatar h-8 w-8 overflow-hidden text-xs" style={{ background: avatarUrl ? "#fff" : "var(--neu-coral)" }}>
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+          ) : (
+            name.charAt(0).toUpperCase()
+          )}
         </div>
         <div className="hidden min-w-0 text-left lg:block">
-          <p className="truncate text-sm font-bold text-slate-900">{name}</p>
+          <p className="truncate text-sm font-bold" style={{ color: "var(--neu-ink)" }}>{name}</p>
         </div>
-        <ChevronDown size={16} className={`hidden text-slate-400 transition-transform sm:block ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={16} className={`hidden transition-transform sm:block ${open ? "rotate-180" : ""}`} style={{ color: "var(--neu-text-muted)" }} />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-2xl border border-slate-100 bg-white py-2 shadow-xl"
+          className="nb-card absolute right-0 z-40 mt-2 w-56 overflow-hidden !rounded-2xl bg-white py-2"
         >
           <Link
             href="/dashboard/profile"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
+            style={{ color: "var(--neu-ink)" }}
           >
             <User size={16} />
             My Profile
@@ -70,12 +77,13 @@ export default function UserMenu({ name }: UserMenuProps) {
           <Link
             href="/dashboard/settings"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
+            style={{ color: "var(--neu-ink)" }}
           >
             <Settings size={16} />
             Settings
           </Link>
-          <div className="my-1 border-t border-slate-100" />
+          <div className="my-1 border-t" style={{ borderColor: "#f0ecfa" }} />
           <button
             type="button"
             onClick={handleLogout}

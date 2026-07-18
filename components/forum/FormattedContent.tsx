@@ -53,7 +53,11 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       nodes.push(<s key={key}>{strike}</s>);
     } else if (code !== undefined) {
       nodes.push(
-        <code key={key} className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[0.85em] text-slate-800">
+        <code
+          key={key}
+          className="rounded px-1 py-0.5 font-mono text-[0.85em]"
+          style={{ background: "#f0ecfa", color: "var(--neu-ink)" }}
+        >
           {code}
         </code>
       );
@@ -61,7 +65,14 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       const href = safeHref(linkUrl);
       nodes.push(
         href ? (
-          <a key={key} href={href} target="_blank" rel="noopener noreferrer" className="font-medium text-brand hover:underline">
+          <a
+            key={key}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold hover:underline"
+            style={{ color: "var(--neu-indigo)" }}
+          >
             {linkLabel}
           </a>
         ) : (
@@ -72,7 +83,14 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       const href = safeHref(full);
       nodes.push(
         href ? (
-          <a key={key} href={href} target="_blank" rel="noopener noreferrer" className="break-all font-medium text-brand hover:underline">
+          <a
+            key={key}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="break-all font-bold hover:underline"
+            style={{ color: "var(--neu-indigo)" }}
+          >
             {full}
           </a>
         ) : (
@@ -98,7 +116,7 @@ export default function FormattedContent({ text, className }: { text: string; cl
 
         if (embed) {
           return (
-            <div key={idx} className="my-2 overflow-hidden rounded-lg border border-slate-100 bg-black">
+            <div key={idx} className="my-2 overflow-hidden rounded-lg bg-black" style={{ border: "2px solid var(--neu-ink)" }}>
               <iframe
                 src={embed}
                 title="Embedded video"
