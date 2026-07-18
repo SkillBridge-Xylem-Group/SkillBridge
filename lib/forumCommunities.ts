@@ -227,18 +227,26 @@ export async function listCommunities(
   supabase: SupabaseClient,
   opts: { userId?: string | null; category?: string } = {}
 ): Promise<ForumCommunity[]> {
-  let { data, error } = await supabase
+  let data: CommunityRow[] | null = null;
+  let error: { message: string } | null = null;
+
+  const primary = await supabase
     .from("forum_communities")
     .select(COMMUNITY_SELECT)
     .order("is_official", { ascending: false })
     .order("created_at", { ascending: false });
 
+  data = (primary.data as CommunityRow[] | null) ?? null;
+  error = primary.error;
+
   if (error?.message?.toLowerCase().includes("accent_color")) {
-    ({ data, error } = await supabase
+    const legacy = await supabase
       .from("forum_communities")
       .select(COMMUNITY_SELECT_LEGACY)
       .order("is_official", { ascending: false })
-      .order("created_at", { ascending: false }));
+      .order("created_at", { ascending: false });
+    data = (legacy.data as CommunityRow[] | null) ?? null;
+    error = legacy.error;
   }
 
   if (error) {
@@ -256,7 +264,7 @@ export async function listCommunities(
     joinedIds = new Set((memberships ?? []).map((m) => m.community_id));
   }
 
-  let communities = ((data ?? []) as CommunityRow[]).map((row) =>
+  let communities = (data ?? []).map((row) =>
     toForumCommunity(row, postCounts, joinedIds, opts.userId)
   );
 
@@ -272,18 +280,26 @@ export async function getCommunityBySlug(
   slug: string,
   userId?: string | null
 ): Promise<ForumCommunity | null> {
-  let { data, error } = await supabase
+  let data: CommunityRow | null = null;
+  let error: { message: string } | null = null;
+
+  const primary = await supabase
     .from("forum_communities")
     .select(COMMUNITY_SELECT)
     .eq("slug", slug)
     .maybeSingle();
 
+  data = (primary.data as CommunityRow | null) ?? null;
+  error = primary.error;
+
   if (error?.message?.toLowerCase().includes("accent_color")) {
-    ({ data, error } = await supabase
+    const legacy = await supabase
       .from("forum_communities")
       .select(COMMUNITY_SELECT_LEGACY)
       .eq("slug", slug)
-      .maybeSingle());
+      .maybeSingle();
+    data = (legacy.data as CommunityRow | null) ?? null;
+    error = legacy.error;
   }
 
   if (error || !data) {
@@ -306,7 +322,7 @@ export async function getCommunityBySlug(
     };
   }
 
-  const row = data as CommunityRow;
+  const row = data;
   let joined = false;
   if (userId) {
     if (row.created_by === userId) {
@@ -419,6 +435,7 @@ export async function createCommunity(
   }
 
   if (error) return { data: null, error };
+  if (!data) return { data: null, error: { message: "Failed to create community." } };
 
   await supabase.from("forum_community_members").insert({
     community_id: data.id,
@@ -533,6 +550,43 @@ export async function leaveCommunity(supabase: SupabaseClient, communityId: stri
     .eq("user_id", userId);
 }
 
+/** Delete a user-created community. Official communities cannot be deleted. */
+export async function deleteCommunity(
+  supabase: SupabaseClient,
+  params: { communityId: string; userId: string }
+) {
+  const { data: existing, error: lookupError } = await supabase
+    .from("forum_communities")
+    .select("id, slug, created_by, is_official")
+    .eq("id", params.communityId)
+    .maybeSingle();
+
+  if (lookupError) return { data: null, error: lookupError };
+  if (!existing) return { data: null, error: { message: "Community not found." } };
+  if (existing.is_official) {
+    return { data: null, error: { message: "Official communities can’t be deleted." } };
+  }
+  if (existing.created_by !== params.userId) {
+    return { data: null, error: { message: "Only the community creator can delete it." } };
+  }
+
+  // Keep posts discoverable under General after the community is gone.
+  await supabase
+    .from("forum_questions")
+    .update({ subforum_slug: "general" })
+    .eq("subforum_slug", existing.slug);
+
+  const { error } = await supabase
+    .from("forum_communities")
+    .delete()
+    .eq("id", params.communityId)
+    .eq("created_by", params.userId)
+    .eq("is_official", false);
+
+  if (error) return { data: null, error };
+  return { data: { id: existing.id, slug: existing.slug }, error: null };
+}
+
 /** Communities for the left nav: owned first, then joined. */
 export type SidebarCommunity = {
   id: string;
@@ -547,28 +601,44 @@ export async function listUserSidebarCommunities(
   supabase: SupabaseClient,
   userId: string
 ): Promise<SidebarCommunity[]> {
+  type SidebarRow = {
+    id: string;
+    slug: string;
+    title: string;
+    image_url: string | null;
+    accent_color?: string | null;
+    created_by: string | null;
+  };
+
   const selectWithAccent = "id, slug, title, image_url, accent_color, created_by";
   const selectLegacy = "id, slug, title, image_url, created_by";
 
-  let ownedQuery = await supabase
+  let owned: SidebarRow[] | null = null;
+  let ownedError: { message: string } | null = null;
+
+  const ownedPrimary = await supabase
     .from("forum_communities")
     .select(selectWithAccent)
     .eq("created_by", userId)
     .order("created_at", { ascending: false });
 
-  if (ownedQuery.error?.message?.toLowerCase().includes("accent_color")) {
-    ownedQuery = await supabase
+  owned = (ownedPrimary.data as SidebarRow[] | null) ?? null;
+  ownedError = ownedPrimary.error;
+
+  if (ownedError?.message?.toLowerCase().includes("accent_color")) {
+    const ownedLegacy = await supabase
       .from("forum_communities")
       .select(selectLegacy)
       .eq("created_by", userId)
       .order("created_at", { ascending: false });
+    owned = (ownedLegacy.data as SidebarRow[] | null) ?? null;
+    ownedError = ownedLegacy.error;
   }
 
-  const [{ data: owned, error: ownedError }, { data: memberships, error: memberError }] =
-    await Promise.all([
-      Promise.resolve(ownedQuery),
-      supabase.from("forum_community_members").select("community_id").eq("user_id", userId),
-    ]);
+  const { data: memberships, error: memberError } = await supabase
+    .from("forum_community_members")
+    .select("community_id")
+    .eq("user_id", userId);
 
   if (ownedError && memberError) {
     console.error("listUserSidebarCommunities:", ownedError.message, memberError?.message);
@@ -579,9 +649,7 @@ export async function listUserSidebarCommunities(
 
   for (const row of owned ?? []) {
     const decoded = decodeCommunityImageField(row.image_url);
-    const accent = isCommunityAccentColor((row as { accent_color?: string }).accent_color)
-      ? (row as { accent_color: CommunityAccentColor }).accent_color
-      : decoded.accent;
+    const accent = isCommunityAccentColor(row.accent_color) ? row.accent_color : decoded.accent;
     byId.set(row.id, {
       id: row.id,
       slug: row.slug,
@@ -597,25 +665,28 @@ export async function listUserSidebarCommunities(
     .filter((id) => id && !byId.has(id));
 
   if (joinedIds.length > 0) {
-    let joinedQuery = await supabase
+    let joined: SidebarRow[] | null = null;
+
+    const joinedPrimary = await supabase
       .from("forum_communities")
       .select(selectWithAccent)
       .in("id", joinedIds)
       .order("title", { ascending: true });
 
-    if (joinedQuery.error?.message?.toLowerCase().includes("accent_color")) {
-      joinedQuery = await supabase
+    joined = (joinedPrimary.data as SidebarRow[] | null) ?? null;
+
+    if (joinedPrimary.error?.message?.toLowerCase().includes("accent_color")) {
+      const joinedLegacy = await supabase
         .from("forum_communities")
         .select(selectLegacy)
         .in("id", joinedIds)
         .order("title", { ascending: true });
+      joined = (joinedLegacy.data as SidebarRow[] | null) ?? null;
     }
 
-    for (const row of joinedQuery.data ?? []) {
+    for (const row of joined ?? []) {
       const decoded = decodeCommunityImageField(row.image_url);
-      const accent = isCommunityAccentColor((row as { accent_color?: string }).accent_color)
-        ? (row as { accent_color: CommunityAccentColor }).accent_color
-        : decoded.accent;
+      const accent = isCommunityAccentColor(row.accent_color) ? row.accent_color : decoded.accent;
       byId.set(row.id, {
         id: row.id,
         slug: row.slug,

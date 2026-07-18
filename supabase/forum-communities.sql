@@ -50,6 +50,11 @@ on public.forum_communities for update to authenticated
 using (created_by = auth.uid() or is_official = true)
 with check (created_by = auth.uid() or is_official = true);
 
+drop policy if exists "forum communities delete creator" on public.forum_communities;
+create policy "forum communities delete creator"
+on public.forum_communities for delete to authenticated
+using (created_by = auth.uid() and is_official = false);
+
 drop policy if exists "forum members read all" on public.forum_community_members;
 create policy "forum members read all"
 on public.forum_community_members for select to authenticated
