@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  Suspense,
   useCallback,
   useContext,
   useEffect,
@@ -17,6 +18,7 @@ import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import { MobileBottomNav } from "./MobileNav";
+import NavigationProgressBar from "./NavigationProgressBar";
 
 const COMMUNITIES_CACHE_KEY = "sb-sidebar-communities-v1";
 
@@ -140,6 +142,9 @@ export default function DashboardChrome({
   return (
     <LocaleProvider initialLocale={shell.initialLocale}>
       <PendingNavContext.Provider value={{ pendingHref, navigate }}>
+        <Suspense fallback={null}>
+          <NavigationProgressBar active={isPending} />
+        </Suspense>
         <div className="flex min-h-screen bg-[#F7F7FB]">
           <Sidebar
             level={shell.level}
@@ -162,13 +167,7 @@ export default function DashboardChrome({
                 mainClassName ?? "px-4 pb-24 pt-4 sm:px-8 lg:px-10 lg:pb-10 lg:pt-5"
               }
             >
-              <div
-                className={
-                  isPending ? "opacity-70 transition-opacity duration-150" : "transition-opacity duration-150"
-                }
-              >
-                {children}
-              </div>
+              {children}
             </main>
           </div>
 
