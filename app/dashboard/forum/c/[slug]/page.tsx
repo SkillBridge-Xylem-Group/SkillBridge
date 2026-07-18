@@ -74,8 +74,8 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
       xp={viewerRow?.experience_points ?? 0}
       mainClassName="px-0 pb-24 pt-0 sm:px-0 lg:px-0 lg:pb-10"
     >
-      <div className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8">
+      <div className="relative z-20 border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 pt-4 pb-1 sm:px-6 lg:px-8">
           <CommunityPageHeader community={community} isOwner={isOwner} />
         </div>
       </div>

@@ -8,6 +8,7 @@ import { getSafeForumImageUrl } from "@/lib/forumImageUrl";
 import { forumSubforumPath } from "@/lib/forumSubforums";
 import {
   createCommunity,
+  deleteCommunity,
   isKnownCommunitySlug,
   joinCommunity,
   leaveCommunity,
@@ -183,6 +184,30 @@ export async function toggleJoinCommunityAction(communityId: string, currentlyJo
   revalidatePath("/dashboard/forum");
   revalidatePath("/dashboard", "layout");
   return { success: true, joined: !currentlyJoined };
+}
+
+export async function deleteCommunityAction(communityId: string) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+  if (communityId.startsWith("static-")) {
+    return { error: "This community can’t be deleted." };
+  }
+
+  const { data, error } = await deleteCommunity(supabase, {
+    communityId,
+    userId: user.id,
+  });
+
+  if (error) return { error: error.message };
+  if (!data) return { error: "Could not delete this community." };
+
+  revalidatePath("/dashboard/forum");
+  revalidatePath("/dashboard", "layout");
+  if (data.slug) revalidatePath(forumSubforumPath(data.slug));
+  return { success: true };
 }
 
 export async function createAnswerAction(questionId: string, content: string, imageUrl?: string | null) {

@@ -3,17 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Cake, Camera, Globe2, MoreHorizontal, Plus } from "lucide-react";
+import { Cake, Camera, Globe2, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
-import {
-  COMMUNITY_ACCENT_COLORS,
-  communityAccentHex,
-  normalizeCommunityAccent,
-} from "@/lib/forumCommunities";
+import { communityAccentHex, normalizeCommunityAccent } from "@/lib/forumCommunities";
 import { formatAppDate } from "@/lib/i18n/locales";
 import {
+  deleteCommunityAction,
   toggleJoinCommunityAction,
-  updateCommunityAccentAction,
   updateCommunityImageAction,
 } from "@/lib/actions/forum";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -30,15 +26,36 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
   const router = useRouter();
   const { locale } = useLocale();
   const fileRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [joined, setJoined] = useState(community.joined || isOwner);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [accent, setAccent] = useState(normalizeCommunityAccent(community.accent_color));
   const accentHex = communityAccentHex(accent);
+  const canDelete = isOwner && !community.is_official && !community.id.startsWith("static-");
 
   useEffect(() => {
     setAccent(normalizeCommunityAccent(community.accent_color));
   }, [community.accent_color]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onPointerDown(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   function toggleJoin() {
     if (isOwner) return;
@@ -56,18 +73,21 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
     });
   }
 
-  function onPickAccent(next: string) {
-    if (!isOwner) return;
-    const prev = accent;
-    setAccent(normalizeCommunityAccent(next));
+  function onDeleteCommunity() {
+    if (!canDelete) return;
+    const ok = window.confirm(
+      `Delete r/${community.slug}? Posts will move to General. This can’t be undone.`
+    );
+    if (!ok) return;
+    setMenuOpen(false);
     startTransition(async () => {
       setError("");
-      const res = await updateCommunityAccentAction(community.id, next);
+      const res = await deleteCommunityAction(community.id);
       if (res?.error) {
-        setAccent(prev);
         setError(res.error);
         return;
       }
+      router.push("/dashboard/forum");
       router.refresh();
     });
   }
@@ -107,9 +127,9 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div className="rounded-2xl border border-slate-200 bg-white">
       <div
-        className="relative h-20 sm:h-24"
+        className="relative h-20 overflow-hidden rounded-t-2xl sm:h-24"
         style={{
           background: `linear-gradient(90deg, ${accentHex}, color-mix(in srgb, ${accentHex} 70%, #0f172a))`,
         }}
@@ -191,28 +211,6 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                   {community.post_count} {community.post_count === 1 ? "post" : "posts"}
                 </span>
               </div>
-              {isOwner ? (
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-500">Color</span>
-                  {COMMUNITY_ACCENT_COLORS.map((color) => {
-                    const selected = accent === color.id;
-                    return (
-                      <button
-                        key={color.id}
-                        type="button"
-                        disabled={pending}
-                        onClick={() => onPickAccent(color.id)}
-                        aria-label={`Set color ${color.id}`}
-                        aria-pressed={selected}
-                        style={{ backgroundColor: color.hex }}
-                        className={`h-6 w-6 rounded-full transition disabled:opacity-60 ${
-                          selected ? "ring-2 ring-offset-1 ring-slate-900 scale-110" : "ring-1 ring-black/10"
-                        }`}
-                      />
-                    );
-                  })}
-                </div>
-              ) : null}
             </div>
 
             <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -242,14 +240,46 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                   Joined
                 </span>
               )}
-              <Link
-                href="/dashboard/forum"
-                aria-label="All communities"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-600 hover:bg-slate-50"
-                title="All communities"
-              >
-                <MoreHorizontal size={16} />
-              </Link>
+              <div className="relative z-30" ref={menuRef}>
+                <button
+                  type="button"
+                  aria-label="Community options"
+                  aria-expanded={menuOpen}
+                  aria-haspopup="menu"
+                  disabled={pending}
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                >
+                  <MoreHorizontal size={16} />
+                </button>
+                {menuOpen ? (
+                  <div
+                    role="menu"
+                    className="absolute right-0 z-50 mt-1.5 min-w-[12rem] rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+                  >
+                    <Link
+                      href="/dashboard/forum"
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      All communities
+                    </Link>
+                    {canDelete ? (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={pending}
+                        onClick={onDeleteCommunity}
+                        className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+                      >
+                        <Trash2 size={14} />
+                        Delete community
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
           {error ? <p className="mt-2 text-xs font-medium text-red-600">{error}</p> : null}
