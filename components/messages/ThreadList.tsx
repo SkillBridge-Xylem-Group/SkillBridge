@@ -23,11 +23,8 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-slate-50/70">
       <div className="border-b border-slate-200/80 bg-white px-4 pb-3 pt-4">
-        <div className="mb-3 flex items-baseline justify-between gap-2">
+        <div className="mb-3">
           <h1 className="text-lg font-extrabold text-slate-900">Messages</h1>
-          <span className="text-xs font-medium text-slate-400">
-            {threads.length} chat{threads.length === 1 ? "" : "s"}
-          </span>
         </div>
         <label className="relative block">
           <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />

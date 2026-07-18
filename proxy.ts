@@ -3,13 +3,32 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const protectedRoutes = ["/dashboard"];
 
-/** Avoid hanging forever when Supabase is unreachable (causes nginx 502). */
-const AUTH_TIMEOUT_MS = 3_000;
+/**
+ * Keep this under typical reverse-proxy limits, but high enough that a slow
+ * Supabase round-trip (cold start / distant region) does not look like an outage.
+ */
+const AUTH_TIMEOUT_MS = 8_000;
 
 function needsAuthentication(pathname: string) {
   return protectedRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
+}
+
+function hasSupabaseSessionCookie(request: NextRequest) {
+  return request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-") && cookie.value);
+}
+
+function redirectToLogin(
+  request: NextRequest,
+  pathname: string,
+  search: string,
+  error?: string
+) {
+  const loginUrl = new URL("/login", request.url);
+  loginUrl.searchParams.set("redirectTo", `${pathname}${search}`);
+  if (error) loginUrl.searchParams.set("error", error);
+  return NextResponse.redirect(loginUrl);
 }
 
 export async function proxy(request: NextRequest) {
@@ -21,27 +40,30 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("[proxy] missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    return redirectToLogin(request, pathname, search, "auth-unavailable");
+  }
+
   let response = NextResponse.next({ request });
 
   try {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-            response = NextResponse.next({ request });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            );
-          },
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
         },
-      }
-    );
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    });
 
     const userResult = await Promise.race([
       supabase.auth.getUser(),
@@ -49,11 +71,13 @@ export async function proxy(request: NextRequest) {
     ]);
 
     if (!userResult) {
-      // Supabase unreachable / too slow — send user to login rather than hang nginx.
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirectTo", `${pathname}${search}`);
-      loginUrl.searchParams.set("error", "auth-unavailable");
-      return NextResponse.redirect(loginUrl);
+      // Timed out. If session cookies exist (e.g. just signed in), fail open so
+      // page-level getUser() can finish the check instead of bouncing to a scary banner.
+      if (hasSupabaseSessionCookie(request)) {
+        console.warn("[proxy] auth check timed out; allowing request with session cookies present");
+        return response;
+      }
+      return redirectToLogin(request, pathname, search);
     }
 
     const {
@@ -61,25 +85,22 @@ export async function proxy(request: NextRequest) {
     } = userResult;
 
     if (!user) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirectTo", `${pathname}${search}`);
-      return NextResponse.redirect(loginUrl);
+      return redirectToLogin(request, pathname, search);
     }
 
     if (!user.email_confirmed_at) {
       const usesEmailPassword = user.identities?.some((identity) => identity.provider === "email");
       if (usesEmailPassword) {
-        const loginUrl = new URL("/login", request.url);
-        loginUrl.searchParams.set("error", "confirm-email");
-        return NextResponse.redirect(loginUrl);
+        return redirectToLogin(request, pathname, search, "confirm-email");
       }
     }
   } catch (err) {
     console.error("[proxy] auth check failed:", err);
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirectTo", `${pathname}${search}`);
-    loginUrl.searchParams.set("error", "auth-unavailable");
-    return NextResponse.redirect(loginUrl);
+    if (hasSupabaseSessionCookie(request)) {
+      console.warn("[proxy] auth check errored; allowing request with session cookies present");
+      return response;
+    }
+    return redirectToLogin(request, pathname, search, "auth-unavailable");
   }
 
   return response;

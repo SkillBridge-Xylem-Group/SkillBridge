@@ -33,6 +33,13 @@ export function useRealtimeNotifications() {
     let channel: ReturnType<ReturnType<typeof createSupabaseBrowserClient>["channel"]> | null = null;
     let pollId: ReturnType<typeof setInterval> | null = null;
 
+    function onFocus() {
+      void load();
+    }
+    function onVisible() {
+      if (document.visibilityState === "visible") void load();
+    }
+
     async function setup() {
       await load();
       if (cancelled) return;
@@ -63,16 +70,21 @@ export function useRealtimeNotifications() {
         console.error("[notifications] realtime setup failed:", err);
       }
 
-      // Fallback if Realtime replication is not enabled on the table.
+      // Refresh immediately when the user returns to the tab/window, and keep a
+      // short poll as a fallback in case Realtime replication is unavailable.
+      window.addEventListener("focus", onFocus);
+      document.addEventListener("visibilitychange", onVisible);
       pollId = setInterval(() => {
         void load();
-      }, 30_000);
+      }, 15_000);
     }
 
     void setup();
 
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
       if (pollId) clearInterval(pollId);
       if (channel) {
         const supabase = createSupabaseBrowserClient();

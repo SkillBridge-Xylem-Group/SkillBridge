@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowBigUp, Crown } from "lucide-react";
 import { toggleVoteAction } from "@/lib/actions/forum";
 import type { ForumAnswer } from "@/lib/forum";
+import FormattedContent from "./FormattedContent";
 
 function timeAgo(dateStr: string) {
   const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -51,7 +52,15 @@ export default function AnswerCard({ answer, questionId }: { answer: ForumAnswer
             <span className="font-bold text-slate-900">{answer.author.fullname}</span>
             <span className="text-slate-400">· {timeAgo(answer.created_at)}</span>
           </div>
-          <p className="mt-1 text-sm text-slate-700">{answer.content}</p>
+          {answer.content ? (
+            <FormattedContent text={answer.content} className="mt-1 space-y-1 text-sm text-slate-700" />
+          ) : null}
+          {answer.image_url ? (
+            <div className="mt-3 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={answer.image_url} alt="" className="max-h-80 w-full object-contain" />
+            </div>
+          ) : null}
         </div>
         <button
           type="button"

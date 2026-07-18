@@ -21,6 +21,8 @@ function contentSecurityPolicy(): string {
       "https://images.unsplash.com",
       "https://*.supabase.co",
       "https://*.googleusercontent.com",
+      "https://*.giphy.com",
+      "https://i.giphy.com",
     ].join(" "),
     [
       "connect-src 'self'",
@@ -29,7 +31,8 @@ function contentSecurityPolicy(): string {
       "https://accounts.google.com",
       "https://api.pwnedpasswords.com",
     ].join(" "),
-    "frame-src 'self' https://accounts.google.com https://*.supabase.co",
+    // youtube-nocookie / vimeo player allow forum video embeds.
+    "frame-src 'self' https://accounts.google.com https://*.supabase.co https://www.youtube-nocookie.com https://player.vimeo.com",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "upgrade-insecure-requests",

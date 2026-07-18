@@ -26,6 +26,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          # next build on the sandbox box often exceeds the 10m default
+          command_timeout: 30m
           script: |
             cd "${{ steps.config.outputs.path }}"
             bash deploy.sh "${{ github.ref_name }}"

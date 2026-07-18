@@ -18,19 +18,19 @@ export default function AdminTopbar({ userName }: AdminTopbarProps) {
 
   return (
     <div className="sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white">
-      <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8 lg:justify-end lg:px-10 lg:py-3">
+      <div className="flex items-center justify-between gap-3 px-4 py-1.5 sm:px-8 lg:justify-end lg:px-10 lg:py-1.5">
         <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"
             aria-label="Open admin navigation menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
           >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <Link href="/dashboard/admin" className="inline-flex min-w-0 items-center gap-2">
-            <Image src="/images/logo-mark.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0" />
+            <Image src="/images/logo-mark.png" alt="" width={32} height={32} className="h-8 w-8 shrink-0" />
             <span className="truncate text-base font-extrabold text-brand">SkillBridge Admin</span>
           </Link>
         </div>

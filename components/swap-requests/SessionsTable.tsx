@@ -94,7 +94,7 @@ function SessionRow({
             <button
               type="button"
               onClick={() => setIsRescheduling(false)}
-              className="text-xs font-semibold text-slate-500 hover:text-slate-700"
+              className="btn-pill border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 hover:bg-slate-50"
             >
               Cancel
             </button>
@@ -112,10 +112,10 @@ function SessionRow({
       </td>
       <td className="py-4">
         {canManage && !isRescheduling && (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex w-[11.5rem] flex-col gap-1.5">
             <Link
               href={`/dashboard/swap-session/${session.request_id}`}
-              className="text-xs font-bold text-brand hover:underline"
+              className="btn-pill bg-brand px-3 py-1.5 text-xs text-white hover:bg-brand-dark"
             >
               Join Session
             </Link>
@@ -123,7 +123,7 @@ function SessionRow({
               type="button"
               disabled={isPending}
               onClick={markComplete}
-              className="text-xs font-bold text-slate-700 hover:underline disabled:opacity-50"
+              className="btn-pill border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 hover:border-brand/40 hover:bg-slate-50 disabled:opacity-50"
             >
               Mark Complete
             </button>
@@ -131,7 +131,7 @@ function SessionRow({
               type="button"
               disabled={isPending}
               onClick={() => setIsRescheduling(true)}
-              className="text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-50"
+              className="btn-pill border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
               Reschedule
             </button>
@@ -139,7 +139,7 @@ function SessionRow({
               type="button"
               disabled={isPending}
               onClick={cancel}
-              className="text-xs font-semibold text-red-500 hover:text-red-700 disabled:opacity-50"
+              className="btn-pill border border-red-200 bg-white px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -149,13 +149,15 @@ function SessionRow({
           <button
             type="button"
             onClick={() => onReview(session)}
-            className="text-xs font-bold text-amber-600 hover:underline"
+            className="btn-pill border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-700 hover:bg-amber-100"
           >
             Leave Review
           </button>
         )}
         {session.status === "completed" && session.hasReviewedPartner && (
-          <span className="text-xs font-semibold text-slate-400">Reviewed</span>
+          <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+            Reviewed
+          </span>
         )}
       </td>
     </tr>

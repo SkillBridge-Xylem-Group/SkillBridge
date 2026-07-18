@@ -22,6 +22,13 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
     .eq("id", user.id)
     .maybeSingle();
 
+  const userInitials = (viewerRow?.fullname ?? "?")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p: string) => p.charAt(0).toUpperCase())
+    .join("");
+
   const question = await getQuestionDetail(supabase, questionId);
   if (!question) notFound();
 
@@ -37,10 +44,16 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
         <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
           <p className="text-sm font-bold text-slate-900">{question.author.fullname}</p>
           <h1 className="mt-1 text-xl font-extrabold text-slate-900">{question.title}</h1>
-          <p className="mt-2 text-sm text-slate-700">{question.content}</p>
+          {question.content ? <p className="mt-2 text-sm text-slate-700">{question.content}</p> : null}
+          {question.image_url ? (
+            <div className="mt-4 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={question.image_url} alt="" className="max-h-[32rem] w-full object-contain" />
+            </div>
+          ) : null}
         </div>
 
-        <AnswerComposer questionId={questionId} />
+        <AnswerComposer questionId={questionId} userInitials={userInitials} />
 
         <div className="space-y-3">
           {answers.length === 0 ? (

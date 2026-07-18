@@ -33,13 +33,6 @@ export default async function SwapRequestsPage() {
     >
       <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
-            <h1 className="text-2xl font-extrabold text-slate-900">My Swap Requests</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              See all your incoming and outgoing skill swap requests, and manage your active connections.
-            </p>
-          </div>
-
           <SessionsTable sessions={otherSessions} />
         </div>
 
