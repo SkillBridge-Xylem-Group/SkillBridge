@@ -3,26 +3,21 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { getForumQuestions } from "@/lib/forum";
+import { listCommunities } from "@/lib/forumCommunities";
 import QuestionComposer from "@/components/forum/QuestionComposer";
-import QuestionFeedCard from "@/components/forum/QuestionFeedCard";
-import ForumTabs from "@/components/forum/ForumTabs";
+import CommunitiesDiscovery from "@/components/forum/CommunitiesDiscovery";
 import TrendingTopics from "@/components/forum/TrendingTopics";
+
+type PageProps = {
+  searchParams: Promise<{ create?: string }>;
+};
 
 export const metadata: Metadata = {
   title: "Community Forum | SkillBridge",
 };
 
-export default async function ForumPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; tab?: string }>;
-}) {
-  const { q, tab } = await searchParams;
-  const activeTab = (tab === "popular" || tab === "unanswered" ? tab : "latest") as
-    | "latest"
-    | "popular"
-    | "unanswered";
-
+export default async function ForumPage({ searchParams }: PageProps) {
+  const { create } = await searchParams;
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -42,8 +37,12 @@ export default async function ForumPage({
     .map((p: string) => p.charAt(0).toUpperCase())
     .join("");
 
-  const questions = await getForumQuestions(supabase, { search: q, tab: activeTab });
-  const allQuestionsForTrending = q ? await getForumQuestions(supabase, {}) : questions;
+  const [communities, trendingSource] = await Promise.all([
+    listCommunities(supabase, { userId: user.id }),
+    getForumQuestions(supabase, { limit: 50 }),
+  ]);
+
+  const communityOptions = communities.map((c) => ({ slug: c.slug, title: c.title }));
 
   return (
     <DashboardLayout
@@ -53,26 +52,24 @@ export default async function ForumPage({
     >
       <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <QuestionComposer userInitials={userInitials} />
-
-          <div className="rounded-2xl border border-slate-100 bg-white shadow-sm">
-            <ForumTabs active={activeTab} search={q} />
-            <div className="px-6">
-              {questions.length === 0 ? (
-                <p className="py-8 text-center text-sm text-slate-500">
-                  {q ? `No questions found for "${q}".` : "No questions yet — be the first to post!"}
-                </p>
-              ) : (
-                questions.map((question) => (
-                  <QuestionFeedCard key={question.question_id} question={question} />
-                ))
-              )}
-            </div>
+          <div>
+            <h1 className="text-2xl font-extrabold text-slate-900">Discover Communities</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Find communities to join, or create your own and start posting.
+            </p>
           </div>
+
+          <QuestionComposer
+            userInitials={userInitials}
+            requireSubforumSelect
+            communityOptions={communityOptions}
+          />
+
+          <CommunitiesDiscovery communities={communities} initialCreateOpen={create === "1"} />
         </div>
 
         <div className="space-y-6">
-          <TrendingTopics questions={allQuestionsForTrending} />
+          <TrendingTopics questions={trendingSource} />
         </div>
       </div>
     </DashboardLayout>

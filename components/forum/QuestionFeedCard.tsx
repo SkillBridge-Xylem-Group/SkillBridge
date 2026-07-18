@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import type { ForumQuestionSummary } from "@/lib/forum";
+import { getForumSubforum } from "@/lib/forumSubforums";
 
 function timeAgo(dateStr: string) {
   const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -22,13 +23,21 @@ function colorFor(id: string) {
   return AVATAR_COLORS[hash];
 }
 
-export default function QuestionFeedCard({ question }: { question: ForumQuestionSummary }) {
+export default function QuestionFeedCard({
+  question,
+  showSubforum = true,
+}: {
+  question: ForumQuestionSummary;
+  showSubforum?: boolean;
+}) {
   const initials = question.author.fullname
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((p) => p.charAt(0).toUpperCase())
     .join("");
+
+  const subforum = getForumSubforum(question.subforum_slug);
 
   return (
     <Link
@@ -43,6 +52,12 @@ export default function QuestionFeedCard({ question }: { question: ForumQuestion
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm text-slate-500">
+            {showSubforum ? (
+              <>
+                <span className="font-semibold text-brand">{subforum.title}</span>
+                <span className="text-slate-300"> · </span>
+              </>
+            ) : null}
             <span className="font-bold text-slate-900">{question.author.fullname}</span> · {timeAgo(question.created_at)}
           </p>
           <h3 className="mt-0.5 text-base font-extrabold text-slate-900">{question.title}</h3>
@@ -52,11 +67,7 @@ export default function QuestionFeedCard({ question }: { question: ForumQuestion
           {question.image_url ? (
             <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={question.image_url}
-                alt=""
-                className="max-h-80 w-full object-cover"
-              />
+              <img src={question.image_url} alt="" className="max-h-80 w-full object-cover" />
             </div>
           ) : null}
           <div className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500">

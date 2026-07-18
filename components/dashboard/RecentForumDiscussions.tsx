@@ -11,6 +11,7 @@ type RecentQuestion = {
   createdAt: string;
   replyCount: number;
   imageUrl: string | null;
+  subforumTitle: string | null;
 };
 
 function formatRelativeTime(iso: string): string {
@@ -58,6 +59,7 @@ export default function RecentForumDiscussions() {
             createdAt: question.created_at,
             replyCount: question.reply_count ?? 0,
             imageUrl: question.image_url ?? null,
+            subforumTitle: question.subforum_title ?? null,
           }))
         );
       } catch (err: any) {
@@ -114,6 +116,12 @@ export default function RecentForumDiscussions() {
                   {initials(question.authorName)}
                 </span>
                 <p className="min-w-0 truncate text-xs font-semibold text-slate-600">
+                  {question.subforumTitle ? (
+                    <>
+                      <span className="text-brand">{question.subforumTitle}</span>
+                      <span className="font-normal text-slate-300"> · </span>
+                    </>
+                  ) : null}
                   {question.authorName}
                   <span className="font-normal text-slate-400"> · {formatRelativeTime(question.createdAt)}</span>
                 </p>

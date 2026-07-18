@@ -6,8 +6,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageSquare, X } from "lucide-react";
 import { DASHBOARD_NAV_ITEMS, isDashboardNavActive } from "@/lib/dashboard-nav";
+import type { SidebarCommunity } from "@/lib/forumCommunities";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import YourProgress from "./YourProgress";
+import SidebarCommunities from "./SidebarCommunities";
 
 type MobileNavDrawerProps = {
   open: boolean;
@@ -15,6 +17,7 @@ type MobileNavDrawerProps = {
   level?: number;
   experiencePoints?: number;
   trustScore?: number | null;
+  communities?: SidebarCommunity[];
 };
 
 export function MobileNavDrawer({
@@ -23,6 +26,7 @@ export function MobileNavDrawer({
   level = 0,
   experiencePoints = 0,
   trustScore = null,
+  communities = [],
 }: MobileNavDrawerProps) {
   const pathname = usePathname();
   const hideProgress = pathname === "/dashboard/profile";
@@ -117,6 +121,7 @@ export function MobileNavDrawer({
             <MessageSquare size={18} />
             Messages
           </Link>
+          <SidebarCommunities communities={communities} onNavigate={onClose} />
         </nav>
 
         {!hideProgress && (
