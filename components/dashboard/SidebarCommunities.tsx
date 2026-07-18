@@ -62,7 +62,7 @@ function CommunityRow({
           accentColor={community.accent_color}
           size="sm"
         />
-        <span className="min-w-0 flex-1 truncate text-sm">r/{community.slug}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium">{community.title}</span>
       </Link>
       <button
         type="button"
@@ -106,7 +106,7 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
     const aFav = favorites.has(a.id) ? 0 : 1;
     const bFav = favorites.has(b.id) ? 0 : 1;
     if (aFav !== bFav) return aFav - bFav;
-    return a.slug.localeCompare(b.slug);
+    return a.title.localeCompare(b.title);
   });
 
   return (
@@ -140,12 +140,17 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
       {open ? (
         <div className="px-1">
           <Link
-            href="/dashboard/forum"
+            href="/dashboard/forum/communities"
             onClick={onNavigate}
-            className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-slate-700 transition hover:bg-slate-50"
+            className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition hover:bg-slate-50 ${
+              pathname === "/dashboard/forum/communities" ||
+              pathname.startsWith("/dashboard/forum/communities/")
+                ? "bg-slate-100 font-semibold text-slate-900"
+                : "text-slate-700"
+            }`}
           >
             <Settings size={16} className="shrink-0 text-slate-500" strokeWidth={1.75} />
-            <span>Manage Communities</span>
+            <span className="whitespace-nowrap">Manage</span>
           </Link>
 
           {list.length > 0 ? (
