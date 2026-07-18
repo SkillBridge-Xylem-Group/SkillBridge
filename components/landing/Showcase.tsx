@@ -60,7 +60,7 @@ export default function Showcase() {
           >
             <div
               className="flex items-center gap-3.5 px-4 py-3"
-              style={{ borderBottom: "3px solid var(--neu-ink)", background: "#f6f3fb" }}
+              style={{ borderBottom: "3px solid var(--neu-ink)", background: "#f0fdf4" }}
             >
               <div className="flex gap-1.5">
                 <span className="block h-3 w-3 rounded-full" style={{ background: "var(--neu-coral)", border: "2px solid var(--neu-ink)" }} />
@@ -75,19 +75,22 @@ export default function Showcase() {
               </div>
             </div>
             <div
-              className="flex min-h-[280px] items-center justify-center p-8 sm:min-h-[320px]"
-              style={{ background: "linear-gradient(160deg,#fff,#f5f1fd)" }}
+              id="browser-content"
+              className="relative min-h-[280px] sm:min-h-[320px]"
+              style={{ background: "linear-gradient(160deg,#fff,#f0fdf4)" }}
             >
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {["🎨", "💻", "🎵", "📸"].map((emoji) => (
-                  <span
-                    key={emoji}
-                    className="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
-                    style={{ background: "#fff", border: "2.5px solid var(--neu-ink)", boxShadow: "4px 4px 0 var(--neu-ink)" }}
-                  >
-                    {emoji}
-                  </span>
-                ))}
+              <div className="p-7">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="landing-skeleton h-[38px] w-[38px] shrink-0 rounded-full" />
+                  <div className="landing-skeleton h-3.5 w-[30%] rounded-[10px]" />
+                </div>
+                <div className="landing-skeleton mb-4 h-3.5 w-[45%] rounded-[10px]" />
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className="landing-skeleton h-16 rounded-[10px]" />
+                  <div className="landing-skeleton h-16 rounded-[10px]" />
+                  <div className="landing-skeleton h-16 rounded-[10px]" />
+                  <div className="landing-skeleton h-16 rounded-[10px]" />
+                </div>
               </div>
             </div>
           </div>

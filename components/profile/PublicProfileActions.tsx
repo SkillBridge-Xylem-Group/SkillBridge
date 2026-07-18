@@ -44,7 +44,8 @@ export default function PublicProfileActions({ fullname, profileId }: PublicProf
         type="button"
         onClick={handleSendRequest}
         disabled={isPending || sent}
-        className="btn-pill flex w-full items-center justify-center gap-2 bg-brand py-3 text-sm text-white shadow-lg shadow-brand/30 hover:bg-brand-dark disabled:opacity-60"
+        className="nb-btn flex w-full items-center justify-center gap-2 py-3 text-sm text-white disabled:opacity-60"
+        style={{ background: "var(--sb-gradient)" }}
       >
         {sent ? <Check size={16} /> : <Repeat size={16} />}
         {sent ? "Request Sent" : isPending ? "Sending..." : "Send Swap Request"}
@@ -53,12 +54,13 @@ export default function PublicProfileActions({ fullname, profileId }: PublicProf
         type="button"
         onClick={handleMessage}
         disabled={isMessaging}
-        className="btn-pill flex w-full items-center justify-center gap-2 border-2 border-slate-200 py-3 text-sm text-slate-700 hover:border-brand/40 hover:text-brand disabled:opacity-60"
+        className="nb-btn flex w-full items-center justify-center gap-2 bg-white py-3 text-sm disabled:opacity-60"
+        style={{ color: "var(--sb-ink)" }}
       >
         <MessageCircle size={16} />
         {isMessaging ? "Opening..." : `Message ${fullname.split(" ")[0]}`}
       </button>
-      {notice && <p className="text-center text-xs font-medium text-slate-500">{notice}</p>}
+      {notice && <p className="text-center text-xs font-medium" style={{ color: "var(--sb-muted)" }}>{notice}</p>}
     </div>
   );
 }

@@ -145,8 +145,8 @@ export default function RecentForumDiscussions() {
                   </div>
                 ) : (
                   <div
-                    className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg text-white"
-                    style={{ background: "var(--sb-tint-violet-bg)", color: "var(--sb-tint-violet-ink)" }}
+                    className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: "var(--sb-emerald-light)", color: "var(--sb-emerald-dark)" }}
                   >
                     <MessageSquareText size={20} />
                   </div>

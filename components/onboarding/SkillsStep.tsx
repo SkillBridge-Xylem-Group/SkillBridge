@@ -33,19 +33,19 @@ export default function SkillsStep({
   accent = "blue",
 }: SkillsStepProps) {
   const isOther = subject === OTHER_SUBJECT;
-  const accentColor = accent === "green" ? "var(--color-brand-green)" : "var(--color-brand-blue)";
+  const accentColor = accent === "green" ? "var(--sb-emerald-dark)" : "var(--sb-teal-dark)";
 
   return (
     <div>
       <div className="text-center">
-        <h2 className="text-2xl font-medium sm:text-3xl" style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}>
+        <h2 className="text-2xl font-extrabold nb-heading sm:text-3xl" style={{ color: "var(--sb-ink)" }}>
           {title}
         </h2>
-        <p className="mt-3" style={{ color: "var(--color-charcoal)" }}>{description}</p>
+        <p className="mt-3" style={{ color: "var(--sb-muted)" }}>{description}</p>
       </div>
 
       <div className="mt-8">
-        <label htmlFor="subject" className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>
+        <label htmlFor="subject" className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>
           Primary Subject Field
         </label>
         <div className="relative mt-2">
@@ -53,10 +53,7 @@ export default function SkillsStep({
             id="subject"
             value={subject}
             onChange={(e) => onSubjectChange(e.target.value)}
-            className="w-full appearance-none border bg-white py-3.5 pl-4 pr-11 text-sm focus:outline-none"
-            style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = accentColor)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-fog)")}
+            className="nb-input w-full appearance-none py-3.5 pl-4 pr-11 text-sm"
           >
             {subjectOptions.map((opt) => (
               <option key={opt} value={opt}>
@@ -64,7 +61,7 @@ export default function SkillsStep({
               </option>
             ))}
           </select>
-          <ChevronDown size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" style={{ color: "var(--color-mid-gray)" }} />
+          <ChevronDown size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2" style={{ color: "var(--sb-muted)" }} />
         </div>
 
         {isOther && (
@@ -74,14 +71,13 @@ export default function SkillsStep({
             onChange={(e) => onCustomSubjectChange(e.target.value)}
             placeholder="Tell us your subject field"
             autoFocus
-            className="mt-3 w-full border px-4 py-3.5 text-sm placeholder:text-slate-400 focus:outline-none"
-            style={{ borderColor: "var(--color-fog)", borderRadius: "12px", color: "var(--color-carbon)" }}
+            className="nb-input mt-3 w-full px-4 py-3.5 text-sm"
           />
         )}
       </div>
 
       <div className="mt-6">
-        <p className="text-sm font-medium" style={{ color: "var(--color-carbon)" }}>Select Tags to Feature on Your Profile</p>
+        <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>Select Tags to Feature on Your Profile</p>
         <div className="mt-3 flex flex-wrap gap-2.5">
           {tags.map((tag) => {
             const isSelected = selectedTags.includes(tag);
@@ -90,12 +86,12 @@ export default function SkillsStep({
                 key={tag}
                 type="button"
                 onClick={() => onToggleTag(tag)}
-                className="flex items-center gap-1.5 border px-4 py-2 text-sm transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 text-sm transition-colors"
                 style={{
                   borderRadius: "999px",
-                  borderColor: isSelected ? accentColor : "var(--color-fog)",
+                  boxShadow: isSelected ? "none" : "var(--sb-shadow-sm)",
                   backgroundColor: isSelected ? accentColor : "#ffffff",
-                  color: isSelected ? "#ffffff" : "var(--color-charcoal)",
+                  color: isSelected ? "#ffffff" : "var(--sb-muted)",
                 }}
               >
                 {isSelected && <Check size={14} />}

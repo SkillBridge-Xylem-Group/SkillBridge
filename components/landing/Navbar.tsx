@@ -8,7 +8,7 @@ const links = [
 
 export default function Navbar() {
   return (
-    <nav className="sticky top-0 z-50 bg-[rgba(253,246,236,0.7)] backdrop-blur-md">
+    <nav className="sticky top-0 z-50 bg-[rgba(240,253,244,0.7)] backdrop-blur-md">
       <div className="mx-auto flex max-w-[1240px] items-center justify-between px-6 py-4 sm:px-8">
         <Link
           href="/"

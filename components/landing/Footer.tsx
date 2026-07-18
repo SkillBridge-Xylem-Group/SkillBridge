@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="py-12" style={{ background: "linear-gradient(135deg, #fdf3e7 0%, #f3eefc 45%, #e3edfb 100%)" }}>
+    <footer className="py-12" style={{ background: "linear-gradient(135deg, #f0fdf4 0%, #f7fef9 45%, #ecfdf5 100%)" }}>
       <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-4 px-6 sm:px-8">
         <Link
           href="/"

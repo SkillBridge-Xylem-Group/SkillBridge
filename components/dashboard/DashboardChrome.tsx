@@ -73,8 +73,22 @@ export default function DashboardChrome({
   children,
   mainClassName,
 }: DashboardChromeProps) {
-  // Freeze first paint values so soft navigations don't flash/refetch chrome.
-  const [shell] = useState(initialShell);
+  // Freeze first paint values so soft navigations don't flash/refetch chrome,
+  // but re-sync when the server actually hands us new values (e.g. a
+  // router.refresh() after the user edits their name/photo/etc.) — plain
+  // client-side nav between dashboard pages never re-renders this layout,
+  // so this effect only fires on a real data change, not on every click.
+  const [shell, setShell] = useState(initialShell);
+  useEffect(() => {
+    setShell(initialShell);
+  }, [
+    initialShell.userName,
+    initialShell.avatarUrl,
+    initialShell.level,
+    initialShell.xp,
+    initialShell.trustScore,
+    initialShell.initialLocale,
+  ]);
   const [communities, setCommunities] = useState<SidebarCommunity[]>([]);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();

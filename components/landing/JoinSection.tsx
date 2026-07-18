@@ -50,8 +50,27 @@ export default function JoinSection() {
   }, [active]);
 
   return (
-    <section id="join" ref={sectionRef} className="flex min-h-screen items-center px-6 py-16 text-center sm:px-8">
-      <div className="mx-auto max-w-[620px]">
+    <section id="join" ref={sectionRef} className="relative flex min-h-screen items-center overflow-hidden px-6 py-16 text-center sm:px-8">
+      <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
+        <svg
+          viewBox="0 0 1200 500"
+          preserveAspectRatio="xMidYMid slice"
+          className="-ml-[5%] block h-full w-[110%]"
+          style={{ animation: "landingRibbonSway 9s ease-in-out infinite" }}
+        >
+          <path
+            d="M -100,250 C 80,120 260,120 440,250 C 620,380 800,380 980,250 C 1160,120 1260,120 1350,200"
+            fill="none"
+            stroke="var(--neu-yellow)"
+            strokeWidth={26}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={0.55}
+          />
+        </svg>
+      </div>
+
+      <div className="relative z-[2] mx-auto max-w-[620px]">
         <span
           className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-bold uppercase tracking-wide"
           style={{ background: "#fff", border: "2.5px solid var(--neu-ink)", boxShadow: "4px 4px 0 var(--neu-ink)", color: "var(--neu-ink)" }}

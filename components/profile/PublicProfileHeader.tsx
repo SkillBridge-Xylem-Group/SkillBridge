@@ -18,16 +18,16 @@ export default function PublicProfileHeader({ fullname, memberSince, timezone, b
     .join("");
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+    <div className="nb-card p-6">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-brand-light text-3xl font-extrabold text-brand">
+          <div className="nb-avatar flex h-24 w-24 items-center justify-center text-3xl" style={{ background: "var(--sb-gradient)", color: "#fff" }}>
             {initials}
           </div>
 
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900">{fullname}</h1>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
+            <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>{fullname}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ color: "var(--sb-muted)" }}>
               <span className="flex items-center gap-1.5">
                 <Calendar size={14} />
                 Member since {memberSince}
@@ -45,8 +45,8 @@ export default function PublicProfileHeader({ fullname, memberSince, timezone, b
         </div>
       </div>
 
-      <div className="mt-5 border-t border-slate-100 pt-5">
-        <p className="text-sm leading-relaxed text-slate-600">{bio || "This user hasn't added a bio yet."}</p>
+      <div className="mt-5 pt-5" style={{ borderTop: "1px solid #eef7f0" }}>
+        <p className="text-sm leading-relaxed" style={{ color: "var(--sb-muted)" }}>{bio || "This user hasn't added a bio yet."}</p>
       </div>
     </div>
   );

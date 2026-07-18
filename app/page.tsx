@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <main
       style={{
-        background: "linear-gradient(135deg, #fdf3e7 0%, #f3eefc 45%, #e3edfb 100%)",
+        background: "linear-gradient(135deg, #f0fdf4 0%, #f7fef9 45%, #ecfdf5 100%)",
         backgroundAttachment: "fixed",
         fontFamily: "var(--font-friendly)",
         color: "var(--neu-ink)",

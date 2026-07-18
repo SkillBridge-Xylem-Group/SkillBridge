@@ -16,10 +16,10 @@ export default function OnboardingStepper({ currentStep, totalSteps = 3 }: Onboa
         return (
           <div key={step} className="flex flex-1 items-center gap-3 last:flex-initial">
             <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors"
               style={{
-                backgroundColor: isFilled ? "var(--color-brand-blue)" : "var(--color-fog)",
-                color: isFilled ? "#ffffff" : "var(--color-mid-gray)",
+                background: isFilled ? "var(--sb-gradient)" : "#e5e7eb",
+                color: isFilled ? "#ffffff" : "var(--sb-muted)",
               }}
             >
               {step}
@@ -27,7 +27,7 @@ export default function OnboardingStepper({ currentStep, totalSteps = 3 }: Onboa
             {step !== totalSteps && (
               <div
                 className="h-1 flex-1 rounded-full transition-colors"
-                style={{ backgroundColor: isDone ? "var(--color-brand-blue)" : "var(--color-fog)" }}
+                style={{ background: isDone ? "var(--sb-gradient)" : "#e5e7eb" }}
               />
             )}
           </div>

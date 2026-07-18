@@ -2,38 +2,21 @@
 
 import type { ReactNode } from "react";
 import Navbar from "./Navbar";
+import ScatteredIcons from "./ScatteredIcons";
 
 export default function Hero() {
   const teachLetters = [..."Teach everything."];
 
   return (
     <header className="relative flex min-h-screen flex-col">
+      <ScatteredIcons />
       <Navbar />
 
       <div className="flex flex-1 flex-col justify-center px-6 pb-10 pt-16 sm:px-8">
         <div className="mx-auto w-full max-w-[1240px]">
-          <div className="mb-6 flex justify-center">
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-bold uppercase tracking-wide"
-              style={{
-                background: "#fff",
-                border: "2.5px solid var(--neu-ink)",
-                boxShadow: "4px 4px 0 var(--neu-ink)",
-                color: "var(--neu-ink)",
-              }}
-            >
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-full text-[13px] text-white"
-                style={{ background: "var(--neu-indigo)" }}
-              >
-                ✦
-              </span>
-              100% Free · Skill Swapping
-            </span>
-          </div>
-
           <div className="relative z-[3] mx-auto max-w-[960px] text-center">
             <h1
+              id="hero-headline"
               className="text-[38px] font-extrabold leading-[1.08] tracking-tight sm:text-[56px] lg:text-[72px]"
               style={{ fontFamily: "var(--font-playful)", color: "var(--neu-ink)" }}
             >
@@ -64,17 +47,11 @@ export default function Hero() {
 
             <p className="mx-auto mt-6 max-w-[640px] text-base font-medium sm:text-lg" style={{ color: "var(--neu-text-muted)" }}>
               SkillBridge connects you with{" "}
-              <span className="rounded-lg px-1.5 py-0.5 font-bold" style={{ background: "var(--neu-yellow)", color: "var(--neu-ink)" }}>
-                real people
-              </span>{" "}
+              <span className="landing-pill landing-pill-yellow">real people</span>{" "}
               to trade what you know for what you want to learn.{" "}
-              <span className="rounded-lg px-1.5 py-0.5 font-bold text-white" style={{ background: "var(--neu-coral)" }}>
-                No money
-              </span>{" "}
+              <span className="landing-pill landing-pill-white">No money</span>{" "}
               — just{" "}
-              <span className="rounded-lg px-1.5 py-0.5 font-bold text-white" style={{ background: "var(--neu-indigo)" }}>
-                pure skill exchange
-              </span>
+              <span className="landing-pill landing-pill-white-2">pure skill exchange</span>
               .
             </p>
 

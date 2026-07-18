@@ -104,13 +104,13 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-8">
-      <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden bg-white shadow-2xl" style={{ borderRadius: "var(--radius-card)" }}>
-        <div className="flex items-center justify-between border-b px-8 py-6" style={{ borderColor: "var(--color-fog)" }}>
-          <span className="text-xl font-medium" style={{ fontFamily: "var(--font-heading)", color: "var(--color-brand-blue)" }}>
+      <div className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-[24px] bg-white" style={{ boxShadow: "var(--sb-shadow-lg)" }}>
+        <div className="flex items-center justify-between px-8 py-6" style={{ borderBottom: "1px solid #eef7f0" }}>
+          <span className="text-xl font-extrabold nb-heading" style={{ color: "var(--sb-teal-dark)" }}>
             SkillBridge
           </span>
-          <span className="text-sm font-medium" style={{ color: "var(--color-mid-gray)" }}>
-            Step <span className="font-bold" style={{ color: "var(--color-brand-blue)" }}>{step}</span> of {totalSteps}
+          <span className="text-sm font-semibold" style={{ color: "var(--sb-muted)" }}>
+            Step <span className="font-bold" style={{ color: "var(--sb-teal-dark)" }}>{step}</span> of {totalSteps}
           </span>
         </div>
 
@@ -155,14 +155,15 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
           )}
         </div>
 
-        <div className="border-t px-8 py-6" style={{ borderColor: "var(--color-fog)" }}>
+        <div className="px-8 py-6" style={{ borderTop: "1px solid #eef7f0" }}>
           {error && <p className="mb-4 text-sm font-medium text-red-600">{error}</p>}
           <div className="flex items-center justify-between gap-4">
             <button
               type="button"
               onClick={handleBack}
               disabled={step === 1}
-              className="btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
+              className="nb-btn bg-white px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+              style={{ color: "var(--sb-ink)" }}
             >
               <span className="flex items-center gap-2">
                 <ArrowLeft size={16} />
@@ -175,14 +176,15 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
                 type="button"
                 onClick={handleContinue}
                 disabled={isSubmitting}
-                className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
+                className="nb-btn px-6 py-3 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ background: "var(--sb-gradient)" }}
               >
                 <span className="flex items-center gap-2">
                   {step === totalSteps ? (isSubmitting ? "Finishing..." : "Finish Setup") : "Save & Continue"}
                   <ArrowRight size={16} />
                 </span>
               </button>
-              <p className="mt-2 text-xs" style={{ color: "var(--color-mid-gray)" }}>You can always update this later.</p>
+              <p className="mt-2 text-xs" style={{ color: "var(--sb-muted)" }}>You can always update this later.</p>
             </div>
           </div>
         </div>
