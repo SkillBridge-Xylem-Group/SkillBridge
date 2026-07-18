@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DASHBOARD_NAV_ITEMS, isDashboardNavActive } from "@/lib/dashboard-nav";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import YourProgress from "./YourProgress";
 
 type SidebarProps = {
@@ -19,6 +20,15 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const hideProgress = pathname === "/dashboard/profile";
+  const { dictionary } = useLocale();
+
+  const labels = {
+    home: dictionary.nav.home,
+    browse: dictionary.nav.browse,
+    swaps: dictionary.nav.swaps,
+    forum: dictionary.nav.forum,
+    profile: dictionary.nav.profile,
+  } as const;
 
   return (
     <aside className="hidden w-56 shrink-0 flex-col justify-between border-r border-slate-100 bg-white px-6 py-8 lg:flex">
@@ -39,14 +49,14 @@ export default function Sidebar({
             const isActive = isDashboardNavActive(pathname, item.href);
             return (
               <Link
-                key={item.label}
+                key={item.key}
                 href={item.href}
                 className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                   isActive ? "bg-brand-light text-brand" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
                 <Icon size={18} />
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1">{labels[item.key]}</span>
               </Link>
             );
           })}
