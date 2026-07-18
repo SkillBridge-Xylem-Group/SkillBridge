@@ -103,13 +103,18 @@ export default function AuthCallbackClient() {
   if (status === "loading") {
     return (
       <>
+        <div
+          className="mx-auto mb-5 h-10 w-10 animate-spin rounded-full border-4 border-transparent"
+          style={{ borderTopColor: "var(--neu-major)", borderRightColor: "var(--neu-major)" }}
+          aria-hidden="true"
+        />
         <h1
-          className="text-3xl font-medium sm:text-4xl"
-          style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}
+          className="text-2xl font-extrabold sm:text-3xl"
+          style={{ fontFamily: "var(--font-friendly)", color: "var(--neu-ink)" }}
         >
           Signing you in
         </h1>
-        <p className="mt-3" style={{ color: "var(--color-charcoal)" }}>
+        <p className="mt-3 text-sm" style={{ color: "var(--neu-text-muted)" }}>
           {message}
         </p>
       </>
@@ -119,18 +124,17 @@ export default function AuthCallbackClient() {
   return (
     <>
       <h1
-        className="text-3xl font-medium sm:text-4xl"
-        style={{ fontFamily: "var(--font-heading)", color: "var(--color-carbon)" }}
+        className="text-2xl font-extrabold sm:text-3xl"
+        style={{ fontFamily: "var(--font-friendly)", color: "var(--neu-ink)" }}
       >
         Sign-in failed
       </h1>
-      <p className="mt-3" style={{ color: "var(--color-charcoal)" }}>
+      <p className="mt-3 text-sm" style={{ color: "var(--neu-text-muted)" }}>
         {message}
       </p>
       <Link
         href="/login"
-        className="mx-auto mt-6 flex w-fit items-center gap-2 text-sm font-medium hover:underline"
-        style={{ color: "var(--color-brand-blue)" }}
+        className="auth-neu-link mx-auto mt-6 flex w-fit items-center gap-2 text-sm font-medium"
       >
         <ArrowLeft size={16} />
         Back to Sign In

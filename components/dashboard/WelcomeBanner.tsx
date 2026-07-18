@@ -31,7 +31,7 @@ export default function WelcomeBanner({ name }: WelcomeBannerProps) {
             className="rounded-full bg-white px-6 py-3 text-sm font-bold transition hover:-translate-y-0.5"
             style={{ color: "var(--sb-emerald-dark)" }}
           >
-            Find a Mentor
+            Find a Partner
           </Link>
           <Link
             href="/dashboard/swap-requests"

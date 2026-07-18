@@ -19,10 +19,10 @@ export default function AuthLogo({ variant = "dark", size = 56 }: AuthLogoProps)
         style={{ width: size, height: size }}
       />
       <span
-        className="text-xl font-medium"
+        className="text-xl font-extrabold"
         style={{
-          fontFamily: "var(--font-heading)",
-          color: variant === "light" ? "#ffffff" : "var(--color-brand-blue)",
+          fontFamily: "var(--font-friendly)",
+          color: variant === "light" ? "#ffffff" : "var(--neu-major)",
         }}
       >
         SkillBridge
