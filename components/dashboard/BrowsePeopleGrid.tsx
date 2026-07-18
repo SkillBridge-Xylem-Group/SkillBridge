@@ -15,6 +15,14 @@ type Person = {
 
 type SortOption = "rating" | "reviews" | "name";
 
+const AVATAR_TINTS = [
+  { bg: "var(--sb-tint-rose-bg)", ink: "var(--sb-tint-rose-ink)" },
+  { bg: "var(--sb-teal-light)", ink: "var(--sb-teal-dark)" },
+  { bg: "var(--sb-tint-blue-bg)", ink: "var(--sb-tint-blue-ink)" },
+  { bg: "var(--sb-tint-violet-bg)", ink: "var(--sb-tint-violet-ink)" },
+  { bg: "var(--sb-tint-amber-bg)", ink: "var(--sb-tint-amber-ink)" },
+];
+
 export default function BrowsePeopleGrid() {
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,23 +76,23 @@ export default function BrowsePeopleGrid() {
   }, [people, query, category, sortBy]);
 
   return (
-    <div className="mt-6">
-      <div className="nb-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--neu-text-muted)" }} />
+    <div className="mt-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1 rounded-full bg-white transition" style={{ boxShadow: "var(--sb-shadow-sm)" }}>
+          <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--sb-muted)" }} />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name or skill..."
-            className="nb-input w-full rounded-full py-2.5 pl-10 pr-4 text-sm"
+            className="w-full rounded-full border-none bg-transparent py-3 pl-10 pr-4 text-sm outline-none"
+            style={{ color: "var(--sb-ink)" }}
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <div
-            className="nb-icon-btn flex h-11 w-11 shrink-0 items-center justify-center"
-            style={{ color: "var(--neu-text-muted)" }}
+            className="nb-icon-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl"
             aria-hidden
           >
             <SlidersHorizontal size={16} />
@@ -93,7 +101,8 @@ export default function BrowsePeopleGrid() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="nb-input min-w-[9.5rem] flex-1 rounded-full px-4 py-2.5 text-sm font-semibold sm:flex-none sm:w-48"
+            className="min-w-[9.5rem] flex-1 rounded-full border-none bg-white px-4 py-3 text-sm font-bold sm:flex-none sm:w-48"
+            style={{ color: "var(--sb-ink)", boxShadow: "var(--sb-shadow-sm)" }}
           >
             {categoryOptions.map((c) => (
               <option key={c} value={c}>{c}</option>
@@ -103,7 +112,8 @@ export default function BrowsePeopleGrid() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="nb-input min-w-[9.5rem] flex-1 rounded-full px-4 py-2.5 text-sm font-semibold sm:flex-none sm:w-48"
+            className="min-w-[9.5rem] flex-1 rounded-full border-none bg-white px-4 py-3 text-sm font-bold sm:flex-none sm:w-48"
+            style={{ color: "var(--sb-ink)", boxShadow: "var(--sb-shadow-sm)" }}
           >
             <option value="rating">Highest Rated</option>
             <option value="reviews">Most Reviews</option>
@@ -112,37 +122,43 @@ export default function BrowsePeopleGrid() {
         </div>
       </div>
 
-      {loading && <p className="mt-6 text-sm" style={{ color: "var(--neu-text-muted)" }}>Loading people...</p>}
+      {loading && <p className="mt-6 text-sm" style={{ color: "var(--sb-muted)" }}>Loading people...</p>}
       {!loading && error && <p className="mt-6 text-sm text-red-500">{error}</p>}
 
       {!loading && !error && (
         <>
-          <p className="mt-4 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+          <p className="mt-4 text-sm font-medium" style={{ color: "var(--sb-muted)" }}>
             {filtered.length} {filtered.length === 1 ? "person" : "people"} found
           </p>
 
           {filtered.length === 0 ? (
             <div className="nb-card mt-4 p-10 text-center">
-              <p className="text-sm font-semibold" style={{ color: "var(--neu-ink)" }}>No matches yet</p>
-              <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>Try a different search term or category.</p>
+              <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>No matches yet</p>
+              <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>Try a different search term or category.</p>
             </div>
           ) : (
-            <div className="mt-4 grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((p, i) => {
-                const tags = p.tags.slice(0, 3);
-                const avatarColors = ["var(--neu-coral)", "var(--neu-indigo)", "var(--neu-teal)", "var(--neu-purple)", "var(--neu-orange)"];
-                const tagColors = ["var(--neu-yellow)", "var(--neu-teal)", "var(--neu-coral)", "var(--neu-purple)", "var(--neu-orange)"];
+                const tags = p.tags.slice(0, 2);
+                const avatarTint = AVATAR_TINTS[i % AVATAR_TINTS.length];
                 return (
-                  <article key={p.id} className="nb-card flex h-full flex-col p-5">
+                  <article
+                    key={p.id}
+                    className="flex h-full flex-col rounded-2xl bg-white p-5 transition hover:-translate-y-1"
+                    style={{ boxShadow: "var(--sb-shadow-sm)" }}
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="nb-avatar h-12 w-12 text-sm" style={{ background: avatarColors[i % avatarColors.length] }}>
+                      <div
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-extrabold"
+                        style={{ background: avatarTint.bg, color: avatarTint.ink }}
+                      >
                         {getInitials(p.name)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold" style={{ color: "var(--neu-ink)" }} title={p.name}>
+                        <p className="truncate text-sm font-bold" style={{ color: "var(--sb-ink)" }} title={p.name}>
                           {p.name}
                         </p>
-                        <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>
                           <Star size={13} className="shrink-0 fill-amber-400 text-amber-400" />
                           <span className="truncate">
                             {p.rating > 0
@@ -153,28 +169,28 @@ export default function BrowsePeopleGrid() {
                       </div>
                     </div>
 
-                    <div className="mt-5 flex min-h-[3.5rem] items-start">
+                    <div className="mt-3.5 flex min-h-[2.25rem] items-start">
                       {tags.length > 0 ? (
                         <div className="flex flex-wrap content-start gap-1.5">
-                          {tags.map((t, ti) => (
+                          {tags.map((t) => (
                             <span
                               key={t}
-                              className="nb-tag w-fit shrink-0"
-                              style={{ background: tagColors[ti % tagColors.length], fontSize: "11px", padding: "4px 10px" }}
+                              className="w-fit shrink-0 rounded-full text-xs font-bold"
+                              style={{ background: "var(--sb-emerald-light)", color: "var(--sb-emerald-dark)", padding: "5px 12px" }}
                             >
                               {t}
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-xs font-medium" style={{ color: "var(--neu-text-muted)" }}>No skills listed</span>
+                        <span className="text-xs font-medium" style={{ color: "var(--sb-muted)" }}>No skills listed</span>
                       )}
                     </div>
 
                     <a
                       href={`/dashboard/profile/${p.slug}`}
-                      className="nb-btn mt-auto w-full bg-white py-2 text-sm"
-                      style={{ color: "var(--neu-ink)", boxShadow: "none" }}
+                      className="btn-outline mt-auto w-full rounded-xl border py-2.5 text-center text-sm font-bold transition"
+                      style={{ borderColor: "#e5e7eb", color: "var(--sb-ink)" }}
                     >
                       View Profile
                     </a>

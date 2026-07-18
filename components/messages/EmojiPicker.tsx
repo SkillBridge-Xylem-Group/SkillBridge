@@ -28,7 +28,7 @@ export default function EmojiPicker({ onSelect }: { onSelect: (emoji: string) =>
         aria-label="Add emoji"
         onClick={() => setOpen((o) => !o)}
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-100"
-        style={{ color: "var(--neu-text-muted)" }}
+        style={{ color: "var(--sb-muted)" }}
       >
         <Smile size={18} />
       </button>
@@ -36,7 +36,7 @@ export default function EmojiPicker({ onSelect }: { onSelect: (emoji: string) =>
       {open && (
         <div
           className="absolute bottom-12 left-0 z-20 grid w-64 grid-cols-6 gap-1 rounded-2xl bg-white p-3"
-          style={{ border: "2.5px solid var(--neu-ink)", boxShadow: "6px 6px 0 var(--neu-ink)" }}
+          style={{ boxShadow: "var(--sb-shadow-lg)" }}
         >
           {EMOJIS.map((emoji) => (
             <button

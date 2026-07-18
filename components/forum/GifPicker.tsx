@@ -59,10 +59,10 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
   }, [query, loadGifs]);
 
   return (
-    <div className="w-full overflow-hidden rounded-xl bg-white" style={{ border: "2.5px solid var(--neu-ink)", boxShadow: "6px 6px 0 var(--neu-ink)" }}>
-      <div className="flex items-center gap-2 px-3 py-2.5" style={{ borderBottom: "2px solid #f0ecfa" }}>
+    <div className="w-full overflow-hidden rounded-xl bg-white" style={{ boxShadow: "var(--sb-shadow-lg)" }}>
+      <div className="flex items-center gap-2 px-3 py-2.5" style={{ borderBottom: "1px solid #eef7f0" }}>
         <div className="relative min-w-0 flex-1">
-          <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--neu-text-muted)" }} />
+          <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--sb-muted)" }} />
           <input
             type="search"
             value={query}
@@ -72,13 +72,13 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
             autoFocus
           />
         </div>
-        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>Powered by GIPHY</span>
+        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--sb-muted)" }}>Powered by GIPHY</span>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close GIF picker"
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-slate-100"
-          style={{ color: "var(--neu-text-muted)" }}
+          style={{ color: "var(--sb-muted)" }}
         >
           <X size={16} />
         </button>
@@ -86,11 +86,11 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
 
       <div className="h-80 overflow-y-auto p-2">
         {loading ? (
-          <p className="px-2 py-12 text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>Loading GIFs…</p>
+          <p className="px-2 py-12 text-center text-sm" style={{ color: "var(--sb-muted)" }}>Loading GIFs…</p>
         ) : error ? (
           <p className="px-2 py-12 text-center text-sm text-red-600">{error}</p>
         ) : gifs.length === 0 ? (
-          <p className="px-2 py-12 text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>No GIFs found.</p>
+          <p className="px-2 py-12 text-center text-sm" style={{ color: "var(--sb-muted)" }}>No GIFs found.</p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {gifs.map((gif) => (
@@ -99,7 +99,7 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
                 type="button"
                 onClick={() => onSelect(gif.url)}
                 className="overflow-hidden rounded-lg bg-slate-100 transition hover:ring-2"
-                style={{ ["--tw-ring-color" as string]: "var(--neu-indigo)" }}
+                style={{ ["--tw-ring-color" as string]: "var(--sb-teal)" }}
                 title={gif.title}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

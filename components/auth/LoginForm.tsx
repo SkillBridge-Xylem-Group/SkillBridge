@@ -107,7 +107,7 @@ export default function LoginForm({
 
   return (
     <div className="w-full max-w-sm">
-      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--neu-indigo)", fontFamily: "var(--font-playful)" }}>
+      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--auth-emerald-dark)", fontFamily: "var(--font-playful)" }}>
         SkillBridge
       </h1>
       <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
@@ -142,7 +142,7 @@ export default function LoginForm({
         <AuthHoneypot value={website} onChange={setWebsite} />
 
         <div className="relative">
-          <Mail size={18} className="auth-neu-icon" style={{ color: "var(--neu-indigo)" }} />
+          <Mail size={18} className="auth-neu-icon" style={{ color: "var(--auth-emerald-dark)" }} />
           <input
             id="email"
             name="email"
@@ -157,7 +157,7 @@ export default function LoginForm({
           />
         </div>
 
-        <NeumorphicPasswordField id="password" value={password} onChange={setPassword} iconColor="var(--neu-coral)" />
+        <NeumorphicPasswordField id="password" value={password} onChange={setPassword} iconColor="var(--auth-teal-dark)" />
 
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center gap-2" style={{ color: "var(--neu-text-muted)" }}>

@@ -112,19 +112,19 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between gap-3 bg-white px-4 py-3.5" style={{ borderBottom: "2.5px solid var(--neu-ink)" }}>
+      <div className="flex items-center justify-between gap-3 bg-white px-4 py-3.5" style={{ borderBottom: "1px solid #eef7f0" }}>
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Link
             href="/dashboard/messages"
             aria-label="Back to conversations"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-95 md:hidden"
-            style={{ color: "var(--neu-text-muted)" }}
+            style={{ color: "var(--sb-muted)" }}
           >
             <ArrowLeft size={18} />
           </Link>
           <div
             className="nb-avatar flex h-10 w-10 shrink-0 items-center justify-center text-sm"
-            style={{ background: "var(--neu-indigo)", color: "#fff" }}
+            style={{ background: "var(--sb-gradient)", color: "#fff" }}
           >
             {getInitials(partner.fullname)}
           </div>
@@ -133,14 +133,14 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
               <Link
                 href={`/dashboard/profile/${partner.slug}`}
                 className="block truncate text-sm font-semibold hover:underline"
-                style={{ color: "var(--neu-ink)" }}
+                style={{ color: "var(--sb-ink)" }}
               >
                 {partner.fullname}
               </Link>
             ) : (
-              <p className="truncate text-sm font-semibold" style={{ color: "var(--neu-ink)" }}>{partner.fullname}</p>
+              <p className="truncate text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>{partner.fullname}</p>
             )}
-            <p className="text-xs" style={{ color: "var(--neu-text-muted)" }}>Direct message</p>
+            <p className="text-xs" style={{ color: "var(--sb-muted)" }}>Direct message</p>
           </div>
         </div>
         <button
@@ -149,7 +149,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           disabled={isDeleting}
           aria-label="Delete conversation"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-red-50 hover:text-red-500 active:scale-95 disabled:opacity-50"
-          style={{ color: "var(--neu-text-muted)" }}
+          style={{ color: "var(--sb-muted)" }}
         >
           <Trash2 size={16} />
         </button>
@@ -161,12 +161,12 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           <div className="flex h-full flex-col items-center justify-center text-center">
             <div
               className="nb-avatar mb-3 flex h-12 w-12 items-center justify-center"
-              style={{ background: "var(--neu-indigo)", color: "#fff" }}
+              style={{ background: "var(--sb-gradient)", color: "#fff" }}
             >
               {getInitials(partner.fullname)}
             </div>
-            <p className="text-sm font-semibold" style={{ color: "var(--neu-ink)" }}>Say hello to {firstName}</p>
-            <p className="mt-1 max-w-xs text-xs" style={{ color: "var(--neu-text-muted)" }}>
+            <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>Say hello to {firstName}</p>
+            <p className="mt-1 max-w-xs text-xs" style={{ color: "var(--sb-muted)" }}>
               This is the beginning of your conversation. Send a note to get the swap started.
             </p>
           </div>
@@ -185,7 +185,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                     disabled={deletingMessageId === m.message_id}
                     aria-label="Delete message"
                     className="mb-1 opacity-0 transition group-hover:opacity-100 hover:text-red-500 disabled:opacity-50"
-                    style={{ color: "var(--neu-text-muted)" }}
+                    style={{ color: "var(--sb-muted)" }}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -195,13 +195,13 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                     className="break-words px-3.5 py-2.5 text-sm leading-relaxed"
                     style={
                       mine
-                        ? { borderRadius: "16px 16px 4px 16px", background: "var(--neu-indigo)", color: "#fff", border: "2px solid var(--neu-ink)" }
-                        : { borderRadius: "16px 16px 16px 4px", background: "#fff", color: "var(--neu-ink)", border: "2px solid var(--neu-ink)" }
+                        ? { borderRadius: "20px 20px 6px 20px", background: "var(--sb-gradient)", color: "#fff" }
+                        : { borderRadius: "20px 20px 20px 6px", background: "#f3f4f6", color: "var(--sb-ink)" }
                     }
                   >
                     {m.content}
                   </div>
-                  <span className="mt-1 px-1 text-[10px]" style={{ color: "var(--neu-text-muted)" }}>
+                  <span className="mt-1 px-1 text-[10px]" style={{ color: "var(--sb-muted)" }}>
                     {formatMessageTime(m.sent_at)}
                   </span>
                 </div>
@@ -215,7 +215,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
       <form
         onSubmit={handleSend}
         className="bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 lg:pb-4"
-        style={{ borderTop: "2.5px solid var(--neu-ink)" }}
+        style={{ borderTop: "1px solid #eef7f0" }}
       >
         <div className="nb-input flex items-center gap-2 px-2 py-1.5">
           <EmojiPicker onSelect={(emoji) => setDraft((prev) => prev + emoji)} />
@@ -226,13 +226,13 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
             placeholder={`Message ${firstName}...`}
             maxLength={2000}
             className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm outline-none"
-            style={{ color: "var(--neu-ink)" }}
+            style={{ color: "var(--sb-ink)" }}
           />
           <button
             type="submit"
             disabled={sending || !draft.trim()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition active:scale-95 disabled:opacity-45"
-            style={{ background: "var(--neu-indigo)", border: "2px solid var(--neu-ink)" }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition hover:-translate-y-0.5 active:scale-95 disabled:opacity-45"
+            style={{ background: "var(--sb-gradient)" }}
           >
             <Send size={16} />
           </button>

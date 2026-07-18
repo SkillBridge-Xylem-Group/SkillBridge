@@ -56,7 +56,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
         <code
           key={key}
           className="rounded px-1 py-0.5 font-mono text-[0.85em]"
-          style={{ background: "#f0ecfa", color: "var(--neu-ink)" }}
+          style={{ background: "#eef7f0", color: "var(--sb-ink)" }}
         >
           {code}
         </code>
@@ -71,7 +71,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
             target="_blank"
             rel="noopener noreferrer"
             className="font-bold hover:underline"
-            style={{ color: "var(--neu-indigo)" }}
+            style={{ color: "var(--sb-teal-dark)" }}
           >
             {linkLabel}
           </a>
@@ -89,7 +89,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
             target="_blank"
             rel="noopener noreferrer"
             className="break-all font-bold hover:underline"
-            style={{ color: "var(--neu-indigo)" }}
+            style={{ color: "var(--sb-teal-dark)" }}
           >
             {full}
           </a>
@@ -116,7 +116,7 @@ export default function FormattedContent({ text, className }: { text: string; cl
 
         if (embed) {
           return (
-            <div key={idx} className="my-2 overflow-hidden rounded-lg bg-black" style={{ border: "2px solid var(--neu-ink)" }}>
+            <div key={idx} className="my-2 overflow-hidden rounded-lg bg-black" >
               <iframe
                 src={embed}
                 title="Embedded video"

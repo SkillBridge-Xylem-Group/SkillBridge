@@ -12,33 +12,17 @@ import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 type TopbarProps = {
   userName: string;
-  level?: string;
-  xp?: number;
-  levelNumber?: number;
-  trustScore?: number | null;
   avatarUrl?: string | null;
   communities?: SidebarCommunity[];
 };
 
-export default function Topbar({
-  userName,
-  level = "Level 0",
-  xp = 0,
-  levelNumber = 0,
-  trustScore = null,
-  avatarUrl = null,
-  communities = [],
-}: TopbarProps) {
+export default function Topbar({ userName, avatarUrl = null, communities = [] }: TopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { notifications, unreadCount, unreadMessageCount, reload } = useRealtimeNotifications();
 
   return (
     <>
-      {/* Always solid — transparent lg styles used to float icons over Quick Actions. */}
-      <div
-        className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 bg-white px-4 py-3 sm:px-8 lg:justify-end lg:px-8 lg:py-4"
-        style={{ borderBottom: "3px solid var(--neu-ink)" }}
-      >
+      <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 bg-white px-4 py-3 sm:px-8 lg:mb-2 lg:justify-end lg:bg-transparent lg:px-0 lg:py-4">
         <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"
@@ -66,13 +50,12 @@ export default function Topbar({
             href="/dashboard/messages"
             aria-label="Messages"
             className="nb-icon-btn relative flex h-10 w-10 items-center justify-center"
-            style={{ color: "var(--neu-ink)" }}
           >
             <MessageSquare size={19} />
             {unreadMessageCount > 0 && (
               <span
                 className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none text-white"
-                style={{ background: "var(--neu-coral)", border: "2px solid var(--neu-ink)" }}
+                style={{ background: "#f43f5e" }}
               >
                 {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
               </span>
@@ -83,14 +66,7 @@ export default function Topbar({
         </div>
       </div>
 
-      <MobileNavDrawer
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        level={levelNumber}
-        experiencePoints={xp}
-        trustScore={trustScore}
-        communities={communities}
-      />
+      <MobileNavDrawer open={menuOpen} onClose={() => setMenuOpen(false)} communities={communities} />
     </>
   );
 }

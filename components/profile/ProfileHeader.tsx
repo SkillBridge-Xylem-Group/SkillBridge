@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Pencil, Calendar, Clock, Check, X, Camera } from "lucide-react";
+import { Pencil, Calendar, Clock, Check, X, Plus } from "lucide-react";
 import { uploadAvatar } from "@/lib/avatarUpload";
 
 type ProfileHeaderProps = {
@@ -79,7 +79,7 @@ export default function ProfileHeader({
           <div className="relative shrink-0">
             <div
               className="nb-avatar flex h-24 w-24 items-center justify-center overflow-hidden text-3xl"
-              style={{ background: avatarUrl ? "#fff" : "var(--neu-indigo)", color: "#fff" }}
+              style={{ background: avatarUrl ? "#fff" : "var(--sb-gradient)", color: "#fff" }}
             >
               {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -91,7 +91,7 @@ export default function ProfileHeader({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/*"
               className="hidden"
               onChange={(e) => onPickPhoto(e.target.files?.[0])}
             />
@@ -100,10 +100,10 @@ export default function ProfileHeader({
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingPhoto}
               aria-label="Change profile photo"
-              className="nb-icon-btn absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center disabled:opacity-60"
-              style={{ background: "var(--neu-yellow)", color: "var(--neu-ink)" }}
+              className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white disabled:opacity-60"
+              style={{ background: "var(--sb-gradient)", color: "#fff", boxShadow: "var(--sb-shadow-sm)" }}
             >
-              <Camera size={16} />
+              <Plus size={13} strokeWidth={3} />
             </button>
           </div>
 
@@ -117,9 +117,9 @@ export default function ProfileHeader({
                 className="nb-input px-3 py-1.5 text-2xl font-extrabold nb-heading"
               />
             ) : (
-              <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--neu-ink)" }}>{fullname}</h1>
+              <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>{fullname}</h1>
             )}
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ color: "var(--sb-muted)" }}>
               <span className="flex items-center gap-1.5">
                 <Calendar size={14} />
                 Member since {memberSince}
@@ -130,7 +130,7 @@ export default function ProfileHeader({
               </span>
             </div>
             {isUploadingPhoto && (
-              <p className="mt-1.5 text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>Uploading photo...</p>
+              <p className="mt-1.5 text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>Uploading photo...</p>
             )}
             {photoError && <p className="mt-1.5 text-xs font-medium text-red-600">{photoError}</p>}
           </div>
@@ -141,7 +141,7 @@ export default function ProfileHeader({
             type="button"
             onClick={startEdit}
             className="nb-btn flex items-center gap-1.5 self-start bg-white px-4 py-2 text-sm"
-            style={{ color: "var(--neu-ink)" }}
+            style={{ color: "var(--sb-ink)" }}
           >
             <Pencil size={14} />
             Edit Profile
@@ -149,7 +149,7 @@ export default function ProfileHeader({
         )}
       </div>
 
-      <div className="mt-5 pt-5" style={{ borderTop: "2px solid #f0ecfa" }}>
+      <div className="mt-5 pt-5" style={{ borderTop: "1px solid #eef7f0" }}>
         {isEditing ? (
           <div>
             <textarea
@@ -168,7 +168,7 @@ export default function ProfileHeader({
                 onClick={save}
                 disabled={isSaving}
                 className="nb-btn flex items-center gap-1.5 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ background: "var(--neu-indigo)" }}
+                style={{ background: "var(--sb-gradient)" }}
               >
                 <Check size={14} />
                 {isSaving ? "Saving..." : "Save Profile"}
@@ -178,7 +178,7 @@ export default function ProfileHeader({
                 onClick={() => setIsEditing(false)}
                 disabled={isSaving}
                 className="nb-btn flex items-center gap-1.5 bg-white px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ color: "var(--neu-ink)" }}
+                style={{ color: "var(--sb-ink)" }}
               >
                 <X size={14} />
                 Cancel
@@ -186,7 +186,7 @@ export default function ProfileHeader({
             </div>
           </div>
         ) : (
-          <p className="text-sm leading-relaxed" style={{ color: "var(--neu-text-muted)" }}>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--sb-muted)" }}>
             {bio || "Add a short bio so the community can get to know you."}
           </p>
         )}

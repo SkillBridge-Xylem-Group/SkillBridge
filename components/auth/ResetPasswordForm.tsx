@@ -18,12 +18,12 @@ function strengthOf(password: string): { percent: number; color: string } {
 
   const color =
     strength <= 25
-      ? "var(--neu-coral)"
+      ? "#f87171"
       : strength <= 50
-        ? "var(--neu-orange)"
+        ? "#fbbf24"
         : strength <= 75
-          ? "var(--neu-indigo)"
-          : "var(--neu-teal)";
+          ? "var(--neu-secondary)"
+          : "var(--auth-emerald)";
 
   return { percent: strength, color };
 }
@@ -93,8 +93,8 @@ export default function ResetPasswordForm() {
   if (done) {
     return (
       <div className="flex flex-col items-center text-center">
-        <CheckCircle2 size={72} style={{ color: "var(--neu-teal)" }} />
-        <h2 className="mt-5 text-2xl font-semibold" style={{ color: "var(--neu-indigo)", fontFamily: "var(--font-playful)" }}>
+        <CheckCircle2 size={72} style={{ color: "var(--neu-secondary)" }} />
+        <h2 className="mt-5 text-2xl font-semibold" style={{ color: "var(--auth-emerald-dark)", fontFamily: "var(--font-playful)" }}>
           Password Updated!
         </h2>
         <p className="mt-2 text-sm" style={{ color: "var(--neu-text-muted)" }}>
@@ -117,7 +117,7 @@ export default function ResetPasswordForm() {
     <div>
       <ResetPasswordHashHandler onReady={handleSessionReady} />
 
-      <h2 className="text-2xl font-semibold" style={{ color: "var(--neu-indigo)", fontFamily: "var(--font-playful)" }}>
+      <h2 className="text-2xl font-semibold" style={{ color: "var(--auth-emerald-dark)", fontFamily: "var(--font-playful)" }}>
         Set New Password
       </h2>
       <p className="mt-2 text-sm" style={{ color: "var(--neu-text-muted)" }}>
@@ -137,7 +137,7 @@ export default function ResetPasswordForm() {
             onChange={setPassword}
             autoComplete="new-password"
             maxLength={PASSWORD_MAX_LENGTH}
-            iconColor="var(--neu-indigo)"
+            iconColor="var(--auth-emerald-dark)"
           />
 
           <div className="auth-neu-strength-track">
@@ -155,7 +155,7 @@ export default function ResetPasswordForm() {
             autoComplete="new-password"
             maxLength={PASSWORD_MAX_LENGTH}
             icon={CheckCircle}
-            iconColor="var(--neu-teal)"
+            iconColor="var(--neu-secondary)"
           />
 
           {error && <p className="text-sm font-medium text-red-600">{error}</p>}

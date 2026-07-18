@@ -166,7 +166,7 @@ export default function QuestionComposer({
           type="button"
           onClick={() => setOpen(true)}
           className="nb-btn shrink-0 px-5 py-3 text-sm text-white"
-          style={{ background: "var(--neu-indigo)" }}
+          style={{ background: "var(--sb-gradient)" }}
         >
           <Plus size={16} strokeWidth={2.5} />
           Create
@@ -174,10 +174,10 @@ export default function QuestionComposer({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="nb-chip flex min-w-0 flex-1 items-center gap-3 px-5 py-2 text-left text-sm transition hover:-translate-x-0.5 hover:-translate-y-0.5"
-          style={{ color: "var(--neu-text-muted)" }}
+          className="nb-chip flex min-w-0 flex-1 items-center gap-3 px-5 py-2 text-left text-sm transition hover:-translate-y-0.5"
+          style={{ color: "var(--sb-muted)" }}
         >
-          <span className="nb-avatar h-9 w-9 text-xs" style={{ background: "var(--neu-indigo)" }}>
+          <span className="nb-avatar h-9 w-9 text-xs" style={{ background: "var(--sb-gradient)" }}>
             {userInitials}
           </span>
           <span className="truncate">
@@ -199,9 +199,9 @@ export default function QuestionComposer({
             aria-modal="true"
             aria-labelledby={titleId}
             className="relative z-10 flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-t-2xl bg-white sm:rounded-[24px]"
-            style={{ border: "3px solid var(--neu-ink)", boxShadow: "10px 10px 0 var(--neu-ink)" }}
+            style={{ boxShadow: "var(--sb-shadow-lg)" }}
           >
-            <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "2.5px solid #f0ecfa" }}>
+            <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid #eef7f0" }}>
               <h2 id={titleId} className="text-xl font-extrabold nb-heading">
                 Create a post
               </h2>
@@ -210,8 +210,7 @@ export default function QuestionComposer({
                 onClick={close}
                 disabled={isPending}
                 aria-label="Close"
-                className="flex h-9 w-9 items-center justify-center rounded-full disabled:opacity-50"
-                style={{ border: "2px solid var(--neu-ink)" }}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-50"
               >
                 <X size={16} />
               </button>
@@ -219,17 +218,17 @@ export default function QuestionComposer({
 
             <div className="space-y-3.5 overflow-y-auto px-6 py-5">
               <div className="mb-1 flex items-center gap-3.5">
-                <div className="nb-avatar h-11 w-11 text-sm" style={{ background: "var(--neu-indigo)" }}>
+                <div className="nb-avatar h-11 w-11 text-sm" style={{ background: "var(--sb-gradient)" }}>
                   {userInitials}
                 </div>
-                <p className="text-[15px] font-semibold" style={{ color: "var(--neu-ink)" }}>
+                <p className="text-[15px] font-semibold" style={{ color: "var(--sb-ink)" }}>
                   {lockedSubforum ? `Posting in ${lockedSubforum.title}` : "Share with the community"}
                 </p>
               </div>
 
               {requireSubforumSelect && !lockedSlug ? (
                 <div>
-                  <label htmlFor="composer-subforum" className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>
+                  <label htmlFor="composer-subforum" className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--sb-muted)" }}>
                     Community
                   </label>
                   <select
@@ -265,7 +264,7 @@ export default function QuestionComposer({
               />
 
               {imagePreview ? (
-                <div className="relative overflow-hidden rounded-xl" style={{ border: "2.5px solid var(--neu-ink)" }}>
+                <div className="relative overflow-hidden rounded-xl">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={imagePreview} alt="Upload preview" className="max-h-72 w-full object-contain" />
                   <button
@@ -283,7 +282,7 @@ export default function QuestionComposer({
               {error && <p className="text-xs font-medium text-red-600">{error}</p>}
             </div>
 
-            <div className="flex items-center justify-between gap-3 px-6 py-4" style={{ borderTop: "2.5px solid #f0ecfa" }}>
+            <div className="flex items-center justify-between gap-3 px-6 py-4" style={{ borderTop: "1px solid #eef7f0" }}>
               <div>
                 <input
                   ref={fileInputRef}
@@ -297,7 +296,7 @@ export default function QuestionComposer({
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isPending}
                   className="nb-btn bg-white px-4 py-2.5 text-sm disabled:opacity-50"
-                  style={{ color: "var(--neu-ink)" }}
+                  style={{ color: "var(--sb-muted)" }}
                 >
                   <ImagePlus size={16} />
                   Images
@@ -307,8 +306,8 @@ export default function QuestionComposer({
                 type="button"
                 onClick={submit}
                 disabled={isPending || !canSubmit}
-                className="nb-btn px-6 py-2.5 text-[14.5px] disabled:cursor-not-allowed disabled:opacity-50"
-                style={{ background: "var(--neu-yellow)", color: "var(--neu-ink)" }}
+                className="nb-btn px-6 py-2.5 text-[14.5px] text-white disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ background: "var(--sb-gradient)" }}
               >
                 {isPending ? "Posting..." : "Post"}
                 <Send size={14} />

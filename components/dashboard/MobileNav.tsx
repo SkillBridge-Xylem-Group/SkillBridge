@@ -8,28 +8,16 @@ import { MessageSquare, X } from "lucide-react";
 import { DASHBOARD_NAV_ITEMS, isDashboardNavActive } from "@/lib/dashboard-nav";
 import type { SidebarCommunity } from "@/lib/forumCommunities";
 import { useLocale } from "@/components/i18n/LocaleProvider";
-import YourProgress from "./YourProgress";
 import SidebarCommunities from "./SidebarCommunities";
 
 type MobileNavDrawerProps = {
   open: boolean;
   onClose: () => void;
-  level?: number;
-  experiencePoints?: number;
-  trustScore?: number | null;
   communities?: SidebarCommunity[];
 };
 
-export function MobileNavDrawer({
-  open,
-  onClose,
-  level = 0,
-  experiencePoints = 0,
-  trustScore = null,
-  communities = [],
-}: MobileNavDrawerProps) {
+export function MobileNavDrawer({ open, onClose, communities = [] }: MobileNavDrawerProps) {
   const pathname = usePathname();
-  const hideProgress = pathname === "/dashboard/profile";
   const { dictionary } = useLocale();
 
   const labels = {
@@ -66,7 +54,6 @@ export function MobileNavDrawer({
       />
       <aside
         className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col bg-white shadow-xl"
-        style={{ borderRight: "3px solid var(--neu-ink)" }}
         role="dialog"
         aria-modal="true"
         aria-label="Navigation"
@@ -120,12 +107,6 @@ export function MobileNavDrawer({
           </Link>
           <SidebarCommunities communities={communities} onNavigate={onClose} />
         </nav>
-
-        {!hideProgress && (
-          <div className="p-4" style={{ borderTop: "2.5px solid var(--neu-ink)" }}>
-            <YourProgress level={level} experiencePoints={experiencePoints} trustScore={trustScore} />
-          </div>
-        )}
       </aside>
     </div>
   );
@@ -148,7 +129,7 @@ export function MobileBottomNav() {
     <nav
       aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-40 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
-      style={{ borderTop: "3px solid var(--neu-ink)" }}
+      style={{ boxShadow: "0 -2px 10px rgba(20,24,20,.05)" }}
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-between px-1 pt-1">
         {DASHBOARD_NAV_ITEMS.map((item) => {
@@ -159,7 +140,7 @@ export function MobileBottomNav() {
               <Link
                 href={item.href}
                 className="flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-bold"
-                style={{ color: active ? "var(--neu-indigo)" : "var(--neu-text-muted)" }}
+                style={{ color: active ? "var(--sb-teal-dark)" : "var(--sb-muted)" }}
               >
                 <Icon size={20} strokeWidth={active ? 2.5 : 2} />
                 <span className="truncate">{shortLabels[item.key]}</span>

@@ -22,8 +22,8 @@ type NotificationBellProps = {
 
 const TYPE_META: Record<NotificationType, { icon: LucideIcon; label: string; tone: string }> = {
   message: { icon: MessageCircle, label: "Message", tone: "bg-slate-100 text-slate-600" },
-  swap_request: { icon: Repeat, label: "Swap request", tone: "bg-[#ede9fb] text-[var(--neu-indigo)]" },
-  swap_response: { icon: CalendarCheck, label: "Swap update", tone: "bg-[#ede9fb] text-[var(--neu-indigo)]" },
+  swap_request: { icon: Repeat, label: "Swap request", tone: "bg-[var(--sb-teal-light)] text-[var(--sb-teal-dark)]" },
+  swap_response: { icon: CalendarCheck, label: "Swap update", tone: "bg-[var(--sb-teal-light)] text-[var(--sb-teal-dark)]" },
   level_up: { icon: Award, label: "Level up", tone: "bg-emerald-50 text-emerald-600" },
   forum_reply: { icon: MessagesSquare, label: "Forum", tone: "bg-sky-50 text-sky-600" },
   review_prompt: { icon: Star, label: "Review", tone: "bg-amber-50 text-amber-600" },
@@ -86,14 +86,13 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
         aria-label="Notifications"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`nb-icon-btn relative flex h-10 w-10 items-center justify-center ${open ? "-translate-x-0.5 -translate-y-0.5" : ""}`}
-        style={{ color: "var(--neu-ink)" }}
+        className={`nb-icon-btn relative flex h-10 w-10 items-center justify-center ${open ? "-translate-y-0.5" : ""}`}
       >
         <Bell size={19} />
         {unreadCount > 0 && (
           <span
             className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none text-white"
-            style={{ background: "var(--neu-coral)", border: "2px solid var(--neu-ink)" }}
+            style={{ background: "#f43f5e" }}
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
@@ -105,7 +104,7 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
           <div className="flex items-center justify-between gap-3 px-4 pb-2.5 pt-3.5">
             <div>
               <p className="text-[15px] font-semibold nb-heading">Notifications</p>
-              <p className="text-xs" style={{ color: "var(--neu-text-muted)" }}>
+              <p className="text-xs" style={{ color: "var(--sb-muted)" }}>
                 {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"}
               </p>
             </div>
@@ -113,8 +112,8 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="rounded-full px-2.5 py-1 text-xs font-semibold transition hover:bg-[#f3eefc] active:scale-95"
-                style={{ color: "var(--neu-indigo)" }}
+                className="rounded-full px-2.5 py-1 text-xs font-semibold transition hover:bg-[var(--sb-emerald-light)] active:scale-95"
+                style={{ color: "var(--sb-teal-dark)" }}
               >
                 Mark all read
               </button>
@@ -142,7 +141,7 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
                     type="button"
                     onClick={() => handleOpenNotification(n)}
                     className={`flex w-full items-start gap-3 px-3.5 py-3 text-left transition hover:bg-slate-50 active:bg-slate-100/80 ${
-                      !n.is_read ? "bg-[#f3eefc]" : ""
+                      !n.is_read ? "bg-[var(--sb-emerald-light)]/40" : ""
                     }`}
                   >
                     <div
@@ -170,7 +169,7 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
                     {!n.is_read && (
                       <span
                         className="mt-2 h-2 w-2 shrink-0 rounded-full"
-                        style={{ background: "var(--neu-indigo)" }}
+                        style={{ background: "var(--sb-emerald)" }}
                         aria-label="Unread"
                       />
                     )}
@@ -190,8 +189,8 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
                     setOpen(false);
                     router.push("/dashboard/swap-requests");
                   }}
-                  className="w-full rounded-xl py-2.5 text-center text-sm font-semibold transition hover:bg-[#f3eefc] active:scale-[0.99]"
-                  style={{ color: "var(--neu-indigo)" }}
+                  className="w-full rounded-xl py-2.5 text-center text-sm font-semibold transition hover:bg-[var(--sb-emerald-light)] active:scale-[0.99]"
+                  style={{ color: "var(--sb-teal-dark)" }}
                 >
                   View swap requests
                 </button>

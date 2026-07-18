@@ -7,26 +7,16 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DASHBOARD_NAV_ITEMS, isDashboardNavActive } from "@/lib/dashboard-nav";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import type { SidebarCommunity } from "@/lib/forumCommunities";
-import YourProgress from "./YourProgress";
 import SidebarCommunities from "./SidebarCommunities";
 
 type SidebarProps = {
-  level?: number;
-  experiencePoints?: number;
-  trustScore?: number | null;
   communities?: SidebarCommunity[];
 };
 
 const STORAGE_KEY = "skillbridge-sidebar-collapsed";
 
-export default function Sidebar({
-  level = 0,
-  experiencePoints = 0,
-  trustScore = null,
-  communities = [],
-}: SidebarProps) {
+export default function Sidebar({ communities = [] }: SidebarProps) {
   const pathname = usePathname();
-  const hideProgress = pathname === "/dashboard/profile";
   const { dictionary } = useLocale();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -56,17 +46,17 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`hidden shrink-0 flex-col justify-between bg-white transition-[width] duration-200 lg:flex ${
+      className={`sticky top-5 hidden h-[calc(100vh-2.5rem)] shrink-0 flex-col rounded-3xl bg-white transition-[width] duration-200 lg:flex ${
         collapsed ? "w-20" : "w-64"
       }`}
-      style={{ borderRight: "3px solid var(--neu-ink)" }}
+      style={{ boxShadow: "var(--sb-shadow-md)" }}
     >
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-7">
         <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2`}>
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
             <span
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[15px] font-extrabold text-white"
-              style={{ background: "var(--neu-indigo)", border: "2.5px solid var(--neu-ink)", boxShadow: "3px 3px 0 var(--neu-ink)" }}
+              style={{ background: "var(--sb-gradient)" }}
             >
               S
             </span>
@@ -80,7 +70,6 @@ export default function Sidebar({
               onClick={toggleCollapsed}
               aria-label="Collapse sidebar"
               className="nb-icon-btn flex h-8 w-8 shrink-0 items-center justify-center"
-              style={{ color: "var(--neu-ink)" }}
             >
               <ChevronLeft size={16} />
             </button>
@@ -93,7 +82,6 @@ export default function Sidebar({
             onClick={toggleCollapsed}
             aria-label="Expand sidebar"
             className="nb-icon-btn mx-auto mt-4 flex h-8 w-8 items-center justify-center"
-            style={{ color: "var(--neu-ink)" }}
           >
             <ChevronRight size={16} />
           </button>
@@ -119,14 +107,12 @@ export default function Sidebar({
           })}
         </nav>
 
-        {!collapsed && <SidebarCommunities communities={communities} />}
+        {!collapsed && (
+          <div className="mt-auto">
+            <SidebarCommunities communities={communities} />
+          </div>
+        )}
       </div>
-
-      {!hideProgress && !collapsed && (
-        <div className="px-4 pb-7">
-          <YourProgress level={level} experiencePoints={experiencePoints} trustScore={trustScore} />
-        </div>
-      )}
     </aside>
   );
 }

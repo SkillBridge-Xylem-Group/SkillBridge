@@ -36,15 +36,15 @@ export default function SkillsPanel({
       <div className="flex items-center gap-3">
         <div
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: iconColor, border: "2px solid var(--neu-ink)", color: "#fff" }}
+          style={{ background: iconColor, color: "#fff" }}
         >
           <Icon size={18} />
         </div>
-        <h2 className="text-lg font-extrabold nb-heading" style={{ color: "var(--neu-ink)" }}>{title}</h2>
+        <h2 className="text-lg font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>{title}</h2>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {skills.length === 0 && <p className="text-sm" style={{ color: "var(--neu-text-muted)" }}>None added yet.</p>}
+        {skills.length === 0 && <p className="text-sm" style={{ color: "var(--sb-muted)" }}>None added yet.</p>}
         {skills.map((skill) => (
           <span key={skill.skill_id} className="nb-tag flex items-center gap-1.5">
             {skill.skill_name}
@@ -61,20 +61,20 @@ export default function SkillsPanel({
       </div>
 
       {isPicking ? (
-        <div className="mt-4 rounded-xl p-3" style={{ border: "2px solid var(--neu-ink)" }}>
-          <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: "#f3eefc" }}>
-            <Search size={14} style={{ color: "var(--neu-text-muted)" }} />
+        <div className="mt-4 rounded-2xl p-3" style={{ boxShadow: "var(--sb-shadow-sm)" }}>
+          <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: "#f6fffb" }}>
+            <Search size={14} style={{ color: "var(--sb-muted)" }} />
             <input
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search skills..."
               className="w-full bg-transparent text-sm focus:outline-none"
-              style={{ color: "var(--neu-ink)" }}
+              style={{ color: "var(--sb-ink)" }}
             />
           </div>
           <div className="mt-2 max-h-40 space-y-1 overflow-y-auto">
-            {filtered.length === 0 && <p className="p-2 text-sm" style={{ color: "var(--neu-text-muted)" }}>No matching skills.</p>}
+            {filtered.length === 0 && <p className="p-2 text-sm" style={{ color: "var(--sb-muted)" }}>No matching skills.</p>}
             {filtered.map((skill) => (
               <button
                 key={skill.skill_id}
@@ -85,8 +85,8 @@ export default function SkillsPanel({
                 }}
                 className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50"
               >
-                <span className="font-medium" style={{ color: "var(--neu-ink)" }}>{skill.skill_name}</span>
-                <span className="text-xs" style={{ color: "var(--neu-text-muted)" }}>{skill.category}</span>
+                <span className="font-medium" style={{ color: "var(--sb-ink)" }}>{skill.skill_name}</span>
+                <span className="text-xs" style={{ color: "var(--sb-muted)" }}>{skill.category}</span>
               </button>
             ))}
           </div>
@@ -94,7 +94,7 @@ export default function SkillsPanel({
             type="button"
             onClick={() => setIsPicking(false)}
             className="mt-2 text-xs font-semibold hover:underline"
-            style={{ color: "var(--neu-text-muted)" }}
+            style={{ color: "var(--sb-muted)" }}
           >
             Done
           </button>
@@ -104,7 +104,7 @@ export default function SkillsPanel({
           type="button"
           onClick={() => setIsPicking(true)}
           className="mt-4 flex items-center gap-1.5 text-sm font-bold hover:underline"
-          style={{ color: "var(--neu-indigo)" }}
+          style={{ color: "var(--sb-teal-dark)" }}
         >
           <Plus size={14} />
           Add a skill

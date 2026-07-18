@@ -59,23 +59,22 @@ export default function ReviewModal({
         role="dialog"
         aria-labelledby="review-modal-title"
         className="w-full max-w-md rounded-[24px] bg-white p-6"
-        style={{ border: "3px solid var(--neu-ink)", boxShadow: "10px 10px 0 var(--neu-ink)" }}
+        style={{ boxShadow: "var(--sb-shadow-lg)" }}
       >
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 id="review-modal-title" className="text-lg font-extrabold nb-heading">
               Rate your session
             </h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
-              How was your skill swap with <span className="font-semibold" style={{ color: "var(--neu-ink)" }}>{partner.fullname}</span>?
+            <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>
+              How was your skill swap with <span className="font-semibold" style={{ color: "var(--sb-ink)" }}>{partner.fullname}</span>?
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-8 w-8 items-center justify-center rounded-full"
-            style={{ border: "2px solid var(--neu-ink)" }}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
           >
             <X size={16} />
           </button>
@@ -83,7 +82,7 @@ export default function ReviewModal({
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--neu-text-muted)" }}>Rating</p>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sb-muted)" }}>Rating</p>
             <div className="mt-2 flex items-center gap-1">
               {Array.from({ length: 5 }, (_, i) => {
                 const value = i + 1;
@@ -109,7 +108,7 @@ export default function ReviewModal({
           </div>
 
           <div>
-            <label htmlFor="review-comment" className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--neu-text-muted)" }}>
+            <label htmlFor="review-comment" className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sb-muted)" }}>
               Review
             </label>
             <textarea
@@ -130,7 +129,7 @@ export default function ReviewModal({
               type="button"
               onClick={onClose}
               className="rounded-full px-4 py-2 text-sm font-semibold"
-              style={{ color: "var(--neu-text-muted)" }}
+              style={{ color: "var(--sb-muted)" }}
             >
               Later
             </button>
@@ -138,7 +137,7 @@ export default function ReviewModal({
               type="submit"
               disabled={isPending}
               className="nb-btn px-5 py-2 text-sm text-white disabled:opacity-60"
-              style={{ background: "var(--neu-indigo)" }}
+              style={{ background: "var(--sb-gradient)" }}
             >
               {isPending ? "Submitting…" : "Submit review"}
             </button>

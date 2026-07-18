@@ -44,9 +44,9 @@ export default function UserMenu({ name, avatarUrl = null }: UserMenuProps) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="nb-chip flex items-center gap-2 py-1 pl-1 pr-2.5 transition hover:-translate-x-0.5 hover:-translate-y-0.5 sm:gap-2.5 sm:pr-3.5"
+        className="nb-chip flex items-center gap-2 py-1 pl-1 pr-2.5 transition hover:-translate-y-0.5 sm:gap-2.5 sm:pr-3.5"
       >
-        <div className="nb-avatar h-8 w-8 overflow-hidden text-xs" style={{ background: avatarUrl ? "#fff" : "var(--neu-coral)" }}>
+        <div className="nb-avatar h-8 w-8 overflow-hidden text-xs" style={{ background: avatarUrl ? "#fff" : "var(--sb-gradient)" }}>
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
@@ -55,9 +55,9 @@ export default function UserMenu({ name, avatarUrl = null }: UserMenuProps) {
           )}
         </div>
         <div className="hidden min-w-0 text-left lg:block">
-          <p className="truncate text-sm font-bold" style={{ color: "var(--neu-ink)" }}>{name}</p>
+          <p className="truncate text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{name}</p>
         </div>
-        <ChevronDown size={16} className={`hidden transition-transform sm:block ${open ? "rotate-180" : ""}`} style={{ color: "var(--neu-text-muted)" }} />
+        <ChevronDown size={16} className={`hidden transition-transform sm:block ${open ? "rotate-180" : ""}`} style={{ color: "var(--sb-muted)" }} />
       </button>
 
       {open && (
@@ -69,7 +69,7 @@ export default function UserMenu({ name, avatarUrl = null }: UserMenuProps) {
             href="/dashboard/profile"
             onClick={() => setOpen(false)}
             className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
-            style={{ color: "var(--neu-ink)" }}
+            style={{ color: "var(--sb-ink)" }}
           >
             <User size={16} />
             {dictionary.menu.myProfile}
@@ -78,12 +78,12 @@ export default function UserMenu({ name, avatarUrl = null }: UserMenuProps) {
             href="/dashboard/settings"
             onClick={() => setOpen(false)}
             className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
-            style={{ color: "var(--neu-ink)" }}
+            style={{ color: "var(--sb-ink)" }}
           >
             <Settings size={16} />
             {dictionary.menu.settings}
           </Link>
-          <div className="my-1 border-t" style={{ borderColor: "#f0ecfa" }} />
+          <div className="my-1 border-t border-[#eef7f0]" />
           <button
             type="button"
             onClick={handleLogout}

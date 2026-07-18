@@ -75,8 +75,8 @@ export default function RecentForumDiscussions() {
   return (
     <div className="nb-card p-4">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-sm font-extrabold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>Recent Discussions</h2>
-        <Link href="/dashboard/forum" className="text-sm font-bold hover:underline" style={{ color: "var(--neu-indigo)" }}>
+        <h2 className="text-sm font-extrabold uppercase tracking-wide" style={{ color: "var(--sb-muted)" }}>Recent Discussions</h2>
+        <Link href="/dashboard/forum" className="text-sm font-bold hover:underline" style={{ color: "var(--sb-teal-dark)" }}>
           View all
         </Link>
       </div>
@@ -113,14 +113,14 @@ export default function RecentForumDiscussions() {
               <div className="flex items-center gap-2">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                  style={{ background: "var(--neu-indigo)" }}
+                  style={{ background: "var(--sb-gradient)" }}
                 >
                   {initials(question.authorName)}
                 </span>
-                <p className="min-w-0 truncate text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>
+                <p className="min-w-0 truncate text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>
                   {question.subforumTitle ? (
                     <>
-                      <span style={{ color: "var(--neu-indigo)" }}>{question.subforumTitle}</span>
+                      <span style={{ color: "var(--sb-teal-dark)" }}>{question.subforumTitle}</span>
                       <span className="font-normal"> · </span>
                     </>
                   ) : null}
@@ -131,22 +131,22 @@ export default function RecentForumDiscussions() {
 
               <div className="mt-1.5 flex items-start gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="line-clamp-2 text-sm font-bold" style={{ color: "var(--neu-ink)" }}>{question.title}</p>
-                  <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>
+                  <p className="line-clamp-2 text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{question.title}</p>
+                  <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>
                     <MessageCircle size={13} />
                     {question.replyCount} {question.replyCount === 1 ? "comment" : "comments"}
                   </p>
                 </div>
 
                 {question.imageUrl ? (
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg" style={{ border: "2px solid var(--neu-ink)" }}>
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={question.imageUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
                   </div>
                 ) : (
                   <div
                     className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg text-white"
-                    style={{ background: "var(--neu-purple)", border: "2px solid var(--neu-ink)" }}
+                    style={{ background: "var(--sb-tint-violet-bg)", color: "var(--sb-tint-violet-ink)" }}
                   >
                     <MessageSquareText size={20} />
                   </div>

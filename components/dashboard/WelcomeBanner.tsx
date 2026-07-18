@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type WelcomeBannerProps = {
   name: string;
 };
@@ -5,15 +7,40 @@ type WelcomeBannerProps = {
 export default function WelcomeBanner({ name }: WelcomeBannerProps) {
   return (
     <div
-      className="flex flex-col gap-3 rounded-3xl p-8"
-      style={{ background: "linear-gradient(135deg, #fff, #f6f2ff)", border: "2.5px solid var(--neu-ink)", boxShadow: "6px 6px 0 var(--neu-ink)" }}
+      className="relative overflow-hidden rounded-3xl p-8 text-white sm:p-10"
+      style={{ background: "var(--sb-gradient)", boxShadow: "var(--sb-shadow-lg)" }}
     >
-      <h1 className="text-2xl font-extrabold nb-heading sm:text-3xl">
-        Welcome to SkillBridge, {name}! 👋
-      </h1>
-      <p className="max-w-lg" style={{ color: "var(--neu-text-muted)" }}>
-        You&apos;re all set! Start exploring the community, request skill swaps, and help others grow.
-      </p>
+      <div
+        className="pointer-events-none absolute rounded-full"
+        style={{ width: 220, height: 220, top: -90, right: 60, background: "rgba(255,255,255,.14)" }}
+      />
+      <div
+        className="pointer-events-none absolute rounded-full"
+        style={{ width: 150, height: 150, bottom: -70, right: -30, background: "rgba(255,255,255,.14)" }}
+      />
+      <div className="relative z-10">
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+          Welcome back, {name} 👋
+        </h1>
+        <p className="mt-2.5 max-w-md text-[15px] opacity-95">
+          Ready to share your knowledge or discover a new skill today?
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/dashboard/browse-people"
+            className="rounded-full bg-white px-6 py-3 text-sm font-bold transition hover:-translate-y-0.5"
+            style={{ color: "var(--sb-emerald-dark)" }}
+          >
+            Find a Mentor
+          </Link>
+          <Link
+            href="/dashboard/swap-requests"
+            className="rounded-full border border-white/50 bg-white/15 px-6 py-3 text-sm font-bold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/25"
+          >
+            View Swap Requests
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

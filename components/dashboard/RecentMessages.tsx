@@ -36,29 +36,32 @@ export default function RecentMessages() {
     <div className="nb-card p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-extrabold nb-heading">Recent Messages</h2>
-        <Link href="/dashboard/messages" className="text-sm font-bold hover:underline" style={{ color: "var(--neu-indigo)" }}>
+        <Link href="/dashboard/messages" className="text-sm font-bold hover:underline" style={{ color: "var(--sb-teal-dark)" }}>
           View all
         </Link>
       </div>
 
-      <div className="mt-5 space-y-4">
+      <div className="mt-4">
         {!loading && threads.length === 0 && (
-          <p className="text-sm" style={{ color: "var(--neu-text-muted)" }}>No conversations yet — message someone from their profile.</p>
+          <p className="text-sm" style={{ color: "var(--sb-muted)" }}>No conversations yet — message someone from their profile.</p>
         )}
-        {threads.map((t) => (
-          <Link key={t.thread_id} href={`/dashboard/messages/${t.partner.slug}`} className="flex items-start gap-3">
-            <div className="nb-avatar h-11 w-11 text-sm" style={{ background: "var(--neu-teal)" }}>
+        {threads.map((t, i) => (
+          <Link
+            key={t.thread_id}
+            href={`/dashboard/messages/${t.partner.slug}`}
+            className="flex items-center gap-3 py-2.5"
+            style={i > 0 ? { borderTop: "1px solid #eef7f0" } : undefined}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-extrabold" style={{ background: "var(--sb-tint-violet-bg)", color: "var(--sb-tint-violet-ink)" }}>
               {getInitials(t.partner.fullname)}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-bold" style={{ color: "var(--neu-ink)" }}>{t.partner.fullname}</p>
-                {t.lastMessage && (
-                  <span className="shrink-0 text-xs" style={{ color: "var(--neu-text-muted)" }}>{timeAgo(t.lastMessage.sent_at)}</span>
-                )}
-              </div>
-              <p className="truncate text-sm" style={{ color: "var(--neu-text-muted)" }}>{t.lastMessage?.content ?? "Say hello!"}</p>
+              <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{t.partner.fullname}</p>
+              <p className="truncate text-xs font-medium" style={{ color: "var(--sb-muted)" }}>{t.lastMessage?.content ?? "Say hello!"}</p>
             </div>
+            {t.lastMessage && (
+              <span className="shrink-0 text-[11px] font-semibold" style={{ color: "var(--sb-muted)" }}>{timeAgo(t.lastMessage.sent_at)}</span>
+            )}
           </Link>
         ))}
       </div>

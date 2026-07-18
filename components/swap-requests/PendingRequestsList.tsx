@@ -36,12 +36,12 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
 
   return (
     <div className="nb-card p-6">
-      <h2 className="text-lg font-extrabold nb-heading">Pending Requests</h2>
+      <h2 className="text-base font-extrabold nb-heading">Pending Requests</h2>
 
       {requests.length === 0 ? (
-        <p className="mt-4 text-sm" style={{ color: "var(--neu-text-muted)" }}>No pending requests right now.</p>
+        <p className="mt-4 text-sm" style={{ color: "var(--sb-muted)" }}>No pending requests right now.</p>
       ) : (
-        <div className="mt-5 space-y-4">
+        <div className="mt-5 space-y-3">
           {requests.map((r) => {
             const initials = r.partner.fullname
               .split(" ")
@@ -52,15 +52,15 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
             const isScheduling = schedulingId === r.request_id;
 
             return (
-              <div key={r.request_id} className="rounded-xl p-3" style={{ border: "2.5px solid var(--neu-ink)" }}>
+              <div key={r.request_id} className="rounded-2xl p-3" style={{ background: "#fbfffc", boxShadow: "var(--sb-shadow-sm)" }}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="nb-avatar h-11 w-11 text-sm" style={{ background: "var(--neu-indigo)" }}>
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-extrabold text-white" style={{ background: "var(--sb-gradient)" }}>
                       {initials}
                     </div>
                     <div>
-                      <p className="text-sm font-bold" style={{ color: "var(--neu-ink)" }}>{r.partner.fullname}</p>
-                      <p className="text-sm" style={{ color: "var(--neu-text-muted)" }}>
+                      <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{r.partner.fullname}</p>
+                      <p className="text-sm" style={{ color: "var(--sb-muted)" }}>
                         {r.topic ? `Wants to swap: ${r.topic.skill_name}` : "Sent you a swap request"}
                       </p>
                     </div>
@@ -71,8 +71,8 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
                         aria-label="Accept"
                         disabled={isPending}
                         onClick={() => setSchedulingId(r.request_id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-50"
-                        style={{ border: "2px solid var(--neu-ink)", background: "var(--neu-teal)" }}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-white disabled:opacity-50"
+                        style={{ background: "var(--sb-gradient)" }}
                       >
                         <Check size={16} />
                       </button>
@@ -81,7 +81,7 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
                         disabled={isPending}
                         onClick={() => decline(r.request_id)}
                         className="flex h-8 w-8 items-center justify-center rounded-full text-red-500 disabled:opacity-50"
-                        style={{ border: "2px solid var(--neu-ink)", background: "#fff" }}
+                        style={{ background: "#fff", boxShadow: "var(--sb-shadow-sm)" }}
                       >
                         <X size={16} />
                       </button>
@@ -90,7 +90,7 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
                 </div>
 
                 {isScheduling && (
-                  <div className="mt-3 flex flex-wrap items-center gap-2 pt-3" style={{ borderTop: "2px solid #f0ecfa" }}>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 pt-3" style={{ borderTop: "1px solid #eef7f0" }}>
                     <input
                       type="datetime-local"
                       value={scheduledTime}
@@ -102,7 +102,7 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
                       disabled={isPending || !scheduledTime}
                       onClick={() => confirmAccept(r.request_id)}
                       className="nb-btn px-4 py-1.5 text-xs text-white disabled:opacity-50"
-                      style={{ background: "var(--neu-indigo)" }}
+                      style={{ background: "var(--sb-gradient)" }}
                     >
                       Confirm
                     </button>
@@ -113,7 +113,7 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
                         setScheduledTime("");
                       }}
                       className="px-3 py-1.5 text-xs font-semibold"
-                      style={{ color: "var(--neu-text-muted)" }}
+                      style={{ color: "var(--sb-muted)" }}
                     >
                       Cancel
                     </button>

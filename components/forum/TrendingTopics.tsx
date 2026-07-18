@@ -23,26 +23,25 @@ export default function TrendingTopics({
       </h2>
 
       {trending.length === 0 ? (
-        <p className="mt-3 text-sm" style={{ color: "var(--neu-text-muted)" }}>No trending discussions yet.</p>
+        <p className="mt-3 text-sm" style={{ color: "var(--sb-muted)" }}>No trending discussions yet.</p>
       ) : (
         <div className="mt-4 space-y-4">
           {trending.map((q, i) => {
-            const rankColors = ["var(--neu-coral)", "var(--neu-indigo)", "var(--neu-teal)", "var(--neu-orange)", "var(--neu-purple)"];
             const sub = getForumSubforum(q.subforum_slug);
             return (
               <Link key={q.question_id} href={`/dashboard/forum/${q.question_id}`} className="flex items-start gap-3">
                 <span
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
-                  style={{ background: rankColors[i % rankColors.length], border: "2px solid var(--neu-ink)" }}
+                  style={{ background: "var(--sb-gradient)" }}
                 >
                   {i + 1}
                 </span>
                 <div>
-                  <p className="text-sm font-bold leading-snug" style={{ color: "var(--neu-ink)" }}>{q.title}</p>
-                  <p className="mt-0.5 text-xs" style={{ color: "var(--neu-text-muted)" }}>
+                  <p className="text-sm font-bold leading-snug" style={{ color: "var(--sb-ink)" }}>{q.title}</p>
+                  <p className="mt-0.5 text-xs" style={{ color: "var(--sb-muted)" }}>
                     {showSubforum ? (
                       <>
-                        <span className="font-semibold" style={{ color: "var(--neu-indigo)" }}>{sub.title}</span>
+                        <span className="font-semibold" style={{ color: "var(--sb-teal-dark)" }}>{sub.title}</span>
                         {" · "}
                       </>
                     ) : null}

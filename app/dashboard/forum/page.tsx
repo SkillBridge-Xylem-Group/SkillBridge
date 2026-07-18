@@ -53,8 +53,8 @@ export default async function ForumPage({ searchParams }: PageProps) {
       <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <div>
-            <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--neu-ink)" }}>Discover Communities</h1>
-            <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+            <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>Discover Communities</h1>
+            <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>
               Find communities to join, or create your own and start posting.
             </p>
           </div>

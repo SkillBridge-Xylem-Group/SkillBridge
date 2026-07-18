@@ -137,7 +137,7 @@ export default function ProfileClient({
 
       <SkillsPanel
         icon={GraduationCap}
-        iconColor="var(--neu-indigo)"
+        iconColor="var(--sb-teal-dark)"
         title="Skills I Offer"
         skills={offered}
         availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}
@@ -147,7 +147,7 @@ export default function ProfileClient({
 
       <SkillsPanel
         icon={Target}
-        iconColor="var(--neu-coral)"
+        iconColor="var(--sb-emerald-dark)"
         title="Skills I Want to Learn"
         skills={wanted}
         availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}

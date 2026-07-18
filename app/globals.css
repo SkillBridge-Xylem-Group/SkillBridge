@@ -350,27 +350,35 @@ button.bg-brand:enabled:active,
 /* scoped to auth-neu-* / nb-* classes so the dashboard is unaffected. */
 /* ------------------------------------------------------------------ */
 :root {
-  --neu-bg: #f3eefc;
+  --neu-bg: #f6fffb;
   --neu-ink: #15121f;
-  --neu-major: #675bfa;
-  --neu-secondary: #ff6f6f;
+  --neu-major: #0d9488;
+  --neu-secondary: #14b8a6;
   --neu-indigo: #675bfa;
   --neu-yellow: #ffd54a;
   --neu-coral: #ff6f6f;
   --neu-teal: #4fd6c0;
   --neu-purple: #9b8afb;
   --neu-orange: #ffab5e;
-  --neu-shadow-dark: #d9d2ea;
+  --neu-shadow-dark: #d7ece2;
   --neu-shadow-light: #ffffff;
-  --neu-grad: linear-gradient(120deg, #675bfa 0%, #ff6f6f 55%, #ffab5e 100%);
+  --neu-grad: linear-gradient(120deg, #22c55e 0%, #14b8a6 100%);
   --neu-text: var(--neu-ink);
   --neu-text-muted: #5c5568;
   --font-playful: var(--font-baloo), ui-rounded, sans-serif;
   --font-friendly: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+
+  /* Green-family accent variety for the auth flow only (login/signup/reset) —
+     kept separate from --neu-indigo/coral/yellow/purple/orange since those
+     still drive the landing page's multi-color decorative palette. */
+  --auth-emerald: #22c55e;
+  --auth-emerald-dark: #16a34a;
+  --auth-teal-dark: #0d9488;
+  --auth-mint: #2dd4bf;
 }
 
 .auth-neu-page {
-  background: linear-gradient(135deg, #fdf3e7 0%, #f3eefc 45%, #e3edfb 100%);
+  background: linear-gradient(135deg, #f0fdf4 0%, #f6fffb 45%, #ecfeff 100%);
   font-family: var(--font-friendly);
 }
 
@@ -488,90 +496,111 @@ button.bg-brand:enabled:active,
 }
 
 /* ------------------------------------------------------------------ */
-/* "nb-" (neo-brutalist) utilities — the same playful system, reused   */
-/* across the whole authenticated dashboard (sidebar, topbar, cards,   */
-/* every page). Shares tokens with auth-neu-* / landing.               */
+/* "nb-" utilities — the authenticated dashboard's design system.      */
+/* Soft, rounded, shadow-based "friendly" look (emerald/teal, Poppins, */
+/* gradient accents, no hard borders) — distinct from auth-neu-*'s     */
+/* bordered "sticker" system used by login/signup/reset/landing.       */
 /* ------------------------------------------------------------------ */
+:root {
+  --sb-bg: #f6fffb;
+  --sb-surface: #ffffff;
+  --sb-ink: #1f2937;
+  --sb-muted: #6b7280;
+  --sb-emerald: #22c55e;
+  --sb-emerald-dark: #16a34a;
+  --sb-emerald-light: #dcfce7;
+  --sb-teal: #14b8a6;
+  --sb-teal-dark: #0d9488;
+  --sb-teal-light: #ccfbf1;
+  --sb-gradient: linear-gradient(135deg, #22c55e, #14b8a6);
+  --sb-tint-blue-bg: #dbeafe;
+  --sb-tint-blue-ink: #1d4ed8;
+  --sb-tint-amber-bg: #fef3c7;
+  --sb-tint-amber-ink: #b45309;
+  --sb-tint-rose-bg: #fee2e2;
+  --sb-tint-rose-ink: #b91c1c;
+  --sb-tint-violet-bg: #ede9fe;
+  --sb-tint-violet-ink: #6d28d9;
+  --sb-shadow-sm: 0 2px 10px rgba(20, 24, 20, 0.05);
+  --sb-shadow-md: 0 10px 28px rgba(20, 24, 20, 0.08);
+  --sb-shadow-lg: 0 20px 50px rgba(20, 24, 20, 0.16);
+}
+
 .nb-page {
-  background: linear-gradient(135deg, #fdf3e7 0%, #f3eefc 45%, #e3edfb 100%);
-  background-attachment: fixed;
-  color: var(--neu-ink);
+  background: var(--sb-bg);
+  color: var(--sb-ink);
   font-family: var(--font-friendly);
 }
 
 .nb-card {
-  background: #ffffff;
-  border: 2.5px solid var(--neu-ink);
+  background: var(--sb-surface);
   border-radius: 24px;
-  box-shadow: 6px 6px 0 var(--neu-ink);
+  box-shadow: var(--sb-shadow-md);
 }
 
 .nb-card-sm {
-  background: #ffffff;
-  border: 2.5px solid var(--neu-ink);
-  border-radius: 16px;
-  box-shadow: 4px 4px 0 var(--neu-ink);
+  background: var(--sb-surface);
+  border-radius: 18px;
+  box-shadow: var(--sb-shadow-sm);
 }
 
 .nb-heading {
-  font-family: var(--font-playful);
-  color: var(--neu-ink);
+  font-family: var(--font-friendly);
+  font-weight: 800;
+  color: var(--sb-ink);
 }
 
 .nb-icon-btn {
   position: relative;
   border-radius: 999px;
-  background: #ffffff;
-  border: 2.5px solid var(--neu-ink);
-  box-shadow: 4px 4px 0 var(--neu-ink);
-  transition: transform 0.15s ease;
+  background: var(--sb-surface);
+  border: none;
+  box-shadow: var(--sb-shadow-sm);
+  color: var(--sb-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
 }
 .nb-icon-btn:hover {
-  transform: translate(-2px, -2px);
-}
-.nb-icon-btn:active {
-  transform: translate(0, 0);
+  transform: translateY(-2px);
+  color: var(--sb-teal-dark);
 }
 
 .nb-chip {
-  background: #ffffff;
-  border: 2.5px solid var(--neu-ink);
+  background: var(--sb-surface);
+  border: none;
   border-radius: 999px;
-  box-shadow: 4px 4px 0 var(--neu-ink);
+  box-shadow: var(--sb-shadow-sm);
 }
 
 .nb-nav-link {
-  border: 2.5px solid transparent;
-  border-radius: 14px;
-  color: var(--neu-text-muted);
+  border-radius: 16px;
+  color: var(--sb-muted);
   font-weight: 600;
-  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 .nb-nav-link:hover {
-  background: #f7f4ff;
-  color: var(--neu-ink);
+  background: var(--sb-emerald-light);
+  color: var(--sb-emerald-dark);
+  transform: translateX(2px);
 }
 .nb-nav-link.active {
-  background: var(--neu-yellow);
-  color: var(--neu-ink);
-  border-color: var(--neu-ink);
-  box-shadow: 4px 4px 0 var(--neu-ink);
-  transform: translate(-2px, -2px);
+  background: var(--sb-gradient);
+  color: #ffffff;
+  box-shadow: var(--sb-shadow-sm);
 }
 
 .nb-input {
   width: 100%;
-  border: 2.5px solid var(--neu-ink);
+  border: 1.5px solid #e5e7eb;
   border-radius: 14px;
-  background: #ffffff;
-  color: var(--neu-ink);
+  background: var(--sb-surface);
+  color: var(--sb-ink);
   outline: none;
   font-family: var(--font-friendly);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .nb-input:focus {
-  box-shadow: 4px 4px 0 var(--neu-ink);
-  transform: translate(-2px, -2px);
+  border-color: var(--sb-teal);
+  box-shadow: 0 0 0 4px var(--sb-teal-light);
 }
 
 .nb-btn {
@@ -579,20 +608,15 @@ button.bg-brand:enabled:active,
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 2.5px solid var(--neu-ink);
+  border: none;
   border-radius: 999px;
   font-weight: 700;
-  box-shadow: 4px 4px 0 var(--neu-ink);
+  box-shadow: var(--sb-shadow-sm);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   cursor: pointer;
 }
 .nb-btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 var(--neu-ink);
-}
-.nb-btn:active {
-  transform: translate(0, 0);
-  box-shadow: 2px 2px 0 var(--neu-ink);
+  transform: translateY(-2px);
 }
 .nb-btn:disabled {
   opacity: 0.6;
@@ -601,9 +625,9 @@ button.bg-brand:enabled:active,
 }
 
 .nb-avatar {
-  border: 2.5px solid var(--neu-ink);
+  border: none;
   border-radius: 999px;
-  font-family: var(--font-playful);
+  font-family: var(--font-friendly);
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -618,5 +642,16 @@ button.bg-brand:enabled:active,
   font-weight: 700;
   padding: 5px 12px;
   border-radius: 999px;
-  border: 2px solid var(--neu-ink);
+  border: none;
+  background: var(--sb-emerald-light);
+  color: var(--sb-emerald-dark);
+}
+
+.btn-outline {
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.btn-outline:hover {
+  background: var(--sb-gradient);
+  color: #ffffff !important;
+  border-color: transparent;
 }

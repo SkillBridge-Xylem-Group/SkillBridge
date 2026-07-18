@@ -5,6 +5,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { getUserSessions } from "@/lib/sessionRequests";
 import PendingRequestsList from "@/components/swap-requests/PendingRequestsList";
 import SessionsTable from "@/components/swap-requests/SessionsTable";
+import SessionsCalendar from "@/components/swap-requests/SessionsCalendar";
 
 export const metadata: Metadata = {
   title: "Swap Requests | SkillBridge",
@@ -24,6 +25,9 @@ export default async function SwapRequestsPage() {
   const sessions = await getUserSessions(supabase, user.id);
   const pendingIncoming = sessions.filter((s) => s.status === "pending" && !s.isRequester);
   const otherSessions = sessions.filter((s) => !(s.status === "pending" && !s.isRequester));
+  const scheduledDates = sessions
+    .filter((s) => s.scheduled_time && s.status !== "declined" && s.status !== "cancelled")
+    .map((s) => s.scheduled_time as string);
 
   return (
     <DashboardLayout
@@ -38,6 +42,7 @@ export default async function SwapRequestsPage() {
 
         <div className="space-y-6">
           <PendingRequestsList requests={pendingIncoming} />
+          <SessionsCalendar scheduledDates={scheduledDates} />
         </div>
       </div>
     </DashboardLayout>
