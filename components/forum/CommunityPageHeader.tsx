@@ -12,6 +12,7 @@ import {
   toggleJoinCommunityAction,
   updateCommunityImageAction,
 } from "@/lib/actions/forum";
+import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
 import { useLocale } from "@/components/i18n/LocaleProvider";
@@ -69,6 +70,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
         setError(res.error);
         return;
       }
+      invalidateSidebarCommunitiesCache();
       router.refresh();
     });
   }
@@ -87,6 +89,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
         setError(res.error);
         return;
       }
+      invalidateSidebarCommunitiesCache();
       router.push("/dashboard/forum");
       router.refresh();
     });

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { getRequestUser } from "@/lib/dashboardShell";
 import ProfileClient from "@/components/profile/ProfileClient";
 import LevelCard from "@/components/profile/LevelCard";
 import TrustScoreCard from "@/components/profile/TrustScoreCard";
@@ -16,14 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase, user } = await getRequestUser();
+  if (!user) redirect("/login");
 
   const { data: row } = await supabase
     .from("users")
@@ -43,8 +36,6 @@ export default async function ProfilePage() {
     timezone: row?.timezone ?? "UTC",
     experience_points: row?.experience_points ?? 0,
     level: row?.level ?? 0,
-    // trust_score is NOT NULL in the DB (defaults to 0), but 0 means "no
-    // ratings yet" the same as null does for TrustScoreCard's display.
     trust_score: row?.trust_score ? row.trust_score : null,
     created_at: user.created_at,
   };
@@ -52,12 +43,13 @@ export default async function ProfilePage() {
     month: "long",
     year: "numeric",
   });
-  const timezoneDisplay = new Intl.DateTimeFormat("en-US", {
-    timeZone: profile.timezone,
-    timeZoneName: "shortOffset",
-  })
-    .formatToParts(new Date())
-    .find((part) => part.type === "timeZoneName")?.value ?? profile.timezone;
+  const timezoneDisplay =
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: profile.timezone,
+      timeZoneName: "shortOffset",
+    })
+      .formatToParts(new Date())
+      .find((part) => part.type === "timeZoneName")?.value ?? profile.timezone;
 
   const [offered, wanted, skillCatalog, { reviews, trustScore, reviewCount }] = await Promise.all([
     getUserSkills(supabase, "user_skill_offered", user.id),
@@ -67,26 +59,24 @@ export default async function ProfilePage() {
   ]);
 
   return (
-    <DashboardLayout userName={profile.fullname} level={profile.level} xp={profile.experience_points}>
-      <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <ProfileClient
-            profile={profile}
-            memberSince={memberSince}
-            timezoneDisplay={timezoneDisplay}
-            initialOffered={offered}
-            initialWanted={wanted}
-            skillCatalog={skillCatalog}
-          />
+    <div className="grid grid-cols-1 gap-6 pt-2 lg:grid-cols-3">
+      <div className="space-y-6 lg:col-span-2">
+        <ProfileClient
+          profile={profile}
+          memberSince={memberSince}
+          timezoneDisplay={timezoneDisplay}
+          initialOffered={offered}
+          initialWanted={wanted}
+          skillCatalog={skillCatalog}
+        />
 
-          <ReviewsCard reviews={reviews} />
-        </div>
-
-        <div className="space-y-6">
-          <LevelCard level={profile.level} experiencePoints={profile.experience_points} />
-          <TrustScoreCard trustScore={trustScore} reviewCount={reviewCount} />
-        </div>
+        <ReviewsCard reviews={reviews} />
       </div>
-    </DashboardLayout>
+
+      <div className="space-y-6">
+        <LevelCard level={profile.level} experiencePoints={profile.experience_points} />
+        <TrustScoreCard trustScore={trustScore} reviewCount={reviewCount} />
+      </div>
+    </div>
   );
 }

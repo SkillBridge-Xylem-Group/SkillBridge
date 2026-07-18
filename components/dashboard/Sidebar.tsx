@@ -8,6 +8,7 @@ import { DASHBOARD_NAV_ITEMS, isDashboardNavActive } from "@/lib/dashboard-nav";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import type { SidebarCommunity } from "@/lib/forumCommunities";
 import SidebarCommunities from "./SidebarCommunities";
+import { usePendingNav } from "./DashboardChrome";
 
 type SidebarProps = {
   communities?: SidebarCommunity[];
@@ -17,6 +18,7 @@ const STORAGE_KEY = "skillbridge-sidebar-collapsed";
 
 export default function Sidebar({ communities = [] }: SidebarProps) {
   const pathname = usePathname();
+  const { pendingHref, navigate } = usePendingNav();
   const { dictionary } = useLocale();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -43,6 +45,8 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
       return next;
     });
   }
+
+  const activePath = pendingHref ?? pathname;
 
   return (
     <aside
@@ -90,11 +94,17 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
         <nav className={`mt-8 space-y-1.5 ${collapsed ? "px-0" : ""}`}>
           {DASHBOARD_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = isDashboardNavActive(pathname, item.href);
+            const isActive = isDashboardNavActive(activePath, item.href);
             return (
               <Link
                 key={item.key}
                 href={item.href}
+                prefetch
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                  e.preventDefault();
+                  navigate(item.href);
+                }}
                 title={collapsed ? labels[item.key] : undefined}
                 className={`nb-nav-link flex items-center gap-3 px-3.5 py-2.5 text-sm ${
                   isActive ? "active" : ""

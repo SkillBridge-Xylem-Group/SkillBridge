@@ -7,7 +7,7 @@ const protectedRoutes = ["/dashboard"];
  * Keep this under typical reverse-proxy limits, but high enough that a slow
  * Supabase round-trip (cold start / distant region) does not look like an outage.
  */
-const AUTH_TIMEOUT_MS = 8_000;
+const AUTH_TIMEOUT_MS = 4_000;
 
 function needsAuthentication(pathname: string) {
   return protectedRoutes.some(
@@ -47,7 +47,15 @@ export async function proxy(request: NextRequest) {
     return redirectToLogin(request, pathname, search, "auth-unavailable");
   }
 
-  let response = NextResponse.next({ request });
+  let response = NextResponse.next({
+    request: {
+      headers: (() => {
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.set("x-pathname", pathname);
+        return requestHeaders;
+      })(),
+    },
+  });
 
   try {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -57,7 +65,11 @@ export async function proxy(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
+          const requestHeaders = new Headers(request.headers);
+          requestHeaders.set("x-pathname", pathname);
+          response = NextResponse.next({
+            request: { headers: requestHeaders },
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
@@ -65,12 +77,14 @@ export async function proxy(request: NextRequest) {
       },
     });
 
-    const userResult = await Promise.race([
-      supabase.auth.getUser(),
+    // Prefer getSession (local JWT) over getUser (network) for middleware speed.
+    // Page-level getRequestUser() still verifies with getUser when needed.
+    const sessionResult = await Promise.race([
+      supabase.auth.getSession(),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), AUTH_TIMEOUT_MS)),
     ]);
 
-    if (!userResult) {
+    if (!sessionResult) {
       // Timed out. If session cookies exist (e.g. just signed in), fail open so
       // page-level getUser() can finish the check instead of bouncing to a scary banner.
       if (hasSupabaseSessionCookie(request)) {
@@ -81,8 +95,10 @@ export async function proxy(request: NextRequest) {
     }
 
     const {
-      data: { user },
-    } = userResult;
+      data: { session },
+    } = sessionResult;
+
+    const user = session?.user ?? null;
 
     if (!user) {
       return redirectToLogin(request, pathname, search);

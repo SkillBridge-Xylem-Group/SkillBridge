@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   devIndicators: false,
+  // Keep soft-navigated dashboard pages in the client router cache so switches
+  // feel like a SPA (Reddit-style) instead of refetching RSC every click.
+  experimental: {
+    staleTimes: {
+      dynamic: 60,
+      static: 300,
+    },
+  },
   async headers() {
     return [
       {

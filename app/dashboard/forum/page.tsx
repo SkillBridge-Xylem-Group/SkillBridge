@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { getRequestUser } from "@/lib/dashboardShell";
 import { getForumQuestions } from "@/lib/forum";
 import { listCommunities } from "@/lib/forumCommunities";
 import QuestionComposer from "@/components/forum/QuestionComposer";
@@ -18,15 +17,12 @@ export const metadata: Metadata = {
 
 export default async function ForumPage({ searchParams }: PageProps) {
   const { create } = await searchParams;
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestUser();
   if (!user) redirect("/login");
 
   const { data: viewerRow } = await supabase
     .from("users")
-    .select("fullname, level, experience_points")
+    .select("fullname")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -45,33 +41,27 @@ export default async function ForumPage({ searchParams }: PageProps) {
   const communityOptions = communities.map((c) => ({ slug: c.slug, title: c.title }));
 
   return (
-    <DashboardLayout
-      userName={viewerRow?.fullname ?? "there"}
-      level={viewerRow?.level ?? 0}
-      xp={viewerRow?.experience_points ?? 0}
-    >
-      <div className="grid grid-cols-1 gap-6 pt-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <div>
-            <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>Discover Communities</h1>
-            <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>
-              Find communities to join, or create your own and start posting.
-            </p>
-          </div>
-
-          <QuestionComposer
-            userInitials={userInitials}
-            requireSubforumSelect
-            communityOptions={communityOptions}
-          />
-
-          <CommunitiesDiscovery communities={communities} initialCreateOpen={create === "1"} />
+    <div className="grid grid-cols-1 gap-6 pt-2 lg:grid-cols-3">
+      <div className="space-y-6 lg:col-span-2">
+        <div>
+          <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>Discover Communities</h1>
+          <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>
+            Find communities to join, or create your own and start posting.
+          </p>
         </div>
 
-        <div className="space-y-6">
-          <TrendingTopics questions={trendingSource} />
-        </div>
+        <QuestionComposer
+          userInitials={userInitials}
+          requireSubforumSelect
+          communityOptions={communityOptions}
+        />
+
+        <CommunitiesDiscovery communities={communities} initialCreateOpen={create === "1"} />
       </div>
-    </DashboardLayout>
+
+      <div className="space-y-6">
+        <TrendingTopics questions={trendingSource} />
+      </div>
+    </div>
   );
 }

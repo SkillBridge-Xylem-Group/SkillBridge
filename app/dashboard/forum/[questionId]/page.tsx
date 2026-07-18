@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { getRequestUser } from "@/lib/dashboardShell";
 import { getQuestionDetail, getAnswers } from "@/lib/forum";
 import { getCommunityBySlug } from "@/lib/forumCommunities";
 import { forumSubforumPath } from "@/lib/forumSubforums";
@@ -15,15 +14,12 @@ export const metadata: Metadata = {
 
 export default async function QuestionPage({ params }: { params: Promise<{ questionId: string }> }) {
   const { questionId } = await params;
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestUser();
   if (!user) redirect("/login");
 
   const { data: viewerRow } = await supabase
     .from("users")
-    .select("fullname, level, experience_points")
+    .select("fullname")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -37,53 +33,49 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
   const question = await getQuestionDetail(supabase, questionId);
   if (!question) notFound();
 
-  const answers = await getAnswers(supabase, questionId, user.id);
-  const community = await getCommunityBySlug(supabase, question.subforum_slug);
+  const [answers, community] = await Promise.all([
+    getAnswers(supabase, questionId, user.id),
+    getCommunityBySlug(supabase, question.subforum_slug),
+  ]);
   const communityTitle = community?.title ?? question.subforum_slug;
   const communitySlug = community?.slug ?? question.subforum_slug;
 
   return (
-    <DashboardLayout
-      userName={viewerRow?.fullname ?? "there"}
-      level={viewerRow?.level ?? 0}
-      xp={viewerRow?.experience_points ?? 0}
-    >
-      <div className="mx-auto max-w-2xl space-y-6 pt-6">
-        <nav className="flex flex-wrap items-center gap-1.5 text-sm" style={{ color: "var(--sb-muted)" }}>
-          <Link href="/dashboard/forum" className="font-semibold hover:underline" style={{ color: "var(--sb-teal-dark)" }}>
-            Communities
-          </Link>
-          <span aria-hidden>/</span>
-          <Link href={forumSubforumPath(communitySlug)} className="font-semibold hover:underline" style={{ color: "var(--sb-teal-dark)" }}>
-            {communityTitle}
-          </Link>
-        </nav>
+    <div className="mx-auto max-w-2xl space-y-6 pt-2">
+      <nav className="flex flex-wrap items-center gap-1.5 text-sm" style={{ color: "var(--sb-muted)" }}>
+        <Link href="/dashboard/forum" className="font-semibold hover:underline" style={{ color: "var(--sb-teal-dark)" }}>
+          Communities
+        </Link>
+        <span aria-hidden>/</span>
+        <Link href={forumSubforumPath(communitySlug)} className="font-semibold hover:underline" style={{ color: "var(--sb-teal-dark)" }}>
+          {communityTitle}
+        </Link>
+      </nav>
 
-        <div className="nb-card p-6">
-          <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{question.author.fullname}</p>
-          <h1 className="mt-1 text-xl font-extrabold nb-heading">{question.title}</h1>
-          {question.content ? <p className="mt-2 text-sm" style={{ color: "var(--sb-ink)" }}>{question.content}</p> : null}
-          {question.image_url ? (
-            <div className="mt-4 overflow-hidden rounded-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={question.image_url} alt="" className="max-h-[32rem] w-full object-contain" />
-            </div>
-          ) : null}
-        </div>
-
-        <AnswerComposer questionId={questionId} userInitials={userInitials} />
-
-        <div className="space-y-3">
-          {answers.length === 0 ? (
-            <p className="text-center text-sm" style={{ color: "var(--sb-muted)" }}>No replies yet — be the first to answer.</p>
-          ) : (
-            answers
-              .slice()
-              .sort((a, b) => (b.isTopAnswer ? 1 : 0) - (a.isTopAnswer ? 1 : 0) || b.vote_count - a.vote_count)
-              .map((a) => <AnswerCard key={a.answer_id} answer={a} questionId={questionId} />)
-          )}
-        </div>
+      <div className="nb-card p-6">
+        <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{question.author.fullname}</p>
+        <h1 className="mt-1 text-xl font-extrabold nb-heading">{question.title}</h1>
+        {question.content ? <p className="mt-2 text-sm" style={{ color: "var(--sb-ink)" }}>{question.content}</p> : null}
+        {question.image_url ? (
+          <div className="mt-4 overflow-hidden rounded-xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={question.image_url} alt="" className="max-h-[32rem] w-full object-contain" />
+          </div>
+        ) : null}
       </div>
-    </DashboardLayout>
+
+      <AnswerComposer questionId={questionId} userInitials={userInitials} />
+
+      <div className="space-y-3">
+        {answers.length === 0 ? (
+          <p className="text-center text-sm" style={{ color: "var(--sb-muted)" }}>No replies yet — be the first to answer.</p>
+        ) : (
+          answers
+            .slice()
+            .sort((a, b) => (b.isTopAnswer ? 1 : 0) - (a.isTopAnswer ? 1 : 0) || b.vote_count - a.vote_count)
+            .map((a) => <AnswerCard key={a.answer_id} answer={a} questionId={questionId} />)
+        )}
+      </div>
+    </div>
   );
 }

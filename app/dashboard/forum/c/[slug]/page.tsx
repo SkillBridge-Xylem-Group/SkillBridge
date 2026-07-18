@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { getRequestUser } from "@/lib/dashboardShell";
 import { getForumQuestions } from "@/lib/forum";
 import { getCommunityBySlug } from "@/lib/forumCommunities";
 import QuestionComposer from "@/components/forum/QuestionComposer";
@@ -17,7 +16,7 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await createSupabaseServerClient();
+  const { supabase } = await getRequestUser();
   const community = await getCommunityBySlug(supabase, slug);
   if (!community) return { title: "Community | SkillBridge" };
   return { title: `${community.title} | Community Forum | SkillBridge` };
@@ -32,10 +31,7 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
     | "popular"
     | "unanswered";
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestUser();
   if (!user) redirect("/login");
 
   const community = await getCommunityBySlug(supabase, slug, user.id);
@@ -45,7 +41,7 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
 
   const { data: viewerRow } = await supabase
     .from("users")
-    .select("fullname, level, experience_points")
+    .select("fullname")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -68,12 +64,7 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
   const showComposer = questions.length > 0 || compose === "1";
 
   return (
-    <DashboardLayout
-      userName={viewerRow?.fullname ?? "there"}
-      level={viewerRow?.level ?? 0}
-      xp={viewerRow?.experience_points ?? 0}
-      mainClassName="px-0 pb-24 pt-0 sm:px-0 lg:px-0 lg:pb-10"
-    >
+    <div className="-mx-4 -mt-4 sm:-mx-8 lg:-mx-10 lg:-mt-5">
       <div className="relative z-20 border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 pt-4 pb-1 sm:px-6 lg:px-8">
           <CommunityPageHeader community={community} isOwner={isOwner} />
@@ -151,6 +142,6 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
           </aside>
         ) : null}
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

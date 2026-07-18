@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import BrowsePeopleGrid from "@/components/dashboard/BrowsePeopleGrid";
 
 export const metadata: Metadata = {
@@ -7,9 +6,5 @@ export const metadata: Metadata = {
 };
 
 export default function BrowsePeoplePage() {
-  return (
-    <DashboardLayout>
-      <BrowsePeopleGrid />
-    </DashboardLayout>
-  );
+  return <BrowsePeopleGrid />;
 }

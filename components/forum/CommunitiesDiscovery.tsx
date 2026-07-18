@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { COMMUNITY_CATEGORIES, COMMUNITY_TOPICS } from "@/lib/forumCommunities";
 import { toggleJoinCommunityAction } from "@/lib/actions/forum";
+import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import CreateCommunityModal from "@/components/forum/CreateCommunityModal";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
 
@@ -60,6 +61,7 @@ function JoinButton({
         setError(res.error);
         return;
       }
+      invalidateSidebarCommunitiesCache();
       router.refresh();
     });
   }
