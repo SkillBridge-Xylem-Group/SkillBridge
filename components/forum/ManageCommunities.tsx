@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Search, Star } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { toggleJoinCommunityAction } from "@/lib/actions/forum";
+import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
 
 const FAVORITES_KEY = "sb-community-favorites";
@@ -84,6 +85,7 @@ export default function ManageCommunities({
       }
       setCommunities((prev) => prev.filter((c) => c.id !== community.id));
       setPendingId(null);
+      invalidateSidebarCommunitiesCache();
       router.refresh();
     });
   }

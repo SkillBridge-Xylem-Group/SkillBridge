@@ -10,6 +10,7 @@ import type { SidebarCommunity } from "@/lib/forumCommunities";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import YourProgress from "./YourProgress";
 import SidebarCommunities from "./SidebarCommunities";
+import { usePendingNav } from "./DashboardChrome";
 
 type MobileNavDrawerProps = {
   open: boolean;
@@ -29,8 +30,10 @@ export function MobileNavDrawer({
   communities = [],
 }: MobileNavDrawerProps) {
   const pathname = usePathname();
+  const { pendingHref, navigate } = usePendingNav();
   const hideProgress = pathname === "/dashboard/profile";
   const { dictionary } = useLocale();
+  const activePath = pendingHref ?? pathname;
 
   const labels = {
     home: dictionary.nav.home,
@@ -94,12 +97,18 @@ export function MobileNavDrawer({
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
           {DASHBOARD_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const active = isDashboardNavActive(pathname, item.href);
+            const active = isDashboardNavActive(activePath, item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={onClose}
+                prefetch
+                onClick={(e) => {
+                  onClose();
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                  e.preventDefault();
+                  navigate(item.href);
+                }}
                 className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                   active ? "bg-brand-light text-brand" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`}
@@ -111,9 +120,10 @@ export function MobileNavDrawer({
           })}
           <Link
             href="/dashboard/messages"
+            prefetch
             onClick={onClose}
             className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-              pathname.startsWith("/dashboard/messages")
+              activePath.startsWith("/dashboard/messages")
                 ? "bg-brand-light text-brand"
                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             }`}
@@ -137,7 +147,9 @@ export function MobileNavDrawer({
 /** Fixed bottom tab bar for phones / tablets below the lg breakpoint. */
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const { pendingHref, navigate } = usePendingNav();
   const { dictionary } = useLocale();
+  const activePath = pendingHref ?? pathname;
 
   const shortLabels = {
     home: dictionary.nav.home,
@@ -155,11 +167,17 @@ export function MobileBottomNav() {
       <ul className="mx-auto flex max-w-lg items-stretch justify-between px-1 pt-1">
         {DASHBOARD_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const active = isDashboardNavActive(pathname, item.href);
+          const active = isDashboardNavActive(activePath, item.href);
           return (
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
+                prefetch
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                  e.preventDefault();
+                  navigate(item.href);
+                }}
                 className={`flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-bold ${
                   active ? "text-brand" : "text-slate-400"
                 }`}
