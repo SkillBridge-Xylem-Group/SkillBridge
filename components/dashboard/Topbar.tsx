@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, MessageSquare } from "lucide-react";
+import type { SidebarCommunity } from "@/lib/forumCommunities";
 import UserMenu from "./UserMenu";
 import NotificationBell from "./NotificationBell";
 import { MobileNavDrawer } from "./MobileNav";
@@ -16,6 +17,7 @@ type TopbarProps = {
   levelNumber?: number;
   trustScore?: number | null;
   avatarUrl?: string | null;
+  communities?: SidebarCommunity[];
 };
 
 export default function Topbar({
@@ -25,6 +27,7 @@ export default function Topbar({
   levelNumber = 0,
   trustScore = null,
   avatarUrl = null,
+  communities = [],
 }: TopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { notifications, unreadCount, unreadMessageCount, reload } = useRealtimeNotifications();
@@ -86,6 +89,7 @@ export default function Topbar({
         level={levelNumber}
         experiencePoints={xp}
         trustScore={trustScore}
+        communities={communities}
       />
     </>
   );

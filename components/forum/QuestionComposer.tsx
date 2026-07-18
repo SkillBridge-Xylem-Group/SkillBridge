@@ -6,15 +6,38 @@ import { ImagePlus, Plus, Send, X } from "lucide-react";
 import { createQuestionAction } from "@/lib/actions/forum";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
+import { FORUM_SUBFORUMS, getForumSubforum } from "@/lib/forumSubforums";
+
+type CommunityOption = { slug: string; title: string };
 
 type QuestionComposerProps = {
   userInitials: string;
+  /** When set, posts are locked to this subforum (subforum page). */
+  subforumSlug?: string;
+  /** When true (hub page), user must pick a community before posting. */
+  requireSubforumSelect?: boolean;
+  /** Dynamic community list for the picker (falls back to static catalog). */
+  communityOptions?: CommunityOption[];
+  /** Open the create dialog on mount (e.g. ?compose=1). */
+  defaultOpen?: boolean;
 };
 
-export default function QuestionComposer({ userInitials }: QuestionComposerProps) {
-  const [open, setOpen] = useState(false);
+export default function QuestionComposer({
+  userInitials,
+  subforumSlug: lockedSlug,
+  requireSubforumSelect = false,
+  communityOptions,
+  defaultOpen = false,
+}: QuestionComposerProps) {
+  const options =
+    communityOptions && communityOptions.length > 0
+      ? communityOptions
+      : FORUM_SUBFORUMS.map((s) => ({ slug: s.slug, title: s.title }));
+
+  const [open, setOpen] = useState(defaultOpen);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [selectedSlug, setSelectedSlug] = useState(lockedSlug ?? "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -22,6 +45,13 @@ export default function QuestionComposer({ userInitials }: QuestionComposerProps
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const router = useRouter();
+
+  const effectiveSlug = lockedSlug ?? selectedSlug;
+  const lockedTitle =
+    lockedSlug
+      ? options.find((o) => o.slug === lockedSlug)?.title ?? getForumSubforum(lockedSlug).title
+      : null;
+  const lockedSubforum = lockedSlug ? { slug: lockedSlug, title: lockedTitle ?? lockedSlug } : null;
 
   useEffect(() => {
     if (!open) return;
@@ -42,6 +72,7 @@ export default function QuestionComposer({ userInitials }: QuestionComposerProps
     setTitle("");
     setContent("");
     setError("");
+    if (!lockedSlug) setSelectedSlug("");
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview(null);
     setImageFile(null);
@@ -52,6 +83,9 @@ export default function QuestionComposer({ userInitials }: QuestionComposerProps
     if (isPending) return;
     setOpen(false);
     resetForm();
+    if (defaultOpen && lockedSlug) {
+      router.replace(`/dashboard/forum/c/${lockedSlug}`);
+    }
   }
 
   function onPickImage(file: File | undefined) {
@@ -80,6 +114,11 @@ export default function QuestionComposer({ userInitials }: QuestionComposerProps
   function submit() {
     startTransition(async () => {
       setError("");
+      if (!effectiveSlug) {
+        setError("Choose a community to post in.");
+        return;
+      }
+
       let imageUrl: string | null = null;
 
       if (imageFile) {
@@ -99,18 +138,26 @@ export default function QuestionComposer({ userInitials }: QuestionComposerProps
         imageUrl = uploaded.url;
       }
 
-      const result = await createQuestionAction(title, content, imageUrl);
+      const result = await createQuestionAction(title, content, imageUrl, effectiveSlug);
       if (result?.error) {
         setError(result.error);
         return;
       }
       setOpen(false);
       resetForm();
-      router.refresh();
+      if (result?.questionId) {
+        router.push(`/dashboard/forum/${result.questionId}`);
+        router.refresh();
+      } else {
+        router.refresh();
+      }
     });
   }
 
-  const canSubmit = title.trim().length > 0 && (content.trim().length > 0 || !!imageFile);
+  const canSubmit =
+    title.trim().length > 0 &&
+    (content.trim().length > 0 || !!imageFile) &&
+    (!!lockedSlug || !!selectedSlug);
 
   return (
     <>
@@ -133,7 +180,9 @@ export default function QuestionComposer({ userInitials }: QuestionComposerProps
           <span className="nb-avatar h-9 w-9 text-xs" style={{ background: "var(--neu-indigo)" }}>
             {userInitials}
           </span>
-          <span className="truncate">Create a post...</span>
+          <span className="truncate">
+            {lockedSubforum ? `Post in ${lockedSubforum.title}...` : "Create a post..."}
+          </span>
         </button>
       </div>
 
@@ -173,8 +222,31 @@ export default function QuestionComposer({ userInitials }: QuestionComposerProps
                 <div className="nb-avatar h-11 w-11 text-sm" style={{ background: "var(--neu-indigo)" }}>
                   {userInitials}
                 </div>
-                <p className="text-[15px] font-semibold" style={{ color: "var(--neu-ink)" }}>Share with the community</p>
+                <p className="text-[15px] font-semibold" style={{ color: "var(--neu-ink)" }}>
+                  {lockedSubforum ? `Posting in ${lockedSubforum.title}` : "Share with the community"}
+                </p>
               </div>
+
+              {requireSubforumSelect && !lockedSlug ? (
+                <div>
+                  <label htmlFor="composer-subforum" className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>
+                    Community
+                  </label>
+                  <select
+                    id="composer-subforum"
+                    value={selectedSlug}
+                    onChange={(e) => setSelectedSlug(e.target.value)}
+                    className="nb-input mt-1.5 px-3 py-2.5 text-sm font-semibold"
+                  >
+                    <option value="">Choose a community</option>
+                    {options.map((s) => (
+                      <option key={s.slug} value={s.slug}>
+                        {s.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
 
               <input
                 type="text"

@@ -7,6 +7,9 @@ type UserFields = {
   bio?: string;
   timezone?: string;
   avatar_url?: string;
+  gender?: string | null;
+  location_preference?: string | null;
+  language?: string | null;
 };
 
 /**
@@ -52,6 +55,9 @@ export async function updateOrCreateUser(
     bio: fields.bio ?? null,
     timezone: fields.timezone ?? null,
     avatar_url: fields.avatar_url ?? null,
+    gender: fields.gender ?? null,
+    location_preference: fields.location_preference ?? null,
+    language: fields.language ?? null,
     experience_points: 0,
     level: 0,
     trust_score: 0,

@@ -6,7 +6,14 @@ const TABS: { key: "latest" | "popular" | "unanswered"; label: string }[] = [
   { key: "unanswered", label: "Unanswered" },
 ];
 
-export default function ForumTabs({ active, search }: { active: string; search?: string }) {
+type ForumTabsProps = {
+  active: string;
+  search?: string;
+  /** Base path for tab links, e.g. /dashboard/forum/c/data-science */
+  basePath?: string;
+};
+
+export default function ForumTabs({ active, search, basePath = "/dashboard/forum" }: ForumTabsProps) {
   return (
     <div className="flex items-center gap-6 px-6" style={{ borderBottom: "2.5px solid #f0ecfa" }}>
       {TABS.map((tab) => {
@@ -18,7 +25,7 @@ export default function ForumTabs({ active, search }: { active: string; search?:
         return (
           <Link
             key={tab.key}
-            href={`/dashboard/forum?${params.toString()}`}
+            href={`${basePath}?${params.toString()}`}
             className="relative py-3 text-sm font-bold"
             style={{ color: isActive ? "var(--neu-indigo)" : "var(--neu-text-muted)" }}
           >

@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { Flame } from "lucide-react";
 import type { ForumQuestionSummary } from "@/lib/forum";
+import { getForumSubforum } from "@/lib/forumSubforums";
 
-export default function TrendingTopics({ questions }: { questions: ForumQuestionSummary[] }) {
+export default function TrendingTopics({
+  questions,
+  showSubforum = true,
+}: {
+  questions: ForumQuestionSummary[];
+  showSubforum?: boolean;
+}) {
   const trending = questions
     .filter((q) => q.answer_count > 0)
     .slice()
@@ -21,6 +28,7 @@ export default function TrendingTopics({ questions }: { questions: ForumQuestion
         <div className="mt-4 space-y-4">
           {trending.map((q, i) => {
             const rankColors = ["var(--neu-coral)", "var(--neu-indigo)", "var(--neu-teal)", "var(--neu-orange)", "var(--neu-purple)"];
+            const sub = getForumSubforum(q.subforum_slug);
             return (
               <Link key={q.question_id} href={`/dashboard/forum/${q.question_id}`} className="flex items-start gap-3">
                 <span
@@ -32,6 +40,12 @@ export default function TrendingTopics({ questions }: { questions: ForumQuestion
                 <div>
                   <p className="text-sm font-bold leading-snug" style={{ color: "var(--neu-ink)" }}>{q.title}</p>
                   <p className="mt-0.5 text-xs" style={{ color: "var(--neu-text-muted)" }}>
+                    {showSubforum ? (
+                      <>
+                        <span className="font-semibold" style={{ color: "var(--neu-indigo)" }}>{sub.title}</span>
+                        {" · "}
+                      </>
+                    ) : null}
                     {q.answer_count} {q.answer_count === 1 ? "reply" : "replies"}
                   </p>
                 </div>

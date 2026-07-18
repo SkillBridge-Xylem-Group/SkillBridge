@@ -4,8 +4,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { updateOrCreateUser } from "@/lib/profile/upsertUser";
 
 const profileSchema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters"),
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name is too long"),
   bio: z.string().trim().max(300, "Bio must be 300 characters or fewer"),
+  timezone: z.string().trim().min(1, "Timezone is required").max(100, "Timezone is too long").optional(),
 });
 
 export async function POST(request: Request) {
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
   const { error } = await updateOrCreateUser(supabase, user, {
     fullname: parsed.data.name,
     bio: parsed.data.bio,
+    ...(parsed.data.timezone ? { timezone: parsed.data.timezone } : {}),
   });
 
   if (error) {

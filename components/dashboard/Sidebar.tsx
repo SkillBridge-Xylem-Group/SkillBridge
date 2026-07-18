@@ -5,12 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DASHBOARD_NAV_ITEMS, isDashboardNavActive } from "@/lib/dashboard-nav";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import type { SidebarCommunity } from "@/lib/forumCommunities";
 import YourProgress from "./YourProgress";
+import SidebarCommunities from "./SidebarCommunities";
 
 type SidebarProps = {
   level?: number;
   experiencePoints?: number;
   trustScore?: number | null;
+  communities?: SidebarCommunity[];
 };
 
 const STORAGE_KEY = "skillbridge-sidebar-collapsed";
@@ -19,10 +23,20 @@ export default function Sidebar({
   level = 0,
   experiencePoints = 0,
   trustScore = null,
+  communities = [],
 }: SidebarProps) {
   const pathname = usePathname();
   const hideProgress = pathname === "/dashboard/profile";
+  const { dictionary } = useLocale();
   const [collapsed, setCollapsed] = useState(false);
+
+  const labels = {
+    home: dictionary.nav.home,
+    browse: dictionary.nav.browse,
+    swaps: dictionary.nav.swaps,
+    forum: dictionary.nav.forum,
+    profile: dictionary.nav.profile,
+  } as const;
 
   // Read the persisted preference after mount only, so server and first
   // client render match (avoids a hydration mismatch) and the sidebar just
@@ -47,7 +61,7 @@ export default function Sidebar({
       }`}
       style={{ borderRight: "3px solid var(--neu-ink)" }}
     >
-      <div className="px-4 py-7">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-7">
         <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2`}>
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
             <span
@@ -91,19 +105,21 @@ export default function Sidebar({
             const isActive = isDashboardNavActive(pathname, item.href);
             return (
               <Link
-                key={item.label}
+                key={item.key}
                 href={item.href}
-                title={collapsed ? item.label : undefined}
+                title={collapsed ? labels[item.key] : undefined}
                 className={`nb-nav-link flex items-center gap-3 px-3.5 py-2.5 text-sm ${
                   isActive ? "active" : ""
                 } ${collapsed ? "justify-center" : ""}`}
               >
                 <Icon size={19} />
-                {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
+                {!collapsed && <span className="flex-1 truncate">{labels[item.key]}</span>}
               </Link>
             );
           })}
         </nav>
+
+        {!collapsed && <SidebarCommunities communities={communities} />}
       </div>
 
       {!hideProgress && !collapsed && (

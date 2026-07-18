@@ -64,6 +64,11 @@ export default function RootLayout({
       className={`${displayFont.variable} ${bodyFont.variable} ${scriptFont.variable} ${playfulFont.variable} ${friendlyFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var l=localStorage.getItem("sb-locale");if(l){document.documentElement.lang=l;if(l==="ar")document.documentElement.dir="rtl"}}catch(e){}`,
+          }}
+        />
         <MotionConfig reducedMotion="user">{children}</MotionConfig>
       </body>
     </html>
