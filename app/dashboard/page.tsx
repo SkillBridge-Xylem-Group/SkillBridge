@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { getRequestUser } from "@/lib/dashboardShell";
 import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 import TopRatedMembers from "@/components/dashboard/TopRatedMembers";
 import RecentForumDiscussions from "@/components/dashboard/RecentForumDiscussions";
@@ -16,14 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { supabase, user } = await getRequestUser();
+  if (!user) redirect("/login");
 
   const [{ data: profile }, isAdmin] = await Promise.all([
     supabase.from("users").select("fullname, bio, experience_points, level").eq("id", user.id).maybeSingle(),
@@ -45,13 +38,11 @@ export default async function DashboardPage() {
     user.user_metadata?.name ||
     (user.email ? deriveNameFromEmail(user.email) : "there");
 
-  // No dedicated "onboarding_completed" column exists, so infer it from
-  // whether the user has a bio or has picked any skills yet.
   const showOnboarding = !profile?.bio && (offeredCount ?? 0) === 0 && (wantedCount ?? 0) === 0;
   const skillsByCategory = showOnboarding ? await getSkillsByCategory(supabase) : {};
 
   return (
-    <DashboardLayout userName={displayName} level={profile?.level ?? 0} xp={profile?.experience_points ?? 0}>
+    <>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <WelcomeBanner name={displayName} />
@@ -65,6 +56,6 @@ export default async function DashboardPage() {
       </div>
 
       <OnboardingGate initialShow={showOnboarding} skillsByCategory={skillsByCategory} />
-    </DashboardLayout>
+    </>
   );
 }

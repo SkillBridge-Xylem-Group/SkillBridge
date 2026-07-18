@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCommunityAction } from "@/lib/actions/forum";
+import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import {
   COMMUNITY_ACCENT_COLORS,
   COMMUNITY_TOPICS,
@@ -261,6 +262,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
         return;
       }
       onClose();
+      invalidateSidebarCommunitiesCache();
       if (res?.slug) {
         router.push(`/dashboard/forum/c/${res.slug}`);
         router.refresh();

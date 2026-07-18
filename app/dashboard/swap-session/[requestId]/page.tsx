@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { getRequestUser } from "@/lib/dashboardShell";
 import SwapSessionRoom from "@/components/swap-session/SwapSessionRoom";
 import { getSwapSessionForUser } from "@/lib/swapSession";
 
@@ -15,10 +14,7 @@ type PageProps = {
 
 export default async function SwapSessionPage({ params }: PageProps) {
   const { requestId } = await params;
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getRequestUser();
   if (!user) redirect("/login");
 
   const session = await getSwapSessionForUser(supabase, requestId, user.id);
@@ -26,19 +22,11 @@ export default async function SwapSessionPage({ params }: PageProps) {
 
   const { data: viewerRow } = await supabase
     .from("users")
-    .select("fullname, level, experience_points")
+    .select("fullname")
     .eq("id", user.id)
     .maybeSingle();
 
   const viewerName = viewerRow?.fullname ?? "You";
 
-  return (
-    <DashboardLayout
-      userName={viewerName}
-      level={viewerRow?.level ?? 0}
-      xp={viewerRow?.experience_points ?? 0}
-    >
-      <SwapSessionRoom session={session} userId={user.id} viewerName={viewerName} />
-    </DashboardLayout>
-  );
+  return <SwapSessionRoom session={session} userId={user.id} viewerName={viewerName} />;
 }

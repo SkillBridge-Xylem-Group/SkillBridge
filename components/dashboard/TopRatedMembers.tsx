@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Star } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
@@ -39,12 +40,12 @@ export default function TopRatedMembers() {
     <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-lg font-extrabold text-slate-900">People You May Want to Connect With</h2>
-        <a
+        <Link
           href="/dashboard/browse-people"
           className="shrink-0 text-sm font-bold text-brand hover:underline"
         >
           View all
-        </a>
+        </Link>
       </div>
       {loading && <p className="mt-5 text-sm text-slate-500">Loading...</p>}
       {!loading && error && <p className="mt-5 text-sm text-red-500">{error}</p>}
@@ -102,12 +103,12 @@ export default function TopRatedMembers() {
                   )}
                 </div>
 
-                <a
+                <Link
                   href={`/dashboard/profile/${m.slug}`}
                   className="mt-auto inline-flex w-fit self-center items-center justify-center rounded-full border-2 border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand/40 hover:text-brand"
                 >
                   View Profile
-                </a>
+                </Link>
               </article>
             );
           })}
