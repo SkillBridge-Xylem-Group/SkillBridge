@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageSquare, X } from "lucide-react";
 import { DASHBOARD_NAV_ITEMS, isDashboardNavActive } from "@/lib/dashboard-nav";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import YourProgress from "./YourProgress";
 
 type MobileNavDrawerProps = {
@@ -25,6 +26,15 @@ export function MobileNavDrawer({
 }: MobileNavDrawerProps) {
   const pathname = usePathname();
   const hideProgress = pathname === "/dashboard/profile";
+  const { dictionary } = useLocale();
+
+  const labels = {
+    home: dictionary.nav.home,
+    browse: dictionary.nav.browse,
+    swaps: dictionary.nav.swaps,
+    forum: dictionary.nav.forum,
+    profile: dictionary.nav.profile,
+  } as const;
 
   useEffect(() => {
     if (!open) return;
@@ -91,7 +101,7 @@ export function MobileNavDrawer({
                 }`}
               >
                 <Icon size={18} />
-                {item.label}
+                {labels[item.key]}
               </Link>
             );
           })}
@@ -122,6 +132,15 @@ export function MobileNavDrawer({
 /** Fixed bottom tab bar for phones / tablets below the lg breakpoint. */
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const { dictionary } = useLocale();
+
+  const shortLabels = {
+    home: dictionary.nav.home,
+    browse: dictionary.nav.browseShort,
+    swaps: dictionary.nav.swapsShort,
+    forum: dictionary.nav.forumShort,
+    profile: dictionary.nav.profileShort,
+  } as const;
 
   return (
     <nav
@@ -141,7 +160,7 @@ export function MobileBottomNav() {
                 }`}
               >
                 <Icon size={20} strokeWidth={active ? 2.5 : 2} />
-                <span className="truncate">{item.shortLabel}</span>
+                <span className="truncate">{shortLabels[item.key]}</span>
               </Link>
             </li>
           );

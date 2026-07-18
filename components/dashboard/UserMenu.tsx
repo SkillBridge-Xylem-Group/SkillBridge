@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, User, Settings, LogOut } from "lucide-react";
 import { signOutEverywhere } from "@/lib/auth/sign-out";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type UserMenuProps = {
   name: string;
@@ -13,6 +14,7 @@ export default function UserMenu({ name }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { dictionary } = useLocale();
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -30,8 +32,6 @@ export default function UserMenu({ name }: UserMenuProps) {
     try {
       await signOutEverywhere();
     } finally {
-      // Hard navigation clears bfcache so a signed-out session cannot reopen.
-      // Keep static asset caching (no cache-bust query) for faster login paint.
       window.location.replace("/login?loggedOut=1");
     }
   }
@@ -65,7 +65,7 @@ export default function UserMenu({ name }: UserMenuProps) {
             className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
             <User size={16} />
-            My Profile
+            {dictionary.menu.myProfile}
           </Link>
           <Link
             href="/dashboard/settings"
@@ -73,7 +73,7 @@ export default function UserMenu({ name }: UserMenuProps) {
             className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
             <Settings size={16} />
-            Settings
+            {dictionary.menu.settings}
           </Link>
           <div className="my-1 border-t border-slate-100" />
           <button
@@ -83,7 +83,7 @@ export default function UserMenu({ name }: UserMenuProps) {
             className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
           >
             <LogOut size={16} />
-            {isLoggingOut ? "Logging out..." : "Logout"}
+            {isLoggingOut ? dictionary.menu.loggingOut : dictionary.menu.logout}
           </button>
         </div>
       )}
