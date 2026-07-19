@@ -57,6 +57,19 @@ export default function QuestionComposer({
       : null;
   const lockedSubforum = lockedSlug ? { slug: lockedSlug, title: lockedTitle ?? lockedSlug } : null;
 
+  // Soft-nav to ?compose=1 does not remount this client tree — sync open state.
+  useEffect(() => {
+    if (defaultOpen) setOpen(true);
+  }, [defaultOpen]);
+
+  useEffect(() => {
+    function onComposeOpen() {
+      setOpen(true);
+    }
+    window.addEventListener("sb-forum-compose-open", onComposeOpen);
+    return () => window.removeEventListener("sb-forum-compose-open", onComposeOpen);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -87,8 +100,8 @@ export default function QuestionComposer({
     if (isPending) return;
     setOpen(false);
     resetForm();
-    if (defaultOpen && lockedSlug) {
-      router.replace(`/dashboard/forum/c/${lockedSlug}`);
+    if (lockedSlug) {
+      router.replace(`/dashboard/forum/c/${lockedSlug}`, { scroll: false });
     }
   }
 

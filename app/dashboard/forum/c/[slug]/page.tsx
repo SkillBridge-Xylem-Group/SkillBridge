@@ -67,6 +67,7 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
       <CommunityPageHeader community={community} isOwner={isOwner} />
 
       <QuestionComposer
+        key={`${slug}-${compose === "1" ? "compose" : "idle"}`}
         userInitials={userInitials}
         subforumSlug={slug}
         communityOptions={[{ slug: community.slug, title: community.title }]}
