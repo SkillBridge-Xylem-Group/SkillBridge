@@ -9,6 +9,7 @@ import { deleteThreadAction } from "@/lib/actions/messages";
 import EmojiPicker from "./EmojiPicker";
 import type { MessageRow } from "@/lib/messages";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
 import { formatAppTime } from "@/lib/i18n/locales";
@@ -20,15 +21,21 @@ type ChatPaneProps = {
   initialMessages: MessageRow[];
 };
 
+type PendingDelete =
+  | { type: "thread" }
+  | { type: "message"; messageId: string };
+
 export default function ChatPane({ threadId, viewerId, partner, initialMessages }: ChatPaneProps) {
   const { locale, dictionary } = useLocale();
   const msg = dictionary.messages;
+  const c = dictionary.common;
   const [messages, setMessages] = useState(initialMessages);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, startDeleteTransition] = useTransition();
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,30 +98,39 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
     }
   }
 
-  function handleDelete() {
-    if (!window.confirm(interpolate(msg.deleteConversationConfirm, { name: partner.fullname }))) return;
-    setDeleteError("");
-    startDeleteTransition(async () => {
-      const result = await deleteThreadAction(threadId);
-      if (result?.error) setDeleteError(result.error);
-      // On success, deleteThreadAction redirects to /dashboard/messages itself.
-    });
-  }
+  function confirmPendingDelete() {
+    if (!pendingDelete) return;
 
-  async function handleDeleteMessage(messageId: string) {
-    if (!window.confirm(msg.deleteMessageConfirm)) return;
-    setDeletingMessageId(messageId);
-    try {
-      const res = await fetch(`/api/messages/${threadId}/${messageId}`, { method: "DELETE" });
-      if (res.ok) {
-        setMessages((prev) => prev.filter((m) => m.message_id !== messageId));
-      }
-    } finally {
-      setDeletingMessageId(null);
+    if (pendingDelete.type === "thread") {
+      setDeleteError("");
+      startDeleteTransition(async () => {
+        const result = await deleteThreadAction(threadId);
+        if (result?.error) {
+          setDeleteError(result.error);
+          setPendingDelete(null);
+        }
+        // On success, deleteThreadAction redirects to /dashboard/messages itself.
+      });
+      return;
     }
+
+    const messageId = pendingDelete.messageId;
+    setPendingDelete(null);
+    setDeletingMessageId(messageId);
+    void (async () => {
+      try {
+        const res = await fetch(`/api/messages/${threadId}/${messageId}`, { method: "DELETE" });
+        if (res.ok) {
+          setMessages((prev) => prev.filter((m) => m.message_id !== messageId));
+        }
+      } finally {
+        setDeletingMessageId(null);
+      }
+    })();
   }
 
   const firstName = partner.fullname.split(" ")[0] || partner.fullname;
+  const confirmBusy = pendingDelete?.type === "thread" ? isDeleting : false;
 
   return (
     <div className="flex h-full flex-col">
@@ -151,7 +167,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
         </div>
         <button
           type="button"
-          onClick={handleDelete}
+          onClick={() => setPendingDelete({ type: "thread" })}
           disabled={isDeleting}
           aria-label={msg.deleteConversation}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-red-50 hover:text-red-500 active:scale-95 disabled:opacity-50"
@@ -189,7 +205,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                 {mine && (
                   <button
                     type="button"
-                    onClick={() => handleDeleteMessage(m.message_id)}
+                    onClick={() => setPendingDelete({ type: "message", messageId: m.message_id })}
                     disabled={deletingMessageId === m.message_id}
                     aria-label={msg.deleteMessage}
                     className="mb-1 opacity-0 transition group-hover:opacity-100 hover:text-red-500 disabled:opacity-50"
@@ -246,6 +262,24 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           </button>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={pendingDelete?.type === "thread" ? msg.deleteConversation : msg.deleteMessage}
+        description={
+          pendingDelete?.type === "thread"
+            ? interpolate(msg.deleteConversationConfirm, { name: partner.fullname })
+            : msg.deleteMessageConfirm
+        }
+        confirmLabel={c.delete}
+        cancelLabel={c.cancel}
+        danger
+        busy={confirmBusy}
+        onConfirm={confirmPendingDelete}
+        onCancel={() => {
+          if (!confirmBusy) setPendingDelete(null);
+        }}
+      />
     </div>
   );
 }

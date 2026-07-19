@@ -6,14 +6,7 @@ import type { ForumQuestionSummary } from "@/lib/forum";
 import { getForumSubforum } from "@/lib/forumSubforums";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
-
-const AVATAR_COLORS = ["bg-brand", "bg-indigo-500", "bg-violet-500", "bg-teal-500", "bg-rose-500"];
-
-function colorFor(id: string) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = (hash + id.charCodeAt(i)) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[hash];
-}
+import ForumAuthorAvatar from "./ForumAuthorAvatar";
 
 export default function QuestionFeedCard({
   question,
@@ -23,13 +16,6 @@ export default function QuestionFeedCard({
   showSubforum?: boolean;
 }) {
   const { locale, dictionary } = useLocale();
-  const initials = question.author.fullname
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p.charAt(0).toUpperCase())
-    .join("");
-
   const subforum = getForumSubforum(question.subforum_slug);
 
   return (
@@ -39,11 +25,7 @@ export default function QuestionFeedCard({
       style={{ borderBottom: "1px solid #eef7f0" }}
     >
       <div className="flex items-start gap-3">
-        <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${colorFor(question.author.id)}`}
-        >
-          {initials}
-        </div>
+        <ForumAuthorAvatar name={question.author.fullname} avatarUrl={question.author.avatar_url} />
         <div className="min-w-0 flex-1">
           <p className="text-sm" style={{ color: "var(--sb-muted)" }}>
             {showSubforum ? (

@@ -8,7 +8,7 @@ export type ForumQuestionSummary = {
   image_url: string | null;
   subforum_slug: string;
   created_at: string;
-  author: { id: string; fullname: string };
+  author: { id: string; fullname: string; avatar_url: string | null };
   answer_count: number;
 };
 
@@ -17,7 +17,7 @@ export type ForumAnswer = {
   content: string;
   image_url: string | null;
   created_at: string;
-  author: { id: string; fullname: string };
+  author: { id: string; fullname: string; avatar_url: string | null };
   vote_count: number;
   hasVoted: boolean;
   isTopAnswer: boolean;
@@ -30,12 +30,18 @@ export type ForumQuestionDetail = {
   image_url: string | null;
   subforum_slug: string;
   created_at: string;
-  author: { id: string; fullname: string };
+  author: { id: string; fullname: string; avatar_url: string | null };
 };
 
-function unwrapUser(u: unknown): { fullname: string } {
-  if (Array.isArray(u)) return (u[0] as { fullname: string }) ?? { fullname: "Unknown" };
-  return (u as { fullname: string }) ?? { fullname: "Unknown" };
+function unwrapUser(u: unknown): { fullname: string; avatar_url: string | null } {
+  const row = (Array.isArray(u) ? u[0] : u) as
+    | { fullname?: string; avatar_url?: string | null }
+    | null
+    | undefined;
+  return {
+    fullname: row?.fullname ?? "Unknown",
+    avatar_url: row?.avatar_url ?? null,
+  };
 }
 
 function normalizeSlug(raw: unknown): string {
@@ -54,7 +60,7 @@ export async function getForumQuestions(
   let query = supabase
     .from("forum_questions")
     .select(
-      "question_id, title, content, image_url, subforum_slug, created_at, user_id, users(fullname), forum_answers(count)"
+      "question_id, title, content, image_url, subforum_slug, created_at, user_id, users(fullname, avatar_url), forum_answers(count)"
     )
     .order("created_at", { ascending: false })
     .limit(opts.limit ?? 100);
@@ -74,7 +80,7 @@ export async function getForumQuestions(
   if (error?.message?.toLowerCase().includes("subforum_slug")) {
     let legacy = supabase
       .from("forum_questions")
-      .select("question_id, title, content, image_url, created_at, user_id, users(fullname), forum_answers(count)")
+      .select("question_id, title, content, image_url, created_at, user_id, users(fullname, avatar_url), forum_answers(count)")
       .order("created_at", { ascending: false })
       .limit(opts.limit ?? 100);
     if (opts.search?.trim()) {
@@ -89,7 +95,11 @@ export async function getForumQuestions(
       image_url: (q as { image_url?: string | null }).image_url ?? null,
       subforum_slug: "general",
       created_at: q.created_at,
-      author: { id: q.user_id, fullname: unwrapUser(q.users).fullname },
+      author: {
+        id: q.user_id,
+        fullname: unwrapUser(q.users).fullname,
+        avatar_url: unwrapUser(q.users).avatar_url,
+      },
       answer_count: (q as { forum_answers?: { count: number }[] }).forum_answers?.[0]?.count ?? 0,
     }));
     if (opts.subforumSlug && opts.subforumSlug !== "general") results = [];
@@ -105,7 +115,11 @@ export async function getForumQuestions(
     image_url: (q as { image_url?: string | null }).image_url ?? null,
     subforum_slug: normalizeSlug((q as { subforum_slug?: string | null }).subforum_slug),
     created_at: q.created_at,
-    author: { id: q.user_id, fullname: unwrapUser(q.users).fullname },
+    author: {
+      id: q.user_id,
+      fullname: unwrapUser(q.users).fullname,
+      avatar_url: unwrapUser(q.users).avatar_url,
+    },
     answer_count: (q as { forum_answers?: { count: number }[] }).forum_answers?.[0]?.count ?? 0,
   }));
 
@@ -142,17 +156,18 @@ export async function getQuestionDetail(
 ): Promise<ForumQuestionDetail | null> {
   const { data, error } = await supabase
     .from("forum_questions")
-    .select("question_id, title, content, image_url, subforum_slug, created_at, user_id, users(fullname)")
+    .select("question_id, title, content, image_url, subforum_slug, created_at, user_id, users(fullname, avatar_url)")
     .eq("question_id", questionId)
     .maybeSingle();
 
   if (error?.message?.toLowerCase().includes("subforum_slug")) {
     const legacy = await supabase
       .from("forum_questions")
-      .select("question_id, title, content, image_url, created_at, user_id, users(fullname)")
+      .select("question_id, title, content, image_url, created_at, user_id, users(fullname, avatar_url)")
       .eq("question_id", questionId)
       .maybeSingle();
     if (!legacy.data) return null;
+    const author = unwrapUser(legacy.data.users);
     return {
       question_id: legacy.data.question_id,
       title: legacy.data.title,
@@ -160,12 +175,13 @@ export async function getQuestionDetail(
       image_url: (legacy.data as { image_url?: string | null }).image_url ?? null,
       subforum_slug: "general",
       created_at: legacy.data.created_at,
-      author: { id: legacy.data.user_id, fullname: unwrapUser(legacy.data.users).fullname },
+      author: { id: legacy.data.user_id, fullname: author.fullname, avatar_url: author.avatar_url },
     };
   }
 
   if (!data) return null;
 
+  const author = unwrapUser(data.users);
   return {
     question_id: data.question_id,
     title: data.title,
@@ -173,7 +189,7 @@ export async function getQuestionDetail(
     image_url: (data as { image_url?: string | null }).image_url ?? null,
     subforum_slug: normalizeSlug((data as { subforum_slug?: string | null }).subforum_slug),
     created_at: data.created_at,
-    author: { id: data.user_id, fullname: unwrapUser(data.users).fullname },
+    author: { id: data.user_id, fullname: author.fullname, avatar_url: author.avatar_url },
   };
 }
 
@@ -184,18 +200,19 @@ export async function getAnswers(
 ): Promise<ForumAnswer[]> {
   const { data } = await supabase
     .from("forum_answers")
-    .select("answer_id, content, image_url, created_at, user_id, users(fullname), answer_votes(user_id)")
+    .select("answer_id, content, image_url, created_at, user_id, users(fullname, avatar_url), answer_votes(user_id)")
     .eq("question_id", questionId)
     .order("created_at", { ascending: true });
 
   const rows = (data ?? []).map((a) => {
     const votes = (a as { answer_votes?: { user_id: string }[] }).answer_votes ?? [];
+    const author = unwrapUser(a.users);
     return {
       answer_id: a.answer_id,
       content: a.content,
       image_url: (a as { image_url?: string | null }).image_url ?? null,
       created_at: a.created_at,
-      author: { id: a.user_id, fullname: unwrapUser(a.users).fullname },
+      author: { id: a.user_id, fullname: author.fullname, avatar_url: author.avatar_url },
       vote_count: votes.length,
       hasVoted: votes.some((v) => v.user_id === currentUserId),
       isTopAnswer: false,

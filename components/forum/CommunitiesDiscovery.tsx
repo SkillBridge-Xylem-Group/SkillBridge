@@ -171,9 +171,7 @@ function CommunitySection({
             onClick={() => setExpanded((v) => !v)}
             className="rounded-full bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-200"
           >
-            {expanded
-              ? f.showLess
-              : interpolate(f.showMore, { n: communities.length - initialCount })}
+            {expanded ? f.showLess : f.showMore}
           </button>
         </div>
       ) : null}
