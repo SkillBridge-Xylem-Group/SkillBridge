@@ -352,6 +352,9 @@ export const idPack: Dictionary = {
     markComplete: "Tandai Selesai",
     reschedule: "Jadwal ulang",
     reviewed: "Sudah diulas",
+    removeFromHistory: "Hapus dari riwayat",
+    removeFromHistoryConfirm:
+      "Hapus sesi ini dari daftar Anda? Mitra Anda tetap dapat melihatnya di riwayat mereka.",
   },
 };
 
@@ -707,6 +710,9 @@ export const jaPack: Dictionary = {
     markComplete: "完了にする",
     reschedule: "日程変更",
     reviewed: "レビュー済み",
+    removeFromHistory: "履歴から削除",
+    removeFromHistoryConfirm:
+      "このセッションを一覧から削除しますか？相手の履歴には残ります。",
   },
 };
 
@@ -1058,5 +1064,8 @@ export const koPack: Dictionary = {
     markComplete: "완료 표시",
     reschedule: "일정 변경",
     reviewed: "리뷰 완료",
+    removeFromHistory: "기록에서 삭제",
+    removeFromHistoryConfirm:
+      "이 세션을 목록에서 삭제할까요? 상대방의 기록에는 그대로 남습니다.",
   },
 };

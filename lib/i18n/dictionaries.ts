@@ -330,6 +330,8 @@ export type Dictionary = {
     markComplete: string;
     reschedule: string;
     reviewed: string;
+    removeFromHistory: string;
+    removeFromHistoryConfirm: string;
   };
 };
 
@@ -666,6 +668,9 @@ const en: Dictionary = {
     markComplete: "Mark Complete",
     reschedule: "Reschedule",
     reviewed: "Reviewed",
+    removeFromHistory: "Remove from history",
+    removeFromHistoryConfirm:
+      "Remove this session from your list? Your partner will still see it in their history.",
   },
 };
 
@@ -998,6 +1003,8 @@ const zhCN: Dictionary = {
     markComplete: "标记完成",
     reschedule: "改期",
     reviewed: "已评价",
+    removeFromHistory: "从历史记录中删除",
+    removeFromHistoryConfirm: "从你的列表中移除这条会话？对方仍会在自己的历史记录中看到。",
   },
 };
 
