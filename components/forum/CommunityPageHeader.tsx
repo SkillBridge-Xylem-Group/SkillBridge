@@ -16,6 +16,7 @@ import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/Dashbo
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { categoryLabel } from "@/lib/i18n/communityCategoryLabels";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
 
 type CommunityPageHeaderProps = {
@@ -193,7 +194,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                 </h1>
                 {community.category ? (
                   <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-                    {community.category}
+                    {categoryLabel(locale, community.category)}
                   </span>
                 ) : null}
               </div>
@@ -268,7 +269,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                       onClick={() => setMenuOpen(false)}
                       className="block px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
-                      All communities
+                      {f.allCommunities}
                     </Link>
                     {canDelete ? (
                       <button
@@ -279,7 +280,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                         className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
                       >
                         <Trash2 size={14} />
-                        Delete community
+                        {f.deleteCommunity}
                       </button>
                     ) : null}
                   </div>

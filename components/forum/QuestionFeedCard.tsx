@@ -1,19 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import type { ForumQuestionSummary } from "@/lib/forum";
 import { getForumSubforum } from "@/lib/forumSubforums";
-
-function timeAgo(dateStr: string) {
-  const diffMs = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
 
 const AVATAR_COLORS = ["bg-brand", "bg-indigo-500", "bg-violet-500", "bg-teal-500", "bg-rose-500"];
 
@@ -30,6 +22,7 @@ export default function QuestionFeedCard({
   question: ForumQuestionSummary;
   showSubforum?: boolean;
 }) {
+  const { locale, dictionary } = useLocale();
   const initials = question.author.fullname
     .split(" ")
     .filter(Boolean)
@@ -59,7 +52,9 @@ export default function QuestionFeedCard({
                 <span> · </span>
               </>
             ) : null}
-            <span className="font-bold" style={{ color: "var(--sb-ink)" }}>{question.author.fullname}</span> · {timeAgo(question.created_at)}
+            <span className="font-bold" style={{ color: "var(--sb-ink)" }}>{question.author.fullname}</span>
+            {" · "}
+            {formatRelativeTimeLabel(question.created_at, dictionary.common, locale)}
           </p>
           <h3 className="mt-0.5 text-base font-extrabold" style={{ color: "var(--sb-ink)" }}>{question.title}</h3>
           {question.content ? (
