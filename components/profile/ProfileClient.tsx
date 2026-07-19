@@ -135,25 +135,27 @@ export default function ProfileClient({
         profileError={profileError}
       />
 
-      <SkillsPanel
-        icon={GraduationCap}
-        iconColor="var(--sb-teal-dark)"
-        title="Skills I Offer"
-        skills={offered}
-        availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}
-        onAdd={handleAddOffered}
-        onRemove={handleRemoveOffered}
-      />
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <SkillsPanel
+          icon={GraduationCap}
+          iconColor="var(--sb-teal-dark)"
+          title="Skills I Offer"
+          skills={offered}
+          availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}
+          onAdd={handleAddOffered}
+          onRemove={handleRemoveOffered}
+        />
 
-      <SkillsPanel
-        icon={Target}
-        iconColor="var(--sb-emerald-dark)"
-        title="Skills I Want to Learn"
-        skills={wanted}
-        availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}
-        onAdd={handleAddWanted}
-        onRemove={handleRemoveWanted}
-      />
+        <SkillsPanel
+          icon={Target}
+          iconColor="var(--sb-emerald-dark)"
+          title="Skills I Want to Learn"
+          skills={wanted}
+          availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}
+          onAdd={handleAddWanted}
+          onRemove={handleRemoveWanted}
+        />
+      </div>
     </>
   );
 }

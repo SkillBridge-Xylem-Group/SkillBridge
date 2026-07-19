@@ -5,9 +5,11 @@ import ProfileClient from "@/components/profile/ProfileClient";
 import LevelCard from "@/components/profile/LevelCard";
 import TrustScoreCard from "@/components/profile/TrustScoreCard";
 import ReviewsCard from "@/components/profile/ReviewsCard";
+import AchievementsCard from "@/components/profile/AchievementsCard";
 import type { Profile } from "@/lib/types/profile";
 import { getFullSkillCatalog, getUserSkills } from "@/lib/skillCatalog";
 import { getUserReviews } from "@/lib/reviews";
+import { syncUserBadges } from "@/lib/badges";
 import { deriveNameFromEmail } from "@/lib/deriveName";
 
 export const metadata: Metadata = {
@@ -58,6 +60,20 @@ export default async function ProfilePage() {
     getUserReviews(supabase, user.id),
   ]);
 
+  const memberSinceDays = Math.floor(
+    (Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  const badges = await syncUserBadges(supabase, user.id, {
+    level: profile.level,
+    experiencePoints: profile.experience_points,
+    trustScore,
+    reviewCount,
+    skillsOfferedCount: offered.length,
+    skillsWantedCount: wanted.length,
+    memberSinceDays,
+  });
+
   return (
     <div className="grid grid-cols-1 gap-6 pt-2 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
@@ -71,9 +87,11 @@ export default async function ProfilePage() {
         />
 
         <ReviewsCard reviews={reviews} />
+
+        <AchievementsCard badges={badges} />
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
         <LevelCard level={profile.level} experiencePoints={profile.experience_points} />
         <TrustScoreCard trustScore={trustScore} reviewCount={reviewCount} />
       </div>
