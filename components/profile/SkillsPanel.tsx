@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { type LucideIcon, Plus, X, Search } from "lucide-react";
 import type { Skill } from "@/lib/types/profile";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type SkillsPanelProps = {
   icon: LucideIcon;
@@ -24,6 +25,8 @@ export default function SkillsPanel({
   onAdd,
   onRemove,
 }: SkillsPanelProps) {
+  const { dictionary } = useLocale();
+  const p = dictionary.profile;
   const [isPicking, setIsPicking] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -44,7 +47,7 @@ export default function SkillsPanel({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {skills.length === 0 && <p className="text-sm" style={{ color: "var(--sb-muted)" }}>None added yet.</p>}
+        {skills.length === 0 && <p className="text-sm" style={{ color: "var(--sb-muted)" }}>{p.noneAdded}</p>}
         {skills.map((skill) => (
           <span key={skill.skill_id} className="nb-tag flex items-center gap-1.5">
             {skill.skill_name}
@@ -68,13 +71,13 @@ export default function SkillsPanel({
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search skills..."
+              placeholder={p.searchSkills}
               className="w-full bg-transparent text-sm focus:outline-none"
               style={{ color: "var(--sb-ink)" }}
             />
           </div>
           <div className="mt-2 max-h-40 space-y-1 overflow-y-auto">
-            {filtered.length === 0 && <p className="p-2 text-sm" style={{ color: "var(--sb-muted)" }}>No matching skills.</p>}
+            {filtered.length === 0 && <p className="p-2 text-sm" style={{ color: "var(--sb-muted)" }}>{p.noMatchingSkills}</p>}
             {filtered.map((skill) => (
               <button
                 key={skill.skill_id}
@@ -96,7 +99,7 @@ export default function SkillsPanel({
             className="mt-2 text-xs font-semibold hover:underline"
             style={{ color: "var(--sb-muted)" }}
           >
-            Done
+            {dictionary.settings.done}
           </button>
         </div>
       ) : (
@@ -107,7 +110,7 @@ export default function SkillsPanel({
           style={{ color: "var(--sb-teal-dark)" }}
         >
           <Plus size={14} />
-          Add a skill
+          {p.addSkill}
         </button>
       )}
     </div>

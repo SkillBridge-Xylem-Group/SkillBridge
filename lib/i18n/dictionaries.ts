@@ -1,4 +1,5 @@
 import type { AppLocale } from "./locales";
+import { idPack, jaPack, koPack } from "./localePacks";
 
 export type Dictionary = {
   nav: {
@@ -52,6 +53,251 @@ export type Dictionary = {
     genderWoman: string;
     genderNonBinary: string;
     genderPreferNot: string;
+    saveFailed: string;
+  };
+  common: {
+    viewAll: string;
+    loading: string;
+    cancel: string;
+    save: string;
+    confirm: string;
+    delete: string;
+    close: string;
+    search: string;
+    justNow: string;
+    minutesAgo: string;
+    hoursAgo: string;
+    daysAgo: string;
+    monthsAgo: string;
+    yearsAgo: string;
+    unknown: string;
+    unread: string;
+    members: string;
+    member: string;
+    public: string;
+    private: string;
+    created: string;
+    join: string;
+    joined: string;
+    leave: string;
+    manage: string;
+  };
+  home: {
+    welcomeBack: string;
+    welcomeSubtitle: string;
+    findPartner: string;
+    viewSwapRequests: string;
+    yourProgress: string;
+    level: string;
+    trustScore: string;
+    noRatingsYet: string;
+    recentMessages: string;
+    noConversationsHint: string;
+    sayHello: string;
+    suggestedPeople: string;
+    noMatchesYet: string;
+    loadMatchesFailed: string;
+    recentDiscussions: string;
+    noDiscussions: string;
+    loadDiscussionsFailed: string;
+    replies: string;
+    reply: string;
+  };
+  messages: {
+    title: string;
+    searchConversations: string;
+    noConversations: string;
+    noConversationsHint: string;
+    browsePeople: string;
+    noChatsMatch: string;
+    sayHello: string;
+    directMessage: string;
+    backToConversations: string;
+    deleteConversation: string;
+    deleteConversationConfirm: string;
+    deleteMessage: string;
+    deleteMessageConfirm: string;
+    sayHelloTo: string;
+    conversationStart: string;
+    messagePlaceholder: string;
+  };
+  browse: {
+    searchPlaceholder: string;
+    allCategories: string;
+    highestRated: string;
+    mostReviews: string;
+    nameAZ: string;
+    loadingPeople: string;
+    loadFailed: string;
+    personFound: string;
+    peopleFound: string;
+    noMatches: string;
+    noMatchesHint: string;
+    noRatingsYet: string;
+    noSkillsListed: string;
+    viewProfile: string;
+  };
+  notifications: {
+    title: string;
+    unreadCount: string;
+    allCaughtUp: string;
+    newCount: string;
+    typeMessage: string;
+    typeSwapRequest: string;
+    typeSwapUpdate: string;
+    typeLevelUp: string;
+    typeForum: string;
+    typeReview: string;
+    markAllRead: string;
+    empty: string;
+    emptyHint: string;
+    viewSwapRequests: string;
+  };
+  forum: {
+    latest: string;
+    popular: string;
+    unanswered: string;
+    communities: string;
+    createCommunity: string;
+    manageCommunities: string;
+    joinFromForum: string;
+    favorite: string;
+    unfavorite: string;
+    createPost: string;
+    createPostPlaceholder: string;
+    postIn: string;
+    create: string;
+    posts: string;
+    post: string;
+    discoverTitle: string;
+    discoverSubtitle: string;
+    recommended: string;
+    moreLike: string;
+    showMore: string;
+    showLess: string;
+    noCommunities: string;
+    noCommunitiesIn: string;
+    beFirst: string;
+    createCommunityIn: string;
+    trendingTopics: string;
+    noTrending: string;
+    replies: string;
+    reply: string;
+    categoriesAria: string;
+    notJoinedYet: string;
+    noFavorites: string;
+    noFilterMatch: string;
+    discoverCta: string;
+    tryDifferentFilter: string;
+    shareWithCommunity: string;
+    postingIn: string;
+    community: string;
+    chooseCommunity: string;
+    titlePlaceholder: string;
+    detailsPlaceholder: string;
+    posting: string;
+    postAction: string;
+    createWizardAbout: string;
+    createWizardAboutSub: string;
+    createWizardDetails: string;
+    createWizardDetailsSub: string;
+    createWizardStyle: string;
+    createWizardStyleSub: string;
+    createWizardType: string;
+    createWizardTypeSub: string;
+    pickTopicError: string;
+    nameDescError: string;
+    chooseImageError: string;
+    imageTooLarge: string;
+    needSignIn: string;
+    changeImage: string;
+    uploadImage: string;
+    visibilityPublic: string;
+    visibilityPublicDesc: string;
+    visibilityRestricted: string;
+    visibilityRestrictedDesc: string;
+    visibilityPrivate: string;
+    visibilityPrivateDesc: string;
+    back: string;
+    next: string;
+    creating: string;
+    createCommunityTitle: string;
+    manageTitle: string;
+    manageFilterPlaceholder: string;
+    leaveCommunity: string;
+    allCommunities: string;
+    favoritesTab: string;
+  };
+  profile: {
+    memberSince: string;
+    timezone: string;
+    editProfile: string;
+    saveProfile: string;
+    changePhoto: string;
+    bioPlaceholder: string;
+    noBio: string;
+    noBioHint: string;
+    yourName: string;
+    uploadingPhoto: string;
+    saving: string;
+    skillsTeach: string;
+    skillsLearn: string;
+    addSkill: string;
+    noneAdded: string;
+    searchSkills: string;
+    noMatchingSkills: string;
+    reviews: string;
+    noReviews: string;
+    noReviewsHint: string;
+    achievements: string;
+    unlockedCount: string;
+    unlocked: string;
+    levelCard: string;
+    trustScore: string;
+    noRatingsYet: string;
+    trustNoRatingsHint: string;
+    reviewCountOne: string;
+    reviewCountMany: string;
+    xpProgress: string;
+    xpUntilLevel: string;
+    tierCommon: string;
+    tierRare: string;
+    tierEpic: string;
+    tierLegendary: string;
+    message: string;
+    messageUser: string;
+    requestSwap: string;
+    sendSwapRequest: string;
+    requestSent: string;
+    sending: string;
+    opening: string;
+    swapRequestSentNotice: string;
+  };
+  swaps: {
+    pendingRequests: string;
+    noPending: string;
+    wantsToSwap: string;
+    sentRequest: string;
+    accept: string;
+    decline: string;
+    confirm: string;
+    cancel: string;
+    sessions: string;
+    noSessions: string;
+    joinSession: string;
+    leaveReview: string;
+    notScheduled: string;
+    skillSwapSession: string;
+    recentSessions: string;
+    noSessionsHint: string;
+    sessionInfo: string;
+    swapPartner: string;
+    dateTime: string;
+    status: string;
+    actions: string;
+    markComplete: string;
+    reschedule: string;
+    reviewed: string;
   };
 };
 
@@ -87,7 +333,8 @@ const en: Dictionary = {
     logOutDesc: "End your current session on this device.",
     password: "Password",
     passwordDesc: "Change the password you use to sign in.",
-    passwordGoogle: "You signed in with Google. Password changes are managed in your Google account.",
+    passwordGoogle:
+      "You signed in with Google. Password changes are managed in your Google account.",
     change: "Change",
     cancel: "Cancel",
     done: "Done",
@@ -107,6 +354,254 @@ const en: Dictionary = {
     genderWoman: "Woman",
     genderNonBinary: "Non-binary",
     genderPreferNot: "Prefer not to say",
+    saveFailed: "Failed to save settings.",
+  },
+  common: {
+    viewAll: "View all",
+    loading: "Loading...",
+    cancel: "Cancel",
+    save: "Save",
+    confirm: "Confirm",
+    delete: "Delete",
+    close: "Close",
+    search: "Search",
+    justNow: "Just now",
+    minutesAgo: "{n}m ago",
+    hoursAgo: "{n}h ago",
+    daysAgo: "{n}d ago",
+    monthsAgo: "{n}mo ago",
+    yearsAgo: "{n}y ago",
+    unknown: "Unknown",
+    unread: "Unread",
+    members: "members",
+    member: "member",
+    public: "Public",
+    private: "Private",
+    created: "Created",
+    join: "Join",
+    joined: "Joined",
+    leave: "Leave",
+    manage: "Manage",
+  },
+  home: {
+    welcomeBack: "Welcome back, {name}",
+    welcomeSubtitle: "Ready to share your knowledge or discover a new skill today?",
+    findPartner: "Find a Partner",
+    viewSwapRequests: "View Swap Requests",
+    yourProgress: "Your Progress",
+    level: "Level {n}",
+    trustScore: "Trust Score",
+    noRatingsYet: "No ratings yet",
+    recentMessages: "Recent Messages",
+    noConversationsHint: "No conversations yet — message someone from their profile.",
+    sayHello: "Say hello!",
+    suggestedPeople: "Suggested People",
+    noMatchesYet:
+      "No matches yet - add skills you want to learn on your profile to see people who can help.",
+    loadMatchesFailed: "Failed to load matches",
+    recentDiscussions: "Recent Discussions",
+    noDiscussions: "No recent discussions yet.",
+    loadDiscussionsFailed: "Unable to load questions",
+    replies: "replies",
+    reply: "reply",
+  },
+  messages: {
+    title: "Messages",
+    searchConversations: "Search conversations",
+    noConversations: "No conversations yet",
+    noConversationsHint: "Visit someone's profile and tap Message to start chatting.",
+    browsePeople: "Browse people",
+    noChatsMatch: 'No chats match "{q}".',
+    sayHello: "Say hello!",
+    directMessage: "Direct message",
+    backToConversations: "Back to conversations",
+    deleteConversation: "Delete conversation",
+    deleteConversationConfirm: "Delete this conversation with {name}? This can't be undone.",
+    deleteMessage: "Delete message",
+    deleteMessageConfirm: "Delete this message?",
+    sayHelloTo: "Say hello to {name}",
+    conversationStart:
+      "This is the beginning of your conversation. Send a note to get the swap started.",
+    messagePlaceholder: "Message {name}...",
+  },
+  browse: {
+    searchPlaceholder: "Search by name or skill...",
+    allCategories: "All Categories",
+    highestRated: "Highest Rated",
+    mostReviews: "Most Reviews",
+    nameAZ: "Name (A-Z)",
+    loadingPeople: "Loading people...",
+    loadFailed: "Failed to load people",
+    personFound: "{n} person found",
+    peopleFound: "{n} people found",
+    noMatches: "No matches yet",
+    noMatchesHint: "Try a different search term or category.",
+    noRatingsYet: "No ratings yet",
+    noSkillsListed: "No skills listed",
+    viewProfile: "View Profile",
+  },
+  notifications: {
+    title: "Notifications",
+    unreadCount: "{n} unread",
+    allCaughtUp: "You're all caught up",
+    newCount: "{n} new",
+    typeMessage: "Message",
+    typeSwapRequest: "Swap request",
+    typeSwapUpdate: "Swap update",
+    typeLevelUp: "Level up",
+    typeForum: "Forum",
+    typeReview: "Review",
+    markAllRead: "Mark all read",
+    empty: "No notifications yet",
+    emptyHint: "Swap requests and messages will show up here.",
+    viewSwapRequests: "View swap requests",
+  },
+  forum: {
+    latest: "Latest",
+    popular: "Popular",
+    unanswered: "Unanswered",
+    communities: "Communities",
+    createCommunity: "Create community",
+    manageCommunities: "Manage",
+    joinFromForum: "Join communities from the Forum.",
+    favorite: "Favorite",
+    unfavorite: "Unfavorite",
+    createPost: "Create a post",
+    createPostPlaceholder: "Create a post...",
+    postIn: "Post in {title}...",
+    create: "Create",
+    posts: "posts",
+    post: "post",
+    discoverTitle: "Discover Communities",
+    discoverSubtitle: "Find communities to join, or create your own and start posting.",
+    recommended: "Recommended for you",
+    moreLike: "More like {category}",
+    showMore: "Show more ({n})",
+    showLess: "Show less",
+    noCommunities: "No communities yet",
+    noCommunitiesIn: "No communities in {category} yet",
+    beFirst: "Be the first to start one.",
+    createCommunityIn: "Create community in {category}",
+    trendingTopics: "Trending Topics",
+    noTrending: "No trending discussions yet.",
+    replies: "replies",
+    reply: "reply",
+    categoriesAria: "Community categories",
+    notJoinedYet: "You haven't joined any communities yet",
+    noFavorites: "No favorited communities",
+    noFilterMatch: "No communities match your filter",
+    discoverCta: "Discover communities",
+    tryDifferentFilter: "Try a different filter or add favorites from the list.",
+    shareWithCommunity: "Share with the community",
+    postingIn: "Posting in {title}",
+    community: "Community",
+    chooseCommunity: "Choose a community",
+    titlePlaceholder: "Title",
+    detailsPlaceholder: "Add details (optional if you attach an image)...",
+    posting: "Posting...",
+    postAction: "Post",
+    createWizardAbout: "What will your community be about?",
+    createWizardAboutSub: "Choose up to 3 topics to help people discover your community.",
+    createWizardDetails: "Tell us about your community",
+    createWizardDetailsSub: "A name and description help people understand your community.",
+    createWizardStyle: "Style your community",
+    createWizardStyleSub:
+      "Add an icon image or color so your community stands out. You can change this later.",
+    createWizardType: "What kind of community is this?",
+    createWizardTypeSub: "Decide who can view and contribute. You can change this later.",
+    pickTopicError: "Pick at least one topic.",
+    nameDescError: "Add a name (3–21 chars) and a description.",
+    chooseImageError: "Please choose an image file.",
+    imageTooLarge: "Image is too large (max 10MB).",
+    needSignIn: "You need to be signed in.",
+    changeImage: "Change image",
+    uploadImage: "Upload image",
+    visibilityPublic: "Public",
+    visibilityPublicDesc: "Anyone can view, post, and comment in this community.",
+    visibilityRestricted: "Restricted",
+    visibilityRestrictedDesc: "Anyone can view, but only approved members can post.",
+    visibilityPrivate: "Private",
+    visibilityPrivateDesc: "Only approved members can view and contribute.",
+    back: "Back",
+    next: "Next",
+    creating: "Creating…",
+    createCommunityTitle: "Create Community",
+    manageTitle: "Manage communities",
+    manageFilterPlaceholder: "Filter your communities",
+    leaveCommunity: "Leave community",
+    allCommunities: "All Communities",
+    favoritesTab: "Favorites",
+  },
+  profile: {
+    memberSince: "Member since",
+    timezone: "Timezone",
+    editProfile: "Edit Profile",
+    saveProfile: "Save Profile",
+    changePhoto: "Change profile photo",
+    bioPlaceholder: "Tell the community a bit about yourself...",
+    noBio: "No bio yet.",
+    noBioHint: "Add a short bio so the community can get to know you.",
+    yourName: "Your name",
+    uploadingPhoto: "Uploading photo...",
+    saving: "Saving...",
+    skillsTeach: "Skills I can teach",
+    skillsLearn: "Skills I want to learn",
+    addSkill: "Add skill",
+    noneAdded: "None added yet.",
+    searchSkills: "Search skills...",
+    noMatchingSkills: "No matching skills.",
+    reviews: "Reviews",
+    noReviews: "No reviews yet",
+    noReviewsHint: "Complete your first skill swap to receive reviews and build your Trust Score.",
+    achievements: "Achievements",
+    unlockedCount: "{n} / {total} unlocked",
+    unlocked: "Unlocked",
+    levelCard: "Level",
+    trustScore: "Trust Score",
+    noRatingsYet: "No ratings yet",
+    trustNoRatingsHint: "Complete your first swap to build your Trust Score.",
+    reviewCountOne: "({n} review)",
+    reviewCountMany: "({n} reviews)",
+    xpProgress: "{current} / {next} XP",
+    xpUntilLevel: "{n} XP until Level {level}",
+    tierCommon: "Common",
+    tierRare: "Rare",
+    tierEpic: "Epic",
+    tierLegendary: "Legendary",
+    message: "Message",
+    messageUser: "Message {name}",
+    requestSwap: "Request swap",
+    sendSwapRequest: "Send Swap Request",
+    requestSent: "Request Sent",
+    sending: "Sending...",
+    opening: "Opening...",
+    swapRequestSentNotice: "Swap request sent — check My Swap Requests to track it.",
+  },
+  swaps: {
+    pendingRequests: "Pending Requests",
+    noPending: "No pending requests right now.",
+    wantsToSwap: "Wants to swap: {skill}",
+    sentRequest: "Sent you a swap request",
+    accept: "Accept",
+    decline: "Decline",
+    confirm: "Confirm",
+    cancel: "Cancel",
+    sessions: "Sessions",
+    noSessions: "No sessions yet.",
+    joinSession: "Join Session",
+    leaveReview: "Leave a review",
+    notScheduled: "Not scheduled yet",
+    skillSwapSession: "Skill swap session",
+    recentSessions: "Recent & Upcoming Sessions",
+    noSessionsHint: "No sessions yet. Send a swap request from someone's profile to get started.",
+    sessionInfo: "Session Info",
+    swapPartner: "Swap Partner",
+    dateTime: "Date & Time",
+    status: "Status",
+    actions: "Actions",
+    markComplete: "Mark Complete",
+    reschedule: "Reschedule",
+    reviewed: "Reviewed",
   },
 };
 
@@ -162,312 +657,260 @@ const zhCN: Dictionary = {
     genderWoman: "女",
     genderNonBinary: "非二元",
     genderPreferNot: "不愿透露",
+    saveFailed: "保存设置失败。",
   },
-};
-
-const zhTW: Dictionary = {
-  ...zhCN,
-  nav: {
-    home: "首頁",
-    browse: "瀏覽用戶",
-    browseShort: "瀏覽",
-    swaps: "技能交換請求",
-    swapsShort: "交換",
-    forum: "社群論壇",
-    forumShort: "論壇",
-    profile: "我的資料",
-    profileShort: "資料",
-  },
-  menu: {
-    myProfile: "我的資料",
-    settings: "設定",
-    logout: "登出",
-    loggingOut: "正在登出…",
-  },
-  settings: {
-    ...zhCN.settings,
-    title: "設定",
-    account: "帳戶",
-    security: "安全",
-    general: "一般",
-    session: "工作階段",
-    emailAddress: "電子郵件",
-    gender: "性別",
-    locationCustomization: "位置個人化",
-    language: "顯示語言",
-    logOut: "登出",
-    logOutDesc: "結束此裝置上的目前工作階段。",
-    password: "密碼",
-    passwordDesc: "變更用來登入的密碼。",
-    passwordGoogle: "你使用 Google 登入。請在 Google 帳戶中管理密碼。",
-    change: "變更",
+  common: {
+    viewAll: "查看全部",
+    loading: "加载中…",
     cancel: "取消",
-    done: "完成",
-    save: "儲存",
-    saving: "儲存中…",
-    currentPassword: "目前密碼",
-    newPassword: "新密碼",
-    confirmPassword: "確認新密碼",
-    updatePassword: "更新密碼",
-    updating: "更新中…",
-    emailChangeHint: "我們會向新信箱傳送確認連結，確認後才會生效。",
-    locationHint: "依地理位置個人化推薦內容。",
-    locationApproximate: "使用大致位置（依 IP）",
-    locationNone: "不指定位置",
-    locationCountry: "國家/地區",
-    genderMan: "男",
-    genderWoman: "女",
-    genderNonBinary: "非二元",
-    genderPreferNot: "不願透露",
-  },
-};
-
-const id: Dictionary = {
-  nav: {
-    home: "Beranda",
-    browse: "Jelajahi Orang",
-    browseShort: "Jelajah",
-    swaps: "Permintaan Tukar Skill",
-    swapsShort: "Tukar",
-    forum: "Forum Komunitas",
-    forumShort: "Forum",
-    profile: "Profil Saya",
-    profileShort: "Profil",
-  },
-  menu: {
-    myProfile: "Profil Saya",
-    settings: "Pengaturan",
-    logout: "Keluar",
-    loggingOut: "Sedang keluar...",
-  },
-  settings: {
-    title: "Pengaturan",
-    account: "Akun",
-    security: "Keamanan",
-    general: "Umum",
-    session: "Sesi",
-    emailAddress: "Alamat email",
-    gender: "Jenis kelamin",
-    locationCustomization: "Kustomisasi lokasi",
-    language: "Bahasa tampilan",
-    logOut: "Keluar",
-    logOutDesc: "Akhiri sesi Anda di perangkat ini.",
-    password: "Kata sandi",
-    passwordDesc: "Ubah kata sandi yang digunakan untuk masuk.",
-    passwordGoogle: "Anda masuk dengan Google. Kelola kata sandi di akun Google Anda.",
-    change: "Ubah",
-    cancel: "Batal",
-    done: "Selesai",
-    save: "Simpan",
-    saving: "Menyimpan…",
-    currentPassword: "Kata sandi saat ini",
-    newPassword: "Kata sandi baru",
-    confirmPassword: "Konfirmasi kata sandi baru",
-    updatePassword: "Perbarui kata sandi",
-    updating: "Memperbarui…",
-    emailChangeHint: "Kami akan mengirim tautan konfirmasi ke alamat baru sebelum aktif.",
-    locationHint: "Personalisasi feed dan rekomendasi berdasarkan lokasi.",
-    locationApproximate: "Gunakan lokasi perkiraan (berdasarkan IP)",
-    locationNone: "Tidak ada lokasi yang ditentukan",
-    locationCountry: "Negara",
-    genderMan: "Pria",
-    genderWoman: "Wanita",
-    genderNonBinary: "Non-biner",
-    genderPreferNot: "Lebih suka tidak mengatakan",
-  },
-};
-
-const ja: Dictionary = {
-  nav: {
-    home: "ホーム",
-    browse: "人を探す",
-    browseShort: "探す",
-    swaps: "スキルスワップ申請",
-    swapsShort: "スワップ",
-    forum: "コミュニティフォーラム",
-    forumShort: "フォーラム",
-    profile: "マイプロフィール",
-    profileShort: "プロフィール",
-  },
-  menu: {
-    myProfile: "マイプロフィール",
-    settings: "設定",
-    logout: "ログアウト",
-    loggingOut: "ログアウト中…",
-  },
-  settings: {
-    title: "設定",
-    account: "アカウント",
-    security: "セキュリティ",
-    general: "一般",
-    session: "セッション",
-    emailAddress: "メールアドレス",
-    gender: "性別",
-    locationCustomization: "位置情報のカスタマイズ",
-    language: "表示言語",
-    logOut: "ログアウト",
-    logOutDesc: "この端末の現在のセッションを終了します。",
-    password: "パスワード",
-    passwordDesc: "ログインに使用するパスワードを変更します。",
-    passwordGoogle: "Google でログインしています。パスワードは Google アカウントで管理してください。",
-    change: "変更",
-    cancel: "キャンセル",
-    done: "完了",
     save: "保存",
+    confirm: "确认",
+    delete: "删除",
+    close: "关闭",
+    search: "搜索",
+    justNow: "刚刚",
+    minutesAgo: "{n} 分钟前",
+    hoursAgo: "{n} 小时前",
+    daysAgo: "{n} 天前",
+    monthsAgo: "{n} 个月前",
+    yearsAgo: "{n} 年前",
+    unknown: "未知",
+    unread: "未读",
+    members: "位成员",
+    member: "位成员",
+    public: "公开",
+    private: "私密",
+    created: "创建于",
+    join: "加入",
+    joined: "已加入",
+    leave: "退出",
+    manage: "管理",
+  },
+  home: {
+    welcomeBack: "欢迎回来，{name}",
+    welcomeSubtitle: "准备好分享知识，或发现一门新技能了吗？",
+    findPartner: "寻找伙伴",
+    viewSwapRequests: "查看交换请求",
+    yourProgress: "你的进度",
+    level: "等级 {n}",
+    trustScore: "信任分",
+    noRatingsYet: "暂无评分",
+    recentMessages: "最近消息",
+    noConversationsHint: "还没有对话 — 可以从对方资料页发起私信。",
+    sayHello: "打个招呼吧！",
+    suggestedPeople: "推荐用户",
+    noMatchesYet: "暂无匹配 — 在资料中添加想学的技能，即可看到能帮助你的人。",
+    loadMatchesFailed: "加载推荐失败",
+    recentDiscussions: "最近讨论",
+    noDiscussions: "暂无最近讨论。",
+    loadDiscussionsFailed: "无法加载讨论",
+    replies: "条回复",
+    reply: "条回复",
+  },
+  messages: {
+    title: "消息",
+    searchConversations: "搜索对话",
+    noConversations: "暂无对话",
+    noConversationsHint: "访问他人资料并点击「私信」即可开始聊天。",
+    browsePeople: "浏览用户",
+    noChatsMatch: "没有匹配「{q}」的对话。",
+    sayHello: "打个招呼吧！",
+    directMessage: "私信",
+    backToConversations: "返回对话列表",
+    deleteConversation: "删除对话",
+    deleteConversationConfirm: "确定删除与 {name} 的对话吗？此操作无法撤销。",
+    deleteMessage: "删除消息",
+    deleteMessageConfirm: "确定删除这条消息吗？",
+    sayHelloTo: "向 {name} 打个招呼",
+    conversationStart: "这是你们对话的开始。发一条消息，开启技能交换吧。",
+    messagePlaceholder: "给 {name} 发消息…",
+  },
+  browse: {
+    searchPlaceholder: "按姓名或技能搜索…",
+    allCategories: "全部分类",
+    highestRated: "评分最高",
+    mostReviews: "评价最多",
+    nameAZ: "姓名（A-Z）",
+    loadingPeople: "正在加载用户…",
+    loadFailed: "加载用户失败",
+    personFound: "找到 {n} 人",
+    peopleFound: "找到 {n} 人",
+    noMatches: "暂无匹配",
+    noMatchesHint: "试试其他关键词或分类。",
+    noRatingsYet: "暂无评分",
+    noSkillsListed: "未填写技能",
+    viewProfile: "查看资料",
+  },
+  notifications: {
+    title: "通知",
+    unreadCount: "{n} 条未读",
+    allCaughtUp: "全部已读",
+    newCount: "{n} 条新通知",
+    typeMessage: "消息",
+    typeSwapRequest: "交换请求",
+    typeSwapUpdate: "交换更新",
+    typeLevelUp: "升级",
+    typeForum: "论坛",
+    typeReview: "评价",
+    markAllRead: "全部标为已读",
+    empty: "暂无通知",
+    emptyHint: "交换请求和消息会出现在这里。",
+    viewSwapRequests: "查看交换请求",
+  },
+  forum: {
+    latest: "最新",
+    popular: "热门",
+    unanswered: "未回复",
+    communities: "社区",
+    createCommunity: "创建社区",
+    manageCommunities: "管理",
+    joinFromForum: "在论坛中加入感兴趣的社区。",
+    favorite: "收藏",
+    unfavorite: "取消收藏",
+    createPost: "发帖",
+    createPostPlaceholder: "写点什么…",
+    postIn: "在 {title} 发帖…",
+    create: "创建",
+    posts: "篇帖子",
+    post: "篇帖子",
+    discoverTitle: "发现社区",
+    discoverSubtitle: "加入感兴趣的社区，或创建属于你的社区并开始发帖。",
+    recommended: "为你推荐",
+    moreLike: "更多类似「{category}」",
+    showMore: "显示更多（{n}）",
+    showLess: "收起",
+    noCommunities: "暂无社区",
+    noCommunitiesIn: "「{category}」下暂无社区",
+    beFirst: "成为第一个创建的人吧。",
+    createCommunityIn: "在「{category}」创建社区",
+    trendingTopics: "热门话题",
+    noTrending: "暂无热门讨论。",
+    replies: "条回复",
+    reply: "条回复",
+    categoriesAria: "社区分类",
+    notJoinedYet: "你还没有加入任何社区",
+    noFavorites: "暂无收藏的社区",
+    noFilterMatch: "没有符合筛选条件的社区",
+    discoverCta: "发现社区",
+    tryDifferentFilter: "试试其他筛选，或在列表中添加收藏。",
+    shareWithCommunity: "与社区分享",
+    postingIn: "发布到 {title}",
+    community: "社区",
+    chooseCommunity: "选择社区",
+    titlePlaceholder: "标题",
+    detailsPlaceholder: "添加详情（如附带图片则可选）…",
+    posting: "发布中…",
+    postAction: "发布",
+    createWizardAbout: "你的社区是关于什么的？",
+    createWizardAboutSub: "最多选择 3 个主题，帮助他人发现你的社区。",
+    createWizardDetails: "介绍一下你的社区",
+    createWizardDetailsSub: "名称和简介能帮助人们了解你的社区。",
+    createWizardStyle: "打造社区风格",
+    createWizardStyleSub: "添加图标图片或颜色，让社区更醒目。之后可以更改。",
+    createWizardType: "这是什么类型的社区？",
+    createWizardTypeSub: "决定谁可以查看和参与。之后可以更改。",
+    pickTopicError: "请至少选择一个主题。",
+    nameDescError: "请填写名称（3–21 个字符）和简介。",
+    chooseImageError: "请选择图片文件。",
+    imageTooLarge: "图片过大（最大 10MB）。",
+    needSignIn: "你需要先登录。",
+    changeImage: "更换图片",
+    uploadImage: "上传图片",
+    visibilityPublic: "公开",
+    visibilityPublicDesc: "任何人都可以查看、发帖和评论。",
+    visibilityRestricted: "受限",
+    visibilityRestrictedDesc: "任何人都可以查看，但只有获批成员可以发帖。",
+    visibilityPrivate: "私密",
+    visibilityPrivateDesc: "只有获批成员可以查看和参与。",
+    back: "返回",
+    next: "下一步",
+    creating: "创建中…",
+    createCommunityTitle: "创建社区",
+    manageTitle: "管理社区",
+    manageFilterPlaceholder: "筛选你的社区",
+    leaveCommunity: "退出社区",
+    allCommunities: "全部社区",
+    favoritesTab: "收藏",
+  },
+  profile: {
+    memberSince: "加入于",
+    timezone: "时区",
+    editProfile: "编辑资料",
+    saveProfile: "保存资料",
+    changePhoto: "更换头像",
+    bioPlaceholder: "向社区介绍一下自己…",
+    noBio: "暂无简介。",
+    noBioHint: "写一段简短介绍，让社区更了解你。",
+    yourName: "你的姓名",
+    uploadingPhoto: "正在上传头像…",
     saving: "保存中…",
-    currentPassword: "現在のパスワード",
-    newPassword: "新しいパスワード",
-    confirmPassword: "新しいパスワード（確認）",
-    updatePassword: "パスワードを更新",
-    updating: "更新中…",
-    emailChangeHint: "新しいアドレスに確認リンクを送ります。確認後に有効になります。",
-    locationHint: "地域に関連するコンテンツでフィードをパーソナライズします。",
-    locationApproximate: "おおよその位置を使用（IP ベース）",
-    locationNone: "位置を指定しない",
-    locationCountry: "国",
-    genderMan: "男性",
-    genderWoman: "女性",
-    genderNonBinary: "ノンバイナリー",
-    genderPreferNot: "回答しない",
+    skillsTeach: "我能教的技能",
+    skillsLearn: "我想学的技能",
+    addSkill: "添加技能",
+    noneAdded: "尚未添加。",
+    searchSkills: "搜索技能…",
+    noMatchingSkills: "没有匹配的技能。",
+    reviews: "评价",
+    noReviews: "暂无评价",
+    noReviewsHint: "完成第一次技能交换后，即可收到评价并积累信任分。",
+    achievements: "成就",
+    unlockedCount: "已解锁 {n} / {total}",
+    unlocked: "已解锁",
+    levelCard: "等级",
+    trustScore: "信任分",
+    noRatingsYet: "暂无评分",
+    trustNoRatingsHint: "完成第一次交换后即可建立信任分。",
+    reviewCountOne: "（{n} 条评价）",
+    reviewCountMany: "（{n} 条评价）",
+    xpProgress: "{current} / {next} XP",
+    xpUntilLevel: "距离等级 {level} 还需 {n} XP",
+    tierCommon: "普通",
+    tierRare: "稀有",
+    tierEpic: "史诗",
+    tierLegendary: "传说",
+    message: "私信",
+    messageUser: "私信 {name}",
+    requestSwap: "请求交换",
+    sendSwapRequest: "发送交换请求",
+    requestSent: "已发送请求",
+    sending: "发送中…",
+    opening: "打开中…",
+    swapRequestSentNotice: "交换请求已发送 — 可在「技能交换请求」中查看进度。",
+  },
+  swaps: {
+    pendingRequests: "待处理请求",
+    noPending: "当前没有待处理请求。",
+    wantsToSwap: "想交换：{skill}",
+    sentRequest: "向你发送了交换请求",
+    accept: "接受",
+    decline: "拒绝",
+    confirm: "确认",
+    cancel: "取消",
+    sessions: "会话",
+    noSessions: "暂无会话。",
+    joinSession: "加入会话",
+    leaveReview: "留下评价",
+    notScheduled: "尚未安排时间",
+    skillSwapSession: "技能交换会话",
+    recentSessions: "近期与即将开始的会话",
+    noSessionsHint: "暂无会话。从他人资料页发送交换请求即可开始。",
+    sessionInfo: "会话信息",
+    swapPartner: "交换伙伴",
+    dateTime: "日期与时间",
+    status: "状态",
+    actions: "操作",
+    markComplete: "标记完成",
+    reschedule: "改期",
+    reviewed: "已评价",
   },
 };
-
-const ko: Dictionary = {
-  nav: {
-    home: "홈",
-    browse: "사람 찾아보기",
-    browseShort: "찾기",
-    swaps: "스킬 교환 요청",
-    swapsShort: "교환",
-    forum: "커뮤니티 포럼",
-    forumShort: "포럼",
-    profile: "내 프로필",
-    profileShort: "프로필",
-  },
-  menu: {
-    myProfile: "내 프로필",
-    settings: "설정",
-    logout: "로그아웃",
-    loggingOut: "로그아웃 중…",
-  },
-  settings: {
-    title: "설정",
-    account: "계정",
-    security: "보안",
-    general: "일반",
-    session: "세션",
-    emailAddress: "이메일 주소",
-    gender: "성별",
-    locationCustomization: "위치 맞춤설정",
-    language: "표시 언어",
-    logOut: "로그아웃",
-    logOutDesc: "이 기기의 현재 세션을 종료합니다.",
-    password: "비밀번호",
-    passwordDesc: "로그인에 사용하는 비밀번호를 변경합니다.",
-    passwordGoogle: "Google로 로그인했습니다. 비밀번호는 Google 계정에서 관리하세요.",
-    change: "변경",
-    cancel: "취소",
-    done: "완료",
-    save: "저장",
-    saving: "저장 중…",
-    currentPassword: "현재 비밀번호",
-    newPassword: "새 비밀번호",
-    confirmPassword: "새 비밀번호 확인",
-    updatePassword: "비밀번호 업데이트",
-    updating: "업데이트 중…",
-    emailChangeHint: "새 주소로 확인 링크를 보냅니다. 확인 후 적용됩니다.",
-    locationHint: "지역 관련 콘텐츠로 피드와 추천을 맞춤 설정합니다.",
-    locationApproximate: "대략적인 위치 사용 (IP 기반)",
-    locationNone: "위치 지정 안 함",
-    locationCountry: "국가",
-    genderMan: "남성",
-    genderWoman: "여성",
-    genderNonBinary: "논바이너리",
-    genderPreferNot: "밝히지 않음",
-  },
-};
-
-/** Fallback dictionaries reuse English structure with localized core strings where provided. */
-function partial(overrides: DeepPartial<Dictionary>): Dictionary {
-  return {
-    nav: { ...en.nav, ...overrides.nav },
-    menu: { ...en.menu, ...overrides.menu },
-    settings: { ...en.settings, ...overrides.settings },
-  };
-}
-
-type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
-
-const es = partial({
-  nav: { home: "Inicio", browse: "Explorar personas", browseShort: "Explorar", swaps: "Solicitudes de intercambio", swapsShort: "Intercambios", forum: "Foro comunitario", forumShort: "Foro", profile: "Mi perfil", profileShort: "Perfil" },
-  menu: { myProfile: "Mi perfil", settings: "Ajustes", logout: "Cerrar sesión", loggingOut: "Cerrando sesión..." },
-  settings: { title: "Ajustes", account: "Cuenta", security: "Seguridad", general: "General", session: "Sesión", emailAddress: "Correo electrónico", gender: "Género", locationCustomization: "Personalización de ubicación", language: "Idioma de visualización", logOut: "Cerrar sesión", done: "Listo", save: "Guardar", change: "Cambiar", cancel: "Cancelar" },
-});
-
-const fr = partial({
-  nav: { home: "Accueil", browse: "Parcourir", browseShort: "Parcourir", swaps: "Demandes d'échange", swapsShort: "Échanges", forum: "Forum communautaire", forumShort: "Forum", profile: "Mon profil", profileShort: "Profil" },
-  menu: { myProfile: "Mon profil", settings: "Paramètres", logout: "Déconnexion", loggingOut: "Déconnexion..." },
-  settings: { title: "Paramètres", account: "Compte", security: "Sécurité", general: "Général", session: "Session", emailAddress: "Adresse e-mail", gender: "Genre", locationCustomization: "Personnalisation de la localisation", language: "Langue d'affichage", logOut: "Se déconnecter", done: "Terminé", save: "Enregistrer", change: "Modifier", cancel: "Annuler" },
-});
-
-const de = partial({
-  nav: { home: "Start", browse: "Personen entdecken", browseShort: "Entdecken", swaps: "Skill-Tausch-Anfragen", swapsShort: "Tausch", forum: "Community-Forum", forumShort: "Forum", profile: "Mein Profil", profileShort: "Profil" },
-  menu: { myProfile: "Mein Profil", settings: "Einstellungen", logout: "Abmelden", loggingOut: "Abmelden..." },
-  settings: { title: "Einstellungen", account: "Konto", security: "Sicherheit", general: "Allgemein", session: "Sitzung", emailAddress: "E-Mail-Adresse", gender: "Geschlecht", locationCustomization: "Standortanpassung", language: "Anzeigesprache", logOut: "Abmelden", done: "Fertig", save: "Speichern", change: "Ändern", cancel: "Abbrechen" },
-});
-
-const ptBR = partial({
-  nav: { home: "Início", browse: "Explorar pessoas", browseShort: "Explorar", swaps: "Pedidos de troca", swapsShort: "Trocas", forum: "Fórum da comunidade", forumShort: "Fórum", profile: "Meu perfil", profileShort: "Perfil" },
-  menu: { myProfile: "Meu perfil", settings: "Configurações", logout: "Sair", loggingOut: "Saindo..." },
-  settings: { title: "Configurações", account: "Conta", security: "Segurança", general: "Geral", session: "Sessão", emailAddress: "Endereço de e-mail", gender: "Gênero", locationCustomization: "Personalização de localização", language: "Idioma de exibição", logOut: "Sair", done: "Concluído", save: "Salvar", change: "Alterar", cancel: "Cancelar" },
-});
-
-const th = partial({
-  nav: { home: "หน้าแรก", browse: "ค้นหาผู้คน", browseShort: "ค้นหา", swaps: "คำขอแลกสกิล", swapsShort: "แลก", forum: "ฟอรัมชุมชน", forumShort: "ฟอรัม", profile: "โปรไฟล์ของฉัน", profileShort: "โปรไฟล์" },
-  menu: { myProfile: "โปรไฟล์ของฉัน", settings: "การตั้งค่า", logout: "ออกจากระบบ", loggingOut: "กำลังออก..." },
-  settings: { title: "การตั้งค่า", account: "บัญชี", security: "ความปลอดภัย", general: "ทั่วไป", session: "เซสชัน", emailAddress: "อีเมล", gender: "เพศ", locationCustomization: "ปรับแต่งตำแหน่ง", language: "ภาษาที่แสดง", logOut: "ออกจากระบบ", done: "เสร็จสิ้น", save: "บันทึก", change: "เปลี่ยน", cancel: "ยกเลิก" },
-});
-
-const vi = partial({
-  nav: { home: "Trang chủ", browse: "Duyệt người", browseShort: "Duyệt", swaps: "Yêu cầu đổi kỹ năng", swapsShort: "Đổi", forum: "Diễn đàn cộng đồng", forumShort: "Diễn đàn", profile: "Hồ sơ của tôi", profileShort: "Hồ sơ" },
-  menu: { myProfile: "Hồ sơ của tôi", settings: "Cài đặt", logout: "Đăng xuất", loggingOut: "Đang đăng xuất..." },
-  settings: { title: "Cài đặt", account: "Tài khoản", security: "Bảo mật", general: "Chung", session: "Phiên", emailAddress: "Địa chỉ email", gender: "Giới tính", locationCustomization: "Tùy chỉnh vị trí", language: "Ngôn ngữ hiển thị", logOut: "Đăng xuất", done: "Xong", save: "Lưu", change: "Thay đổi", cancel: "Hủy" },
-});
-
-const ms = partial({
-  nav: { home: "Laman Utama", browse: "Layari Orang", browseShort: "Layari", swaps: "Permintaan Tukar Skill", swapsShort: "Tukar", forum: "Forum Komuniti", forumShort: "Forum", profile: "Profil Saya", profileShort: "Profil" },
-  menu: { myProfile: "Profil Saya", settings: "Tetapan", logout: "Log keluar", loggingOut: "Sedang log keluar..." },
-  settings: { title: "Tetapan", account: "Akaun", security: "Keselamatan", general: "Umum", session: "Sesi", emailAddress: "Alamat e-mel", gender: "Jantina", locationCustomization: "Penyesuaian lokasi", language: "Bahasa paparan", logOut: "Log keluar", done: "Selesai", save: "Simpan", change: "Tukar", cancel: "Batal" },
-});
-
-const hi = partial({
-  nav: { home: "होम", browse: "लोग देखें", browseShort: "देखें", swaps: "स्किल स्वैप अनुरोध", swapsShort: "स्वैप", forum: "कम्युनिटी फोरम", forumShort: "फोरम", profile: "मेरी प्रोफ़ाइल", profileShort: "प्रोफ़ाइल" },
-  menu: { myProfile: "मेरी प्रोफ़ाइल", settings: "सेटिंग्स", logout: "लॉग आउट", loggingOut: "लॉग आउट हो रहा है..." },
-  settings: { title: "सेटिंग्स", account: "खाता", security: "सुरक्षा", general: "सामान्य", session: "सत्र", emailAddress: "ईमेल पता", gender: "लिंग", locationCustomization: "स्थान अनुकूलन", language: "प्रदर्शन भाषा", logOut: "लॉग आउट", done: "हो गया", save: "सहेजें", change: "बदलें", cancel: "रद्द करें" },
-});
-
-const ar = partial({
-  nav: { home: "الرئيسية", browse: "تصفح الأشخاص", browseShort: "تصفح", swaps: "طلبات تبادل المهارات", swapsShort: "تبادل", forum: "منتدى المجتمع", forumShort: "المنتدى", profile: "ملفي الشخصي", profileShort: "الملف" },
-  menu: { myProfile: "ملفي الشخصي", settings: "الإعدادات", logout: "تسجيل الخروج", loggingOut: "جارٍ تسجيل الخروج..." },
-  settings: { title: "الإعدادات", account: "الحساب", security: "الأمان", general: "عام", session: "الجلسة", emailAddress: "البريد الإلكتروني", gender: "الجنس", locationCustomization: "تخصيص الموقع", language: "لغة العرض", logOut: "تسجيل الخروج", done: "تم", save: "حفظ", change: "تغيير", cancel: "إلغاء" },
-});
 
 export const DICTIONARIES: Record<AppLocale, Dictionary> = {
   en,
   "zh-CN": zhCN,
-  "zh-TW": zhTW,
-  id,
-  ja,
-  ko,
-  es,
-  fr,
-  de,
-  "pt-BR": ptBR,
-  th,
-  vi,
-  ms,
-  hi,
-  ar,
+  id: idPack,
+  ja: jaPack,
+  ko: koPack,
 };
 
 export function getDictionary(locale: AppLocale): Dictionary {

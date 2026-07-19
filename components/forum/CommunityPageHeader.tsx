@@ -25,7 +25,9 @@ type CommunityPageHeaderProps = {
 
 export default function CommunityPageHeader({ community, isOwner = false }: CommunityPageHeaderProps) {
   const router = useRouter();
-  const { locale } = useLocale();
+  const { locale, dictionary } = useLocale();
+  const c = dictionary.common;
+  const f = dictionary.forum;
   const fileRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [joined, setJoined] = useState(community.joined || isOwner);
@@ -201,17 +203,17 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-500">
                 <span className="inline-flex items-center gap-1">
                   <Cake size={13} className="text-slate-400" aria-hidden />
-                  Created {formatAppDate(community.created_at, locale)}
+                  {c.created} {formatAppDate(community.created_at, locale)}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <Globe2 size={13} className="text-slate-400" aria-hidden />
-                  Public
+                  {c.public}
                 </span>
                 <span>
                   {community.member_count.toLocaleString()}{" "}
-                  {community.member_count === 1 ? "member" : "members"}
+                  {community.member_count === 1 ? c.member : c.members}
                   {" · "}
-                  {community.post_count} {community.post_count === 1 ? "post" : "posts"}
+                  {community.post_count} {community.post_count === 1 ? f.post : f.posts}
                 </span>
               </div>
             </div>
@@ -222,7 +224,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50"
               >
                 <Plus size={16} strokeWidth={2.5} />
-                Create Post
+                {f.createPost}
               </Link>
               {!isOwner ? (
                 <button
@@ -236,11 +238,11 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                   }`}
                   style={joined ? undefined : { backgroundColor: accentHex }}
                 >
-                  {joined ? "Joined" : "Join"}
+                  {joined ? c.joined : c.join}
                 </button>
               ) : (
                 <span className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-bold text-slate-600">
-                  Joined
+                  {c.joined}
                 </span>
               )}
               <div className="relative z-30" ref={menuRef}>

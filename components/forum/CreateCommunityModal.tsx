@@ -48,6 +48,8 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { categoryLabel } from "@/lib/i18n/communityCategoryLabels";
 
 type CreateCommunityModalProps = {
   onClose: () => void;
@@ -90,28 +92,7 @@ const TOPIC_ICONS: Record<string, LucideIcon> = {
   General: Landmark,
 };
 
-const STEPS = [
-  {
-    key: "topics",
-    title: "What will your community be about?",
-    subtitle: "Choose up to 3 topics to help people discover your community.",
-  },
-  {
-    key: "about",
-    title: "Tell us about your community",
-    subtitle: "A name and description help people understand what your community is all about.",
-  },
-  {
-    key: "style",
-    title: "Style your community",
-    subtitle: "Add an icon image or color so your community stands out. You can change this later.",
-  },
-  {
-    key: "type",
-    title: "What kind of community is this?",
-    subtitle: "Decide who can view and contribute. You can change this later.",
-  },
-] as const;
+const STEP_COUNT = 4;
 
 const NAME_MAX = 21;
 const DESC_MAX = 300;
@@ -119,6 +100,14 @@ const DESC_MAX = 300;
 export default function CreateCommunityModal({ onClose, initialTopics = [] }: CreateCommunityModalProps) {
   const titleId = useId();
   const router = useRouter();
+  const { locale, dictionary } = useLocale();
+  const f = dictionary.forum;
+  const steps = [
+    { key: "topics", title: f.createWizardAbout, subtitle: f.createWizardAboutSub },
+    { key: "about", title: f.createWizardDetails, subtitle: f.createWizardDetailsSub },
+    { key: "style", title: f.createWizardStyle, subtitle: f.createWizardStyleSub },
+    { key: "type", title: f.createWizardType, subtitle: f.createWizardTypeSub },
+  ];
   const [step, setStep] = useState(0);
   const [topics, setTopics] = useState<string[]>(() =>
     initialTopics.filter((t) => (COMMUNITY_TOPICS as readonly string[]).includes(t)).slice(0, 3)
@@ -135,7 +124,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
   const [pending, startTransition] = useTransition();
   const iconInputRef = useRef<HTMLInputElement>(null);
 
-  const current = STEPS[step];
+  const current = steps[step];
   const accentMeta = COMMUNITY_ACCENT_COLORS.find((c) => c.id === accent) ?? COMMUNITY_ACCENT_COLORS[0];
   const previewName = title.trim() || "communityname";
   const previewSlug = slug || normalizeCommunitySlug(previewName) || "communityname";
@@ -189,11 +178,11 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
   function goNext() {
     setError("");
     if (!canContinue()) {
-      if (step === 0) setError("Pick at least one topic.");
-      if (step === 1) setError("Add a name (3–21 chars) and a description.");
+      if (step === 0) setError(f.pickTopicError);
+      if (step === 1) setError(f.nameDescError);
       return;
     }
-    if (step < STEPS.length - 1) setStep((s) => s + 1);
+    if (step < STEP_COUNT - 1) setStep((s) => s + 1);
     else submit();
   }
 
@@ -207,11 +196,11 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
     setError("");
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file.");
+      setError(f.chooseImageError);
       return;
     }
     if (file.size > MAX_FORUM_IMAGE_BYTES) {
-      setError("Image is too large (max 10MB).");
+      setError(f.imageTooLarge);
       return;
     }
     if (iconPreview) URL.revokeObjectURL(iconPreview);
@@ -237,7 +226,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) {
-          setError("You need to be signed in.");
+          setError(f.needSignIn);
           return;
         }
         const uploaded = await uploadForumImage({ userId: user.id, file: iconFile });
@@ -274,7 +263,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
-      <button type="button" aria-label="Close" className="absolute inset-0 bg-slate-900/40" onClick={onClose} />
+      <button type="button" aria-label={dictionary.common.close} className="absolute inset-0 bg-slate-900/40" onClick={onClose} />
       <div
         role="dialog"
         aria-modal="true"
@@ -318,7 +307,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                       }`}
                     >
                       <Icon size={16} className={selected ? "text-white" : "text-slate-500"} aria-hidden />
-                      {topic}
+                      {categoryLabel(locale, topic)}
                     </button>
                   );
                 })}
@@ -451,7 +440,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                       className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                     >
                       <ImagePlus size={16} />
-                      {iconPreview ? "Change image" : "Upload image"}
+                      {iconPreview ? f.changeImage : f.uploadImage}
                     </button>
                     {iconPreview ? (
                       <button
@@ -510,7 +499,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                     {title.trim() ? (
                       <p className="font-extrabold text-slate-900">{title.trim()}</p>
                     ) : null}
-                    {topics[0] ? <p className="text-xs text-slate-500">{topics[0]}</p> : null}
+                    {topics[0] ? <p className="text-xs text-slate-500">{categoryLabel(locale, topics[0])}</p> : null}
                   </div>
                 </div>
               </div>
@@ -524,20 +513,20 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                   {
                     id: "public" as const,
                     icon: Globe2,
-                    label: "Public",
-                    desc: "Anyone can view, post, and comment in this community.",
+                    label: f.visibilityPublic,
+                    desc: f.visibilityPublicDesc,
                   },
                   {
                     id: "restricted" as const,
                     icon: Users,
-                    label: "Restricted",
-                    desc: "Anyone can view, but only approved members can post.",
+                    label: f.visibilityRestricted,
+                    desc: f.visibilityRestrictedDesc,
                   },
                   {
                     id: "private" as const,
                     icon: Lock,
-                    label: "Private",
-                    desc: "Only approved members can view and contribute.",
+                    label: f.visibilityPrivate,
+                    desc: f.visibilityPrivateDesc,
                   },
                 ] as const
               ).map((opt) => {
@@ -574,10 +563,10 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-4 sm:px-6">
-          <div className="flex items-center gap-1.5" aria-label={`Step ${step + 1} of ${STEPS.length}`}>
-            {STEPS.map((_, i) => (
+          <div className="flex items-center gap-1.5" aria-label={`${step + 1} / ${STEP_COUNT}`}>
+            {steps.map((s, i) => (
               <span
-                key={STEPS[i].key}
+                key={s.key}
                 className={`h-1.5 w-6 rounded-full transition ${i === step ? "bg-slate-800" : "bg-slate-200"}`}
               />
             ))}
@@ -589,7 +578,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
               disabled={pending}
               className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200 disabled:opacity-50"
             >
-              {step === 0 ? "Cancel" : "Back"}
+              {step === 0 ? dictionary.common.cancel : f.back}
             </button>
             <button
               type="button"
@@ -597,7 +586,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
               disabled={pending || !canContinue()}
               className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
             >
-              {pending ? "Creating…" : step === STEPS.length - 1 ? "Create Community" : "Next"}
+              {pending ? f.creating : step === STEP_COUNT - 1 ? f.createCommunityTitle : f.next}
             </button>
           </div>
         </div>

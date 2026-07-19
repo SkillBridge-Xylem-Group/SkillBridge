@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Flame } from "lucide-react";
 import type { ForumQuestionSummary } from "@/lib/forum";
 import { getForumSubforum } from "@/lib/forumSubforums";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 export default function TrendingTopics({
   questions,
@@ -10,6 +13,9 @@ export default function TrendingTopics({
   questions: ForumQuestionSummary[];
   showSubforum?: boolean;
 }) {
+  const { dictionary } = useLocale();
+  const f = dictionary.forum;
+
   const trending = questions
     .filter((q) => q.answer_count > 0)
     .slice()
@@ -19,11 +25,11 @@ export default function TrendingTopics({
   return (
     <div className="nb-card p-6">
       <h2 className="flex items-center gap-1.5 text-sm font-extrabold nb-heading">
-        Trending Topics <Flame size={16} className="text-amber-500" />
+        {f.trendingTopics} <Flame size={16} className="text-amber-500" />
       </h2>
 
       {trending.length === 0 ? (
-        <p className="mt-3 text-sm" style={{ color: "var(--sb-muted)" }}>No trending discussions yet.</p>
+        <p className="mt-3 text-sm" style={{ color: "var(--sb-muted)" }}>{f.noTrending}</p>
       ) : (
         <div className="mt-4 space-y-4">
           {trending.map((q, i) => {
@@ -45,7 +51,7 @@ export default function TrendingTopics({
                         {" · "}
                       </>
                     ) : null}
-                    {q.answer_count} {q.answer_count === 1 ? "reply" : "replies"}
+                    {q.answer_count} {q.answer_count === 1 ? f.reply : f.replies}
                   </p>
                 </div>
               </Link>

@@ -58,7 +58,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var l=localStorage.getItem("sb-locale");if(l){document.documentElement.lang=l;if(l==="ar")document.documentElement.dir="rtl"}}catch(e){}`,
+            __html: `try{var l=localStorage.getItem("sb-locale");if(l){document.documentElement.lang=l;document.documentElement.dir="ltr"}}catch(e){}`,
           }}
         />
         <MotionConfig reducedMotion="user">{children}</MotionConfig>

@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { Repeat, MessageCircle, Check } from "lucide-react";
 import { sendSwapRequestAction } from "@/lib/actions/sessionRequests";
 import { startThreadAction } from "@/lib/actions/messages";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 type PublicProfileActionsProps = {
   fullname: string;
@@ -11,6 +13,8 @@ type PublicProfileActionsProps = {
 };
 
 export default function PublicProfileActions({ fullname, profileId }: PublicProfileActionsProps) {
+  const { dictionary } = useLocale();
+  const p = dictionary.profile;
   const [notice, setNotice] = useState("");
   const [sent, setSent] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -23,7 +27,7 @@ export default function PublicProfileActions({ fullname, profileId }: PublicProf
         setNotice(result.error);
       } else {
         setSent(true);
-        setNotice("Swap request sent — check My Swap Requests to track it.");
+        setNotice(p.swapRequestSentNotice);
       }
     });
   }
@@ -34,9 +38,10 @@ export default function PublicProfileActions({ fullname, profileId }: PublicProf
       if (result?.error) {
         setNotice(result.error);
       }
-      // On success, startThreadAction redirects to the thread — nothing more to do here.
     });
   }
+
+  const firstName = fullname.split(" ")[0] || fullname;
 
   return (
     <div className="space-y-3">
@@ -48,7 +53,7 @@ export default function PublicProfileActions({ fullname, profileId }: PublicProf
         style={{ background: "var(--sb-gradient)" }}
       >
         {sent ? <Check size={16} /> : <Repeat size={16} />}
-        {sent ? "Request Sent" : isPending ? "Sending..." : "Send Swap Request"}
+        {sent ? p.requestSent : isPending ? p.sending : p.sendSwapRequest}
       </button>
       <button
         type="button"
@@ -58,7 +63,7 @@ export default function PublicProfileActions({ fullname, profileId }: PublicProf
         style={{ color: "var(--sb-ink)" }}
       >
         <MessageCircle size={16} />
-        {isMessaging ? "Opening..." : `Message ${fullname.split(" ")[0]}`}
+        {isMessaging ? p.opening : interpolate(p.messageUser, { name: firstName })}
       </button>
       {notice && <p className="text-center text-xs font-medium" style={{ color: "var(--sb-muted)" }}>{notice}</p>}
     </div>

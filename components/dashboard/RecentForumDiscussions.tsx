@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MessageSquareText, MessageCircle } from "lucide-react";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
 
 type RecentQuestion = {
   id: string;
@@ -14,21 +16,6 @@ type RecentQuestion = {
   subforumTitle: string | null;
 };
 
-function formatRelativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  if (Number.isNaN(diffMs)) return "";
-  const mins = Math.floor(diffMs / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
-}
-
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
@@ -37,9 +24,11 @@ function initials(name: string): string {
 }
 
 export default function RecentForumDiscussions() {
+  const { locale, dictionary } = useLocale();
+  const h = dictionary.home;
   const [questions, setQuestions] = useState<RecentQuestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     async function loadQuestions() {
@@ -55,15 +44,15 @@ export default function RecentForumDiscussions() {
           (data.questions ?? []).map((question: any) => ({
             id: question.id,
             title: question.title,
-            authorName: question.author_name ?? "Unknown",
+            authorName: question.author_name ?? "",
             createdAt: question.created_at,
             replyCount: question.reply_count ?? 0,
             imageUrl: question.image_url ?? null,
             subforumTitle: question.subforum_title ?? null,
           }))
         );
-      } catch (err: any) {
-        setError(err?.message ?? "Unable to load questions");
+      } catch {
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -75,9 +64,9 @@ export default function RecentForumDiscussions() {
   return (
     <div className="nb-card p-4">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-sm font-extrabold uppercase tracking-wide" style={{ color: "var(--sb-muted)" }}>Recent Discussions</h2>
+        <h2 className="text-sm font-extrabold uppercase tracking-wide" style={{ color: "var(--sb-muted)" }}>{h.recentDiscussions}</h2>
         <Link href="/dashboard/forum" className="text-sm font-bold hover:underline" style={{ color: "var(--sb-teal-dark)" }}>
-          View all
+          {dictionary.common.viewAll}
         </Link>
       </div>
 
@@ -99,9 +88,9 @@ export default function RecentForumDiscussions() {
             </div>
           ))
         ) : error ? (
-          <div className="py-6 text-center text-sm text-red-600">{error}</div>
+          <div className="py-6 text-center text-sm text-red-600">{h.loadDiscussionsFailed}</div>
         ) : questions.length === 0 ? (
-          <div className="py-6 text-center text-sm text-slate-500">No discussions yet.</div>
+          <div className="py-6 text-center text-sm text-slate-500">{h.noDiscussions}</div>
         ) : (
           questions.map((question, index) => (
             <Link
@@ -124,8 +113,8 @@ export default function RecentForumDiscussions() {
                       <span className="font-normal"> · </span>
                     </>
                   ) : null}
-                  {question.authorName}
-                  <span className="font-normal"> · {formatRelativeTime(question.createdAt)}</span>
+                  {question.authorName || dictionary.common.unknown}
+                  <span className="font-normal"> · {formatRelativeTimeLabel(question.createdAt, dictionary.common, locale)}</span>
                 </p>
               </div>
 
@@ -134,7 +123,7 @@ export default function RecentForumDiscussions() {
                   <p className="line-clamp-2 text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{question.title}</p>
                   <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>
                     <MessageCircle size={13} />
-                    {question.replyCount} {question.replyCount === 1 ? "comment" : "comments"}
+                    {question.replyCount} {question.replyCount === 1 ? h.reply : h.replies}
                   </p>
                 </div>
 

@@ -3,12 +3,15 @@
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import Link from "next/link";
 import { ArrowLeft, Send, Trash2 } from "lucide-react";
-import { formatMessageTime, getInitials } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { deleteThreadAction } from "@/lib/actions/messages";
 import EmojiPicker from "./EmojiPicker";
 import type { MessageRow } from "@/lib/messages";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
+import { formatAppTime } from "@/lib/i18n/locales";
 
 type ChatPaneProps = {
   threadId: string;
@@ -18,6 +21,8 @@ type ChatPaneProps = {
 };
 
 export default function ChatPane({ threadId, viewerId, partner, initialMessages }: ChatPaneProps) {
+  const { locale, dictionary } = useLocale();
+  const msg = dictionary.messages;
   const [messages, setMessages] = useState(initialMessages);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -87,7 +92,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
   }
 
   function handleDelete() {
-    if (!window.confirm(`Delete this conversation with ${partner.fullname}? This can't be undone.`)) return;
+    if (!window.confirm(interpolate(msg.deleteConversationConfirm, { name: partner.fullname }))) return;
     setDeleteError("");
     startDeleteTransition(async () => {
       const result = await deleteThreadAction(threadId);
@@ -97,7 +102,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
   }
 
   async function handleDeleteMessage(messageId: string) {
-    if (!window.confirm("Delete this message?")) return;
+    if (!window.confirm(msg.deleteMessageConfirm)) return;
     setDeletingMessageId(messageId);
     try {
       const res = await fetch(`/api/messages/${threadId}/${messageId}`, { method: "DELETE" });
@@ -117,7 +122,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Link
             href="/dashboard/messages"
-            aria-label="Back to conversations"
+            aria-label={msg.backToConversations}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-95 md:hidden"
             style={{ color: "var(--sb-muted)" }}
           >
@@ -141,14 +146,14 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
             ) : (
               <p className="truncate text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>{partner.fullname}</p>
             )}
-            <p className="text-xs" style={{ color: "var(--sb-muted)" }}>Direct message</p>
+            <p className="text-xs" style={{ color: "var(--sb-muted)" }}>{msg.directMessage}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={handleDelete}
           disabled={isDeleting}
-          aria-label="Delete conversation"
+          aria-label={msg.deleteConversation}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-red-50 hover:text-red-500 active:scale-95 disabled:opacity-50"
           style={{ color: "var(--sb-muted)" }}
         >
@@ -166,9 +171,11 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                 {getInitials(partner.fullname)}
               </AvatarFallback>
             </Avatar>
-            <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>Say hello to {firstName}</p>
+            <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>
+              {interpolate(msg.sayHelloTo, { name: firstName })}
+            </p>
             <p className="mt-1 max-w-xs text-xs" style={{ color: "var(--sb-muted)" }}>
-              This is the beginning of your conversation. Send a note to get the swap started.
+              {msg.conversationStart}
             </p>
           </div>
         ) : (
@@ -184,7 +191,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                     type="button"
                     onClick={() => handleDeleteMessage(m.message_id)}
                     disabled={deletingMessageId === m.message_id}
-                    aria-label="Delete message"
+                    aria-label={msg.deleteMessage}
                     className="mb-1 opacity-0 transition group-hover:opacity-100 hover:text-red-500 disabled:opacity-50"
                     style={{ color: "var(--sb-muted)" }}
                   >
@@ -203,7 +210,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                     {m.content}
                   </div>
                   <span className="mt-1 px-1 text-[10px]" style={{ color: "var(--sb-muted)" }}>
-                    {formatMessageTime(m.sent_at)}
+                    {formatAppTime(m.sent_at, locale)}
                   </span>
                 </div>
               </div>
@@ -224,7 +231,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={`Message ${firstName}...`}
+            placeholder={interpolate(msg.messagePlaceholder, { name: firstName })}
             maxLength={2000}
             className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm outline-none"
             style={{ color: "var(--sb-ink)" }}

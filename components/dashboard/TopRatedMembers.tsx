@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type Match = {
   id: string;
@@ -30,9 +31,12 @@ const TAG_TINTS = [
 ];
 
 export default function TopRatedMembers() {
+  const { dictionary } = useLocale();
+  const h = dictionary.home;
+  const b = dictionary.browse;
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     async function loadMatches() {
@@ -43,8 +47,8 @@ export default function TopRatedMembers() {
           throw new Error(data?.error || "Failed to load matches");
         }
         setMatches(data.matches ?? []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load matches");
+      } catch {
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -55,20 +59,20 @@ export default function TopRatedMembers() {
   return (
     <div className="nb-card p-6">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-lg font-extrabold nb-heading">Suggested People</h2>
+        <h2 className="text-lg font-extrabold nb-heading">{h.suggestedPeople}</h2>
         <Link
           href="/dashboard/browse-people"
           className="shrink-0 text-sm font-bold hover:underline"
           style={{ color: "var(--sb-teal-dark)" }}
         >
-          View all
+          {dictionary.common.viewAll}
         </Link>
       </div>
-      {loading && <p className="mt-5 text-sm" style={{ color: "var(--sb-muted)" }}>Loading...</p>}
-      {!loading && error && <p className="mt-5 text-sm text-red-500">{error}</p>}
+      {loading && <p className="mt-5 text-sm" style={{ color: "var(--sb-muted)" }}>{dictionary.common.loading}</p>}
+      {!loading && error && <p className="mt-5 text-sm text-red-500">{h.loadMatchesFailed}</p>}
       {!loading && !error && matches.length === 0 && (
         <p className="mt-5 text-sm" style={{ color: "var(--sb-muted)" }}>
-          No matches yet - add skills you want to learn on your profile to see people who can help.
+          {h.noMatchesYet}
         </p>
       )}
       {!loading && !error && matches.length > 0 && (
@@ -105,7 +109,7 @@ export default function TopRatedMembers() {
                       <span className="truncate">
                         {m.rating > 0
                           ? `${m.rating.toFixed(1)} (${m.reviewCount})`
-                          : "No ratings yet"}
+                          : h.noRatingsYet}
                       </span>
                     </div>
                   </div>
@@ -129,7 +133,7 @@ export default function TopRatedMembers() {
                       })}
                     </div>
                   ) : (
-                    <span className="text-xs font-medium" style={{ color: "var(--sb-muted)" }}>No skills listed</span>
+                    <span className="text-xs font-medium" style={{ color: "var(--sb-muted)" }}>{b.noSkillsListed}</span>
                   )}
                 </div>
 
@@ -138,7 +142,7 @@ export default function TopRatedMembers() {
                   className="mt-auto block w-full rounded-2xl py-2.5 text-center text-sm font-bold text-white transition hover:-translate-y-0.5"
                   style={{ background: "var(--sb-gradient)" }}
                 >
-                  View Profile
+                  {b.viewProfile}
                 </Link>
               </article>
             );

@@ -4,58 +4,60 @@ import { useRouter } from "next/navigation";
 import { CalendarCheck, Award, MessageCircle, Repeat, MessagesSquare, Star, type LucideIcon } from "lucide-react";
 import type { NotificationRow, NotificationType } from "@/lib/notifications";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
+import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
 
-const ICONS: Record<NotificationType, { icon: LucideIcon; bg: string; color: string; label: string }> = {
-  message: { icon: MessageCircle, bg: "bg-slate-100", color: "text-slate-500", label: "Message" },
-  swap_request: { icon: Repeat, bg: "bg-brand-light", color: "text-brand", label: "Swap request" },
-  swap_response: { icon: CalendarCheck, bg: "bg-brand-light", color: "text-brand", label: "Swap update" },
-  level_up: { icon: Award, bg: "bg-emerald-50", color: "text-emerald-500", label: "Level up" },
-  forum_reply: { icon: MessagesSquare, bg: "bg-sky-50", color: "text-sky-500", label: "Forum" },
-  review_prompt: { icon: Star, bg: "bg-amber-50", color: "text-amber-500", label: "Review" },
-  review_received: { icon: Star, bg: "bg-amber-50", color: "text-amber-600", label: "Review" },
+const ICONS: Record<NotificationType, { icon: LucideIcon; bg: string; color: string }> = {
+  message: { icon: MessageCircle, bg: "bg-slate-100", color: "text-slate-500" },
+  swap_request: { icon: Repeat, bg: "bg-brand-light", color: "text-brand" },
+  swap_response: { icon: CalendarCheck, bg: "bg-brand-light", color: "text-brand" },
+  level_up: { icon: Award, bg: "bg-emerald-50", color: "text-emerald-500" },
+  forum_reply: { icon: MessagesSquare, bg: "bg-sky-50", color: "text-sky-500" },
+  review_prompt: { icon: Star, bg: "bg-amber-50", color: "text-amber-500" },
+  review_received: { icon: Star, bg: "bg-amber-50", color: "text-amber-600" },
 };
 
-function formatRelativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  if (Number.isNaN(diffMs)) return "";
-  const mins = Math.floor(diffMs / 60_000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
 export default function NotificationsPanel() {
+  const { locale, dictionary } = useLocale();
+  const n = dictionary.notifications;
   const { notifications, unreadCount, reload, setNotifications, setUnreadCount } = useRealtimeNotifications();
   const router = useRouter();
   const preview = notifications.slice(0, 5);
 
-  async function handleClick(n: NotificationRow) {
-    if (!n.is_read) {
+  const typeLabels: Record<NotificationType, string> = {
+    message: n.typeMessage,
+    swap_request: n.typeSwapRequest,
+    swap_response: n.typeSwapUpdate,
+    level_up: n.typeLevelUp,
+    forum_reply: n.typeForum,
+    review_prompt: n.typeReview,
+    review_received: n.typeReview,
+  };
+
+  async function handleClick(row: NotificationRow) {
+    if (!row.is_read) {
       await fetch("/api/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notificationId: n.notification_id }),
+        body: JSON.stringify({ notificationId: row.notification_id }),
       });
       setNotifications((prev) =>
-        prev.map((x) => (x.notification_id === n.notification_id ? { ...x, is_read: true } : x))
+        prev.map((x) => (x.notification_id === row.notification_id ? { ...x, is_read: true } : x))
       );
       setUnreadCount((c) => Math.max(0, c - 1));
       await reload();
     }
-    if (n.link) router.push(n.link);
+    if (row.link) router.push(row.link);
   }
 
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-extrabold nb-heading">Notifications</h2>
+          <h2 className="text-lg font-extrabold nb-heading">{n.title}</h2>
           <p className="mt-0.5 text-xs" style={{ color: "var(--neu-text-muted)" }}>
-            {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"}
+            {unreadCount > 0 ? interpolate(n.unreadCount, { n: unreadCount }) : n.allCaughtUp}
           </p>
         </div>
         {unreadCount > 0 && (
@@ -63,24 +65,25 @@ export default function NotificationsPanel() {
             className="rounded-full px-2.5 py-1 text-xs font-bold text-white"
             style={{ background: "var(--neu-indigo)", border: "2px solid var(--neu-ink)" }}
           >
-            {unreadCount} new
+            {interpolate(n.newCount, { n: unreadCount })}
           </span>
         )}
       </div>
 
       <div className="mt-4 space-y-1.5">
         {preview.length === 0 ? (
-          <p className="rounded-xl px-3 py-4 text-sm" style={{ background: "#fbfaff", color: "var(--neu-text-muted)" }}>You&apos;re all caught up.</p>
+          <p className="rounded-xl px-3 py-4 text-sm" style={{ background: "#fbfaff", color: "var(--neu-text-muted)" }}>{n.allCaughtUp}</p>
         ) : (
-          preview.map((n) => {
-            const { icon: Icon, bg, color, label } = ICONS[n.type] ?? ICONS.message;
+          preview.map((row) => {
+            const { icon: Icon, bg, color } = ICONS[row.type] ?? ICONS.message;
+            const label = typeLabels[row.type] ?? typeLabels.message;
             return (
               <button
-                key={n.notification_id}
+                key={row.notification_id}
                 type="button"
-                onClick={() => handleClick(n)}
+                onClick={() => handleClick(row)}
                 className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-slate-50 active:scale-[0.99] ${
-                  !n.is_read ? "bg-[#f3eefc]" : ""
+                  !row.is_read ? "bg-[#f3eefc]" : ""
                 }`}
               >
                 <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${bg} ${color}`}>
@@ -89,17 +92,19 @@ export default function NotificationsPanel() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>{label}</p>
-                    <span className="text-[11px]" style={{ color: "var(--neu-text-muted)" }}>{formatRelativeTime(n.created_at)}</span>
+                    <span className="text-[11px]" style={{ color: "var(--neu-text-muted)" }}>
+                      {formatRelativeTimeLabel(row.created_at, dictionary.common, locale)}
+                    </span>
                   </div>
                   <p
                     className="mt-0.5 line-clamp-2 text-sm leading-snug"
-                    style={{ color: "var(--neu-ink)", fontWeight: !n.is_read ? 600 : 500 }}
+                    style={{ color: "var(--neu-ink)", fontWeight: !row.is_read ? 600 : 500 }}
                   >
-                    {n.message}
+                    {row.message}
                   </p>
                 </div>
-                {!n.is_read && (
-                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full" style={{ background: "var(--neu-indigo)" }} aria-label="Unread" />
+                {!row.is_read && (
+                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full" style={{ background: "var(--neu-indigo)" }} aria-label={dictionary.common.unread} />
                 )}
               </button>
             );

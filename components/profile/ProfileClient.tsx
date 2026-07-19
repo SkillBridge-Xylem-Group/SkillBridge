@@ -6,10 +6,10 @@ import { GraduationCap, Target } from "lucide-react";
 import type { Profile, Skill } from "@/lib/types/profile";
 import ProfileHeader from "./ProfileHeader";
 import SkillsPanel from "./SkillsPanel";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type ProfileClientProps = {
   profile: Profile;
-  memberSince: string;
   timezoneDisplay: string;
   initialOffered: Skill[];
   initialWanted: Skill[];
@@ -18,13 +18,13 @@ type ProfileClientProps = {
 
 export default function ProfileClient({
   profile,
-  memberSince,
   timezoneDisplay,
   initialOffered,
   initialWanted,
   skillCatalog,
 }: ProfileClientProps) {
   const router = useRouter();
+  const { dictionary } = useLocale();
   const [fullname, setFullname] = useState(profile.fullname);
   const [bio, setBio] = useState(profile.bio);
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
@@ -126,7 +126,7 @@ export default function ProfileClient({
       <ProfileHeader
         userId={profile.user_id}
         fullname={fullname}
-        memberSince={memberSince}
+        createdAt={profile.created_at}
         timezone={timezoneDisplay}
         bio={bio}
         avatarUrl={avatarUrl}
@@ -139,7 +139,7 @@ export default function ProfileClient({
         <SkillsPanel
           icon={GraduationCap}
           iconColor="var(--sb-teal-dark)"
-          title="Skills I Offer"
+          title={dictionary.profile.skillsTeach}
           skills={offered}
           availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}
           onAdd={handleAddOffered}
@@ -149,7 +149,7 @@ export default function ProfileClient({
         <SkillsPanel
           icon={Target}
           iconColor="var(--sb-emerald-dark)"
-          title="Skills I Want to Learn"
+          title={dictionary.profile.skillsLearn}
           skills={wanted}
           availableSkills={skillCatalog.filter((s) => !takenIds.has(s.skill_id))}
           onAdd={handleAddWanted}

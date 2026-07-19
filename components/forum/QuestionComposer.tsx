@@ -7,6 +7,8 @@ import { createQuestionAction } from "@/lib/actions/forum";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
 import { FORUM_SUBFORUMS, getForumSubforum } from "@/lib/forumSubforums";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 type CommunityOption = { slug: string; title: string };
 
@@ -29,6 +31,8 @@ export default function QuestionComposer({
   communityOptions,
   defaultOpen = false,
 }: QuestionComposerProps) {
+  const { dictionary } = useLocale();
+  const f = dictionary.forum;
   const options =
     communityOptions && communityOptions.length > 0
       ? communityOptions
@@ -169,7 +173,7 @@ export default function QuestionComposer({
           style={{ background: "var(--sb-gradient)" }}
         >
           <Plus size={16} strokeWidth={2.5} />
-          Create
+          {f.create}
         </button>
         <button
           type="button"
@@ -181,7 +185,9 @@ export default function QuestionComposer({
             {userInitials}
           </span>
           <span className="truncate">
-            {lockedSubforum ? `Post in ${lockedSubforum.title}...` : "Create a post..."}
+            {lockedSubforum
+              ? interpolate(f.postIn, { title: lockedSubforum.title })
+              : f.createPostPlaceholder}
           </span>
         </button>
       </div>
@@ -190,7 +196,7 @@ export default function QuestionComposer({
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
           <button
             type="button"
-            aria-label="Close create post"
+            aria-label={dictionary.common.close}
             className="absolute inset-0 bg-slate-900/55"
             onClick={close}
           />
@@ -203,7 +209,7 @@ export default function QuestionComposer({
           >
             <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid #eef7f0" }}>
               <h2 id={titleId} className="text-xl font-extrabold nb-heading">
-                Create a post
+                {f.createPost}
               </h2>
               <button
                 type="button"
@@ -222,14 +228,16 @@ export default function QuestionComposer({
                   {userInitials}
                 </div>
                 <p className="text-[15px] font-semibold" style={{ color: "var(--sb-ink)" }}>
-                  {lockedSubforum ? `Posting in ${lockedSubforum.title}` : "Share with the community"}
+                  {lockedSubforum
+                    ? interpolate(f.postingIn, { title: lockedSubforum.title })
+                    : f.shareWithCommunity}
                 </p>
               </div>
 
               {requireSubforumSelect && !lockedSlug ? (
                 <div>
                   <label htmlFor="composer-subforum" className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--sb-muted)" }}>
-                    Community
+                    {f.community}
                   </label>
                   <select
                     id="composer-subforum"
@@ -237,7 +245,7 @@ export default function QuestionComposer({
                     onChange={(e) => setSelectedSlug(e.target.value)}
                     className="nb-input mt-1.5 px-3 py-2.5 text-sm font-semibold"
                   >
-                    <option value="">Choose a community</option>
+                    <option value="">{f.chooseCommunity}</option>
                     {options.map((s) => (
                       <option key={s.slug} value={s.slug}>
                         {s.title}
@@ -251,14 +259,14 @@ export default function QuestionComposer({
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Title"
+                placeholder={f.titlePlaceholder}
                 maxLength={150}
                 className="nb-input px-4 py-3.5 text-[14.5px]"
               />
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Add details (optional if you attach an image)..."
+                placeholder={f.detailsPlaceholder}
                 rows={5}
                 className="nb-input resize-none px-4 py-3.5 text-[14.5px]"
               />
@@ -299,7 +307,7 @@ export default function QuestionComposer({
                   style={{ color: "var(--sb-muted)" }}
                 >
                   <ImagePlus size={16} />
-                  Images
+                  {f.uploadImage}
                 </button>
               </div>
               <button
@@ -309,7 +317,7 @@ export default function QuestionComposer({
                 className="nb-btn px-6 py-2.5 text-[14.5px] text-white disabled:cursor-not-allowed disabled:opacity-50"
                 style={{ background: "var(--sb-gradient)" }}
               >
-                {isPending ? "Posting..." : "Post"}
+                {isPending ? f.posting : f.postAction}
                 <Send size={14} />
               </button>
             </div>

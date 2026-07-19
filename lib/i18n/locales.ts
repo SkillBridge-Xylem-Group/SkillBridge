@@ -1,21 +1,6 @@
 export const LOCALE_STORAGE_KEY = "sb-locale";
 
-export type AppLocale =
-  | "en"
-  | "zh-CN"
-  | "zh-TW"
-  | "id"
-  | "ja"
-  | "ko"
-  | "es"
-  | "fr"
-  | "de"
-  | "pt-BR"
-  | "th"
-  | "vi"
-  | "ms"
-  | "hi"
-  | "ar";
+export type AppLocale = "en" | "zh-CN" | "id" | "ja" | "ko";
 
 export type LocaleOption = {
   code: AppLocale;
@@ -27,19 +12,9 @@ export type LocaleOption = {
 export const LOCALE_OPTIONS: LocaleOption[] = [
   { code: "en", label: "English", englishName: "English" },
   { code: "zh-CN", label: "简体中文", englishName: "Chinese (Simplified)" },
-  { code: "zh-TW", label: "繁體中文", englishName: "Chinese (Traditional)" },
   { code: "id", label: "Bahasa Indonesia", englishName: "Indonesian" },
-  { code: "ms", label: "Bahasa Melayu", englishName: "Malay" },
   { code: "ja", label: "日本語", englishName: "Japanese" },
   { code: "ko", label: "한국어", englishName: "Korean" },
-  { code: "es", label: "Español", englishName: "Spanish" },
-  { code: "fr", label: "Français", englishName: "French" },
-  { code: "de", label: "Deutsch", englishName: "German" },
-  { code: "pt-BR", label: "Português (Brasil)", englishName: "Portuguese (Brazil)" },
-  { code: "th", label: "ไทย", englishName: "Thai" },
-  { code: "vi", label: "Tiếng Việt", englishName: "Vietnamese" },
-  { code: "hi", label: "हिन्दी", englishName: "Hindi" },
-  { code: "ar", label: "العربية", englishName: "Arabic" },
 ];
 
 export const DEFAULT_LOCALE: AppLocale = "en";
@@ -63,10 +38,6 @@ export function dateLocaleTag(code: AppLocale): string {
       return "en-US";
     case "zh-CN":
       return "zh-CN";
-    case "zh-TW":
-      return "zh-TW";
-    case "pt-BR":
-      return "pt-BR";
     default:
       return code;
   }
@@ -80,4 +51,48 @@ export function formatAppDate(
   const date = typeof iso === "string" ? new Date(iso) : iso;
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString(dateLocaleTag(locale), options);
+}
+
+export function formatAppTime(
+  iso: string | Date,
+  locale: AppLocale,
+  options: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" }
+): string {
+  const date = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString(dateLocaleTag(locale), options);
+}
+
+type RelativeTimeLabels = {
+  justNow: string;
+  minutesAgo: string;
+  hoursAgo: string;
+  daysAgo: string;
+  monthsAgo?: string;
+  yearsAgo?: string;
+};
+
+/** Compact relative time using dictionary labels (`{n}` placeholders). */
+export function formatRelativeTimeLabel(
+  iso: string,
+  labels: RelativeTimeLabels,
+  locale?: AppLocale
+): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (Number.isNaN(diffMs)) return "";
+  const mins = Math.floor(diffMs / 60_000);
+  const fill = (template: string, n: number) => template.replace("{n}", String(n));
+  if (mins < 1) return labels.justNow;
+  if (mins < 60) return fill(labels.minutesAgo, mins);
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return fill(labels.hoursAgo, hours);
+  const days = Math.floor(hours / 24);
+  if (days < 30) return fill(labels.daysAgo, days);
+  const months = Math.floor(days / 30);
+  if (months < 12 && labels.monthsAgo) return fill(labels.monthsAgo, months);
+  if (labels.yearsAgo) return fill(labels.yearsAgo, Math.max(1, Math.floor(months / 12)));
+  if (locale) {
+    return new Date(iso).toLocaleDateString(dateLocaleTag(locale), { month: "short", day: "numeric" });
+  }
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
