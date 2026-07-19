@@ -172,7 +172,7 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
             </nav>
           ) : (
             <p className="px-2 py-2 text-xs leading-relaxed text-slate-400">
-              Join communities from the Forum — they will show up here.
+              Join communities from the Forum.
             </p>
           )}
         </div>

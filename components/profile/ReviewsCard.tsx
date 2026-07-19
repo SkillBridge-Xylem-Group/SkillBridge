@@ -20,18 +20,20 @@ export default function ReviewsCard({ reviews }: ReviewsCardProps) {
       </div>
 
       {reviews.length === 0 ? (
-        <div className="mt-4 flex flex-col items-center gap-4 py-8 text-center">
+        <div
+          className="mt-4 flex items-center gap-4 rounded-2xl p-4"
+          style={{ background: "#f6fffb" }}
+        >
           <div
-            className="flex h-14 w-14 items-center justify-center rounded-full text-white"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white"
             style={{ background: "var(--sb-gradient)" }}
           >
-            <MessageSquare size={24} />
+            <MessageSquare size={20} />
           </div>
           <div>
             <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>No reviews yet</p>
-            <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>
-              Complete your first skill swap to receive reviews
-              <br className="hidden sm:block" /> and build your Trust Score.
+            <p className="text-sm" style={{ color: "var(--sb-muted)" }}>
+              Complete your first skill swap to receive reviews and build your Trust Score.
             </p>
           </div>
         </div>
