@@ -162,11 +162,11 @@ export default function DashboardChrome({
         <div className="nb-page flex min-h-screen items-start gap-0 p-0 lg:gap-5 lg:p-5">
           <Sidebar communities={communities} />
 
-          <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
             <Topbar userName={shell.userName} avatarUrl={shell.avatarUrl} communities={communities} />
             <main
               className={
-                mainClassName ?? "px-4 pb-24 pt-4 sm:px-8 lg:px-0 lg:pb-10 lg:pt-5"
+                mainClassName ?? "min-w-0 px-4 pb-24 pt-4 sm:px-8 lg:px-0 lg:pb-10 lg:pt-5"
               }
             >
               {children}

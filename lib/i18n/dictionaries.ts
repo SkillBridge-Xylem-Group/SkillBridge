@@ -227,6 +227,11 @@ export type Dictionary = {
     leaveCommunity: string;
     allCommunities: string;
     favoritesTab: string;
+    trendingIn: string;
+    noPostsYet: string;
+    startFeed: string;
+    noPostsFor: string;
+    deleteCommunity: string;
   };
   profile: {
     memberSince: string;
@@ -531,6 +536,11 @@ const en: Dictionary = {
     leaveCommunity: "Leave community",
     allCommunities: "All Communities",
     favoritesTab: "Favorites",
+    trendingIn: "Trending in {title}",
+    noPostsYet: "This community doesn't have any posts yet",
+    startFeed: "Make one and get this feed started.",
+    noPostsFor: 'No posts found for "{q}"',
+    deleteCommunity: "Delete community",
   },
   profile: {
     memberSince: "Member since",
@@ -831,6 +841,11 @@ const zhCN: Dictionary = {
     leaveCommunity: "退出社区",
     allCommunities: "全部社区",
     favoritesTab: "收藏",
+    trendingIn: "{title} 中的热门",
+    noPostsYet: "这个社区还没有帖子",
+    startFeed: "发一篇，开启讨论吧。",
+    noPostsFor: "没有找到与「{q}」相关的帖子",
+    deleteCommunity: "删除社区",
   },
   profile: {
     memberSince: "加入于",
