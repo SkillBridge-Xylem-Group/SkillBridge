@@ -40,16 +40,16 @@ export default function AdminUserMenu({ name }: AdminUserMenuProps) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2.5 rounded-full py-0.5 pl-0.5 pr-2.5 transition hover:bg-slate-100"
+        className="nb-chip flex items-center gap-2.5 py-1 pl-1 pr-2.5 transition hover:-translate-y-0.5"
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-light text-sm font-bold text-brand">
+        <div className="nb-avatar h-9 w-9 text-sm" style={{ background: "var(--sb-gradient)" }}>
           {name.charAt(0).toUpperCase()}
         </div>
         <div className="hidden text-left sm:block">
-          <p className="text-sm font-bold text-slate-900">{name}</p>
-          <p className="text-xs font-semibold text-brand">Admin</p>
+          <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{name}</p>
+          <p className="text-xs font-semibold" style={{ color: "var(--sb-teal-dark)" }}>Admin</p>
         </div>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} style={{ color: "var(--sb-muted)" }} />
       </button>
 
       {open && (

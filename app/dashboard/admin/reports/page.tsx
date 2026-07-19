@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ReportStatusControl from "@/components/admin/ReportStatusControl";
 
@@ -117,15 +118,16 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
 
       <div className="mt-6 flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => (
-          <a
+          <Link
             key={tab}
             href={tab === "pending" ? "/dashboard/admin/reports" : `/dashboard/admin/reports?status=${tab}`}
+            prefetch
             className={`rounded-full px-3.5 py-1.5 text-xs font-semibold capitalize transition ${
               status === tab ? "bg-slate-900 text-white" : "bg-white text-slate-500 hover:bg-slate-100"
             }`}
           >
             {tab}
-          </a>
+          </Link>
         ))}
       </div>
 
