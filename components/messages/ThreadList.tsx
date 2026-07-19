@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageSquare, Search } from "lucide-react";
@@ -11,20 +11,48 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
 import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
 
+const THREAD_READ_EVENT = "sb-messages-thread-read";
+
 export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
   const pathname = usePathname();
   const { locale, dictionary } = useLocale();
   const m = dictionary.messages;
   const [query, setQuery] = useState("");
+  // Layout props stay stale across soft navigations — keep a local copy we can clear.
+  const [items, setItems] = useState(threads);
+
+  useEffect(() => {
+    const activeSlug = pathname.startsWith("/dashboard/messages/")
+      ? pathname.slice("/dashboard/messages/".length).split("/")[0]
+      : "";
+
+    setItems(
+      threads.map((t) =>
+        activeSlug && t.partner.slug === activeSlug ? { ...t, unreadCount: 0 } : t
+      )
+    );
+  }, [threads, pathname]);
+
+  useEffect(() => {
+    function onThreadRead(e: Event) {
+      const threadId = (e as CustomEvent<{ threadId?: string }>).detail?.threadId;
+      if (!threadId) return;
+      setItems((prev) =>
+        prev.map((t) => (t.thread_id === threadId ? { ...t, unreadCount: 0 } : t))
+      );
+    }
+    window.addEventListener(THREAD_READ_EVENT, onThreadRead);
+    return () => window.removeEventListener(THREAD_READ_EVENT, onThreadRead);
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return threads;
-    return threads.filter((t) => {
+    if (!q) return items;
+    return items.filter((t) => {
       const haystack = `${t.partner.fullname} ${t.lastMessage?.content ?? ""}`.toLowerCase();
       return haystack.includes(q);
     });
-  }, [threads, query]);
+  }, [items, query]);
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-white">
@@ -50,7 +78,7 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {threads.length === 0 ? (
+        {items.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-12 text-center">
             <div
               className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#f0f7f3]"
