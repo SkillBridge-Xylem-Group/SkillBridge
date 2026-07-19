@@ -6,20 +6,14 @@ import { ArrowBigUp, Crown } from "lucide-react";
 import { toggleVoteAction } from "@/lib/actions/forum";
 import type { ForumAnswer } from "@/lib/forum";
 import FormattedContent from "./FormattedContent";
-
-function timeAgo(dateStr: string) {
-  const diffMs = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
+import ForumAuthorAvatar from "./ForumAuthorAvatar";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
 
 export default function AnswerCard({ answer, questionId }: { answer: ForumAnswer; questionId: string }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const { locale, dictionary } = useLocale();
 
   function vote() {
     startTransition(async () => {
@@ -27,13 +21,6 @@ export default function AnswerCard({ answer, questionId }: { answer: ForumAnswer
       router.refresh();
     });
   }
-
-  const initials = answer.author.fullname
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p.charAt(0).toUpperCase())
-    .join("");
 
   return (
     <div
@@ -50,16 +37,17 @@ export default function AnswerCard({ answer, questionId }: { answer: ForumAnswer
         </div>
       )}
       <div className="flex items-start gap-3">
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-          style={{ background: "var(--sb-gradient)" }}
-        >
-          {initials}
-        </div>
+        <ForumAuthorAvatar
+          name={answer.author.fullname}
+          avatarUrl={answer.author.avatar_url}
+          className="h-9 w-9"
+        />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 text-sm">
             <span className="font-bold" style={{ color: "var(--sb-ink)" }}>{answer.author.fullname}</span>
-            <span style={{ color: "var(--sb-muted)" }}>· {timeAgo(answer.created_at)}</span>
+            <span style={{ color: "var(--sb-muted)" }}>
+              · {formatRelativeTimeLabel(answer.created_at, dictionary.common, locale)}
+            </span>
           </div>
           {answer.content ? (
             <FormattedContent text={answer.content} className="mt-1 space-y-1 text-sm" />
