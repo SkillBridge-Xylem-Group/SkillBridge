@@ -8,6 +8,7 @@ import type { ForumCommunity } from "@/lib/forumCommunities";
 import { toggleJoinCommunityAction } from "@/lib/actions/forum";
 import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 const FAVORITES_KEY = "sb-community-favorites";
 
@@ -41,6 +42,8 @@ export default function ManageCommunities({
   viewerId,
 }: ManageCommunitiesProps) {
   const router = useRouter();
+  const { dictionary } = useLocale();
+  const f = dictionary.forum;
   const [communities, setCommunities] = useState(initial);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"all" | "favorites">("all");
@@ -111,7 +114,7 @@ export default function ManageCommunities({
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Manage communities</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">{f.manageTitle}</h1>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_11rem]">
@@ -126,7 +129,7 @@ export default function ManageCommunities({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Filter your communities"
+              placeholder={f.manageFilterPlaceholder}
               className="w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:ring-2 focus:ring-slate-200"
             />
           </label>
@@ -137,22 +140,22 @@ export default function ManageCommunities({
             <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-14 text-center">
               <p className="text-base font-bold text-slate-900">
                 {joined.length === 0
-                  ? "You haven’t joined any communities yet"
+                  ? f.notJoinedYet
                   : tab === "favorites"
-                    ? "No favorited communities"
-                    : "No communities match your filter"}
+                    ? f.noFavorites
+                    : f.noFilterMatch}
               </p>
               <p className="mt-1 text-sm text-slate-500">
                 {joined.length === 0
-                  ? "Discover communities on the Forum and join ones you like."
-                  : "Try a different filter or add favorites from the list."}
+                  ? f.joinFromForum
+                  : f.tryDifferentFilter}
               </p>
               {joined.length === 0 ? (
                 <Link
                   href="/dashboard/forum"
                   className="mt-5 inline-flex rounded-full bg-brand px-5 py-2 text-sm font-bold text-white hover:bg-brand-dark"
                 >
-                  Discover communities
+                  {f.discoverCta}
                 </Link>
               ) : null}
             </div>
@@ -191,7 +194,7 @@ export default function ManageCommunities({
                     <div className="ml-auto flex shrink-0 items-center gap-2">
                       <button
                         type="button"
-                        aria-label={favorited ? "Unfavorite" : "Favorite"}
+                        aria-label={favorited ? f.unfavorite : f.favorite}
                         onClick={() => toggleFavorite(community.id)}
                         className={`rounded-full p-2 transition ${
                           favorited
@@ -211,12 +214,12 @@ export default function ManageCommunities({
                         onClick={() => onLeave(community)}
                         title={
                           community.created_by === viewerId
-                            ? "You created this community"
-                            : "Leave community"
+                            ? f.createCommunityTitle
+                            : f.leaveCommunity
                         }
                         className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-default disabled:opacity-80"
                       >
-                        {busy ? "…" : "Joined"}
+                        {busy ? "…" : dictionary.common.joined}
                       </button>
                     </div>
                   </li>
@@ -235,7 +238,7 @@ export default function ManageCommunities({
                 tab === "all" ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50"
               }`}
             >
-              All Communities
+              {f.allCommunities}
             </button>
             <button
               type="button"
@@ -246,7 +249,7 @@ export default function ManageCommunities({
                   : "text-slate-600 hover:bg-slate-50"
               }`}
             >
-              Favorites
+              {f.favoritesTab}
             </button>
           </nav>
         </aside>

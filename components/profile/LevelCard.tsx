@@ -1,14 +1,18 @@
+"use client";
+
 import { Award } from "lucide-react";
 import { xpForNextLevel } from "@/lib/types/profile";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 type LevelCardProps = {
   level: number;
   experiencePoints: number;
 };
 
-// FR-009: 1 XP per completed teaching session; level up every 20 points
-// (20 = Level 1, 40 = Level 2, ...).
 export default function LevelCard({ level, experiencePoints }: LevelCardProps) {
+  const { dictionary } = useLocale();
+  const p = dictionary.profile;
   const pointsIntoLevel = experiencePoints % 20;
   const nextLevelAt = xpForNextLevel(level);
   const progress = Math.min(100, (pointsIntoLevel / 20) * 100);
@@ -23,20 +27,20 @@ export default function LevelCard({ level, experiencePoints }: LevelCardProps) {
         >
           <Award size={20} />
         </div>
-        <h2 className="text-lg font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>Level</h2>
+        <h2 className="text-lg font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>{p.levelCard}</h2>
       </div>
 
       <p className="mt-4 text-4xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>{level}</p>
 
       <p className="mt-2 text-sm font-semibold" style={{ color: "var(--sb-muted)" }}>
-        {experiencePoints} / {nextLevelAt} XP
+        {interpolate(p.xpProgress, { current: experiencePoints, next: nextLevelAt })}
       </p>
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full" style={{ background: "#e5f3ea" }}>
         <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "var(--sb-gradient)" }} />
       </div>
 
       <p className="mt-3 text-sm" style={{ color: "var(--sb-muted)" }}>
-        {remaining} XP until Level {level + 1}
+        {interpolate(p.xpUntilLevel, { n: remaining, level: level + 1 })}
       </p>
     </div>
   );

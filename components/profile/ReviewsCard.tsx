@@ -1,12 +1,18 @@
+"use client";
+
 import { Star, MessageSquare } from "lucide-react";
 import type { Review } from "@/lib/types/profile";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { formatAppDate } from "@/lib/i18n/locales";
 
 type ReviewsCardProps = {
   reviews: Review[];
 };
 
-// FR-010: rating + written review shown on the reviewed user's profile.
 export default function ReviewsCard({ reviews }: ReviewsCardProps) {
+  const { locale, dictionary } = useLocale();
+  const p = dictionary.profile;
+
   return (
     <div className="nb-card p-6">
       <div className="flex items-center gap-3">
@@ -16,7 +22,7 @@ export default function ReviewsCard({ reviews }: ReviewsCardProps) {
         >
           <Star size={18} />
         </div>
-        <h2 className="text-lg font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>Reviews</h2>
+        <h2 className="text-lg font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>{p.reviews}</h2>
       </div>
 
       {reviews.length === 0 ? (
@@ -31,9 +37,9 @@ export default function ReviewsCard({ reviews }: ReviewsCardProps) {
             <MessageSquare size={20} />
           </div>
           <div>
-            <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>No reviews yet</p>
+            <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{p.noReviews}</p>
             <p className="text-sm" style={{ color: "var(--sb-muted)" }}>
-              Complete your first skill swap to receive reviews and build your Trust Score.
+              {p.noReviewsHint}
             </p>
           </div>
         </div>
@@ -51,7 +57,7 @@ export default function ReviewsCard({ reviews }: ReviewsCardProps) {
               </div>
               <p className="mt-2 text-sm" style={{ color: "var(--sb-muted)" }}>{review.comment}</p>
               <p className="mt-2 text-xs" style={{ color: "var(--sb-muted)" }}>
-                {new Date(review.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                {formatAppDate(review.created_at, locale, { month: "long", year: "numeric" })}
               </p>
             </div>
           ))}

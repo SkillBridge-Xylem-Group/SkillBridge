@@ -30,12 +30,15 @@ export function LocaleProvider({
     return DEFAULT_LOCALE;
   });
 
+  // Keep client state in sync when server shell provides a DB language.
   useEffect(() => {
+    if (initialLocale && isAppLocale(initialLocale)) {
+      setLocaleState(initialLocale);
+      return;
+    }
     try {
       const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
-      if (isAppLocale(stored) && !initialLocale) {
-        setLocaleState(stored);
-      }
+      if (isAppLocale(stored)) setLocaleState(stored);
     } catch {
       // ignore
     }
@@ -43,7 +46,7 @@ export function LocaleProvider({
 
   useEffect(() => {
     document.documentElement.lang = htmlLang(locale);
-    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+    document.documentElement.dir = "ltr";
     try {
       localStorage.setItem(LOCALE_STORAGE_KEY, locale);
     } catch {

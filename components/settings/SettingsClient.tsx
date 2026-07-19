@@ -203,12 +203,12 @@ export default function SettingsClient({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setModalError(data?.error ?? "Failed to save settings.");
+        setModalError(data?.error ?? dictionary.settings.saveFailed);
         return false;
       }
       return true;
     } catch {
-      setModalError("Failed to save settings.");
+      setModalError(dictionary.settings.saveFailed);
       return false;
     } finally {
       setSaving(false);

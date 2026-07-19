@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, Star, SlidersHorizontal } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 type Person = {
   id: string;
@@ -17,6 +19,8 @@ type Person = {
 
 type SortOption = "rating" | "reviews" | "name";
 
+const ALL = "__all__";
+
 const AVATAR_TINTS = [
   { bg: "var(--sb-tint-rose-bg)", ink: "var(--sb-tint-rose-ink)" },
   { bg: "var(--sb-teal-light)", ink: "var(--sb-teal-dark)" },
@@ -26,12 +30,14 @@ const AVATAR_TINTS = [
 ];
 
 export default function BrowsePeopleGrid() {
+  const { dictionary } = useLocale();
+  const b = dictionary.browse;
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
 
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All Categories");
+  const [category, setCategory] = useState(ALL);
   const [sortBy, setSortBy] = useState<SortOption>("rating");
 
   useEffect(() => {
@@ -43,8 +49,8 @@ export default function BrowsePeopleGrid() {
           throw new Error(data?.error || "Failed to load people");
         }
         setPeople(data.people ?? []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load people");
+      } catch {
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -55,14 +61,14 @@ export default function BrowsePeopleGrid() {
   const categoryOptions = useMemo(() => {
     const unique = new Set<string>();
     people.forEach((p) => p.categories.forEach((c) => unique.add(c)));
-    return ["All Categories", ...Array.from(unique).sort()];
+    return [ALL, ...Array.from(unique).sort()];
   }, [people]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     const results = people.filter((p) => {
-      const matchesCategory = category === "All Categories" || p.categories.includes(category);
+      const matchesCategory = category === ALL || p.categories.includes(category);
       const matchesQuery =
         q.length === 0 ||
         p.name.toLowerCase().includes(q) ||
@@ -86,7 +92,7 @@ export default function BrowsePeopleGrid() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name or skill..."
+            placeholder={b.searchPlaceholder}
             className="w-full rounded-full border-none bg-transparent py-3 pl-10 pr-4 text-sm outline-none"
             style={{ color: "var(--sb-ink)" }}
           />
@@ -107,7 +113,7 @@ export default function BrowsePeopleGrid() {
             style={{ color: "var(--sb-ink)", boxShadow: "var(--sb-shadow-sm)" }}
           >
             {categoryOptions.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>{c === ALL ? b.allCategories : c}</option>
             ))}
           </select>
 
@@ -117,26 +123,26 @@ export default function BrowsePeopleGrid() {
             className="min-w-[9.5rem] flex-1 rounded-full border-none bg-white px-4 py-3 text-sm font-bold sm:flex-none sm:w-48"
             style={{ color: "var(--sb-ink)", boxShadow: "var(--sb-shadow-sm)" }}
           >
-            <option value="rating">Highest Rated</option>
-            <option value="reviews">Most Reviews</option>
-            <option value="name">Name (A-Z)</option>
+            <option value="rating">{b.highestRated}</option>
+            <option value="reviews">{b.mostReviews}</option>
+            <option value="name">{b.nameAZ}</option>
           </select>
         </div>
       </div>
 
-      {loading && <p className="mt-6 text-sm" style={{ color: "var(--sb-muted)" }}>Loading people...</p>}
-      {!loading && error && <p className="mt-6 text-sm text-red-500">{error}</p>}
+      {loading && <p className="mt-6 text-sm" style={{ color: "var(--sb-muted)" }}>{b.loadingPeople}</p>}
+      {!loading && error && <p className="mt-6 text-sm text-red-500">{b.loadFailed}</p>}
 
       {!loading && !error && (
         <>
           <p className="mt-4 text-sm font-medium" style={{ color: "var(--sb-muted)" }}>
-            {filtered.length} {filtered.length === 1 ? "person" : "people"} found
+            {interpolate(filtered.length === 1 ? b.personFound : b.peopleFound, { n: filtered.length })}
           </p>
 
           {filtered.length === 0 ? (
             <div className="nb-card mt-4 p-10 text-center">
-              <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>No matches yet</p>
-              <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>Try a different search term or category.</p>
+              <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>{b.noMatches}</p>
+              <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>{b.noMatchesHint}</p>
             </div>
           ) : (
             <div className="mt-4 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -168,7 +174,7 @@ export default function BrowsePeopleGrid() {
                           <span className="truncate">
                             {p.rating > 0
                               ? `${p.rating.toFixed(1)} (${p.reviewCount})`
-                              : "No ratings yet"}
+                              : b.noRatingsYet}
                           </span>
                         </div>
                       </div>
@@ -188,7 +194,7 @@ export default function BrowsePeopleGrid() {
                           ))}
                         </div>
                       ) : (
-                        <span className="text-xs font-medium" style={{ color: "var(--sb-muted)" }}>No skills listed</span>
+                        <span className="text-xs font-medium" style={{ color: "var(--sb-muted)" }}>{b.noSkillsListed}</span>
                       )}
                     </div>
 
@@ -197,7 +203,7 @@ export default function BrowsePeopleGrid() {
                       className="btn-outline mt-auto w-full rounded-xl border py-2.5 text-center text-sm font-bold transition"
                       style={{ borderColor: "#e5e7eb", color: "var(--sb-ink)" }}
                     >
-                      View Profile
+                      {b.viewProfile}
                     </a>
                   </article>
                 );

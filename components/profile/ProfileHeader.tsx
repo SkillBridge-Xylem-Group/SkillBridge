@@ -4,11 +4,13 @@ import { useRef, useState } from "react";
 import { Pencil, Calendar, Clock, Check, X, Plus } from "lucide-react";
 import { uploadAvatar } from "@/lib/avatarUpload";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { formatAppDate } from "@/lib/i18n/locales";
 
 type ProfileHeaderProps = {
   userId: string;
   fullname: string;
-  memberSince: string;
+  createdAt: string;
   timezone: string;
   bio: string | null;
   avatarUrl: string | null;
@@ -20,7 +22,7 @@ type ProfileHeaderProps = {
 export default function ProfileHeader({
   userId,
   fullname,
-  memberSince,
+  createdAt,
   timezone,
   bio,
   avatarUrl,
@@ -28,6 +30,8 @@ export default function ProfileHeader({
   onAvatarChange,
   profileError,
 }: ProfileHeaderProps) {
+  const { locale, dictionary } = useLocale();
+  const p = dictionary.profile;
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(fullname);
   const [draftBio, setDraftBio] = useState(bio ?? "");
@@ -95,7 +99,7 @@ export default function ProfileHeader({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingPhoto}
-              aria-label="Change profile photo"
+              aria-label={p.changePhoto}
               className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white disabled:opacity-60"
               style={{ background: "var(--sb-gradient)", color: "#fff", boxShadow: "var(--sb-shadow-sm)" }}
             >
@@ -109,7 +113,7 @@ export default function ProfileHeader({
                 type="text"
                 value={draftName}
                 onChange={(e) => setDraftName(e.target.value)}
-                placeholder="Your name"
+                placeholder={p.yourName}
                 className="nb-input px-3 py-1.5 text-2xl font-extrabold nb-heading"
               />
             ) : (
@@ -118,7 +122,7 @@ export default function ProfileHeader({
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ color: "var(--sb-muted)" }}>
               <span className="flex items-center gap-1.5">
                 <Calendar size={14} />
-                Member since {memberSince}
+                {p.memberSince} {formatAppDate(createdAt, locale, { month: "long", year: "numeric" })}
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock size={14} />
@@ -126,7 +130,7 @@ export default function ProfileHeader({
               </span>
             </div>
             {isUploadingPhoto && (
-              <p className="mt-1.5 text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>Uploading photo...</p>
+              <p className="mt-1.5 text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>{p.uploadingPhoto}</p>
             )}
             {photoError && <p className="mt-1.5 text-xs font-medium text-red-600">{photoError}</p>}
           </div>
@@ -140,7 +144,7 @@ export default function ProfileHeader({
             style={{ color: "var(--sb-ink)" }}
           >
             <Pencil size={14} />
-            Edit Profile
+            {p.editProfile}
           </button>
         )}
       </div>
@@ -153,7 +157,7 @@ export default function ProfileHeader({
               onChange={(e) => setDraftBio(e.target.value)}
               rows={3}
               maxLength={300}
-              placeholder="Tell the community a bit about yourself..."
+              placeholder={p.bioPlaceholder}
               className="nb-input w-full resize-none p-3 text-sm"
             />
             {profileError && <p className="mt-2 text-sm font-medium text-red-600">{profileError}</p>}
@@ -167,7 +171,7 @@ export default function ProfileHeader({
                 style={{ background: "var(--sb-gradient)" }}
               >
                 <Check size={14} />
-                {isSaving ? "Saving..." : "Save Profile"}
+                {isSaving ? p.saving : p.saveProfile}
               </button>
               <button
                 type="button"
@@ -177,13 +181,13 @@ export default function ProfileHeader({
                 style={{ color: "var(--sb-ink)" }}
               >
                 <X size={14} />
-                Cancel
+                {dictionary.common.cancel}
               </button>
             </div>
           </div>
         ) : (
           <p className="text-sm leading-relaxed" style={{ color: "var(--sb-muted)" }}>
-            {bio || "Add a short bio so the community can get to know you."}
+            {bio || p.noBioHint}
           </p>
         )}
       </div>

@@ -10,6 +10,9 @@ import { toggleJoinCommunityAction } from "@/lib/actions/forum";
 import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import CreateCommunityModal from "@/components/forum/CreateCommunityModal";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
+import { categoryLabel } from "@/lib/i18n/communityCategoryLabels";
 
 type CommunitiesDiscoveryProps = {
   communities: ForumCommunity[];
@@ -18,6 +21,7 @@ type CommunitiesDiscoveryProps = {
 };
 
 const INITIAL_VISIBLE = 6;
+const ALL = "All";
 
 function sortByActivity(list: ForumCommunity[]) {
   return list.slice().sort((a, b) => {
@@ -37,6 +41,8 @@ function JoinButton({
   onJoinedChange: (communityId: string, joined: boolean) => void;
 }) {
   const router = useRouter();
+  const { dictionary } = useLocale();
+  const c = dictionary.common;
   const [joined, setJoined] = useState(community.joined);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
@@ -78,7 +84,7 @@ function JoinButton({
             : "bg-slate-100 text-slate-900 hover:bg-slate-200"
         }`}
       >
-        {joined ? "Joined" : "Join"}
+        {joined ? c.joined : c.join}
       </button>
       {error ? <p className="mt-1 max-w-[8rem] text-[10px] font-medium leading-tight text-red-600">{error}</p> : null}
     </div>
@@ -92,6 +98,10 @@ function CommunityCard({
   community: ForumCommunity;
   onJoinedChange: (communityId: string, joined: boolean) => void;
 }) {
+  const { dictionary } = useLocale();
+  const c = dictionary.common;
+  const f = dictionary.forum;
+
   return (
     <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-3.5 transition hover:border-slate-300 hover:bg-slate-50/50">
       <div className="flex items-start gap-3">
@@ -109,9 +119,9 @@ function CommunityCard({
               <p className="truncate text-sm font-bold text-slate-900 hover:underline">{community.title}</p>
               <p className="mt-0.5 text-xs text-slate-500">
                 {community.member_count.toLocaleString()}{" "}
-                {community.member_count === 1 ? "member" : "members"}
+                {community.member_count === 1 ? c.member : c.members}
                 {" · "}
-                {community.post_count} {community.post_count === 1 ? "post" : "posts"}
+                {community.post_count} {community.post_count === 1 ? f.post : f.posts}
               </p>
             </Link>
             <JoinButton community={community} onJoinedChange={onJoinedChange} />
@@ -138,6 +148,8 @@ function CommunitySection({
   initialCount?: number;
   onJoinedChange: (communityId: string, joined: boolean) => void;
 }) {
+  const { dictionary } = useLocale();
+  const f = dictionary.forum;
   const [expanded, setExpanded] = useState(false);
   if (communities.length === 0) return null;
 
@@ -148,8 +160,8 @@ function CommunitySection({
     <section>
       <h2 className="mb-3 text-lg font-extrabold text-slate-900">{title}</h2>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {visible.map((c) => (
-          <CommunityCard key={c.id} community={c} onJoinedChange={onJoinedChange} />
+        {visible.map((community) => (
+          <CommunityCard key={community.id} community={community} onJoinedChange={onJoinedChange} />
         ))}
       </div>
       {canShowMore ? (
@@ -159,7 +171,9 @@ function CommunitySection({
             onClick={() => setExpanded((v) => !v)}
             className="rounded-full bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-200"
           >
-            {expanded ? "Show less" : `Show more (${communities.length - initialCount})`}
+            {expanded
+              ? f.showLess
+              : interpolate(f.showMore, { n: communities.length - initialCount })}
           </button>
         </div>
       ) : null}
@@ -169,9 +183,11 @@ function CommunitySection({
 
 export default function CommunitiesDiscovery({
   communities: initialCommunities,
-  initialCategory = "All",
+  initialCategory = ALL,
   initialCreateOpen = false,
 }: CommunitiesDiscoveryProps) {
+  const { locale, dictionary } = useLocale();
+  const f = dictionary.forum;
   const [category, setCategory] = useState(initialCategory);
   const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [createTopics, setCreateTopics] = useState<string[]>([]);
@@ -217,20 +233,19 @@ export default function CommunitiesDiscovery({
           .filter((c) => c && !known.has(c) && !(COMMUNITY_TOPICS as readonly string[]).includes(c))
       ),
     ].sort((a, b) => a.localeCompare(b));
-    // Prefer topics that already have communities, then the rest of the catalog.
     const withCommunities = COMMUNITY_TOPICS.filter((t) => (countsByCategory[t] ?? 0) > 0);
     const without = COMMUNITY_TOPICS.filter((t) => (countsByCategory[t] ?? 0) === 0);
-    return ["All", ...withCommunities, ...without, ...extras];
+    return [ALL, ...withCommunities, ...without, ...extras];
   }, [communities, countsByCategory]);
 
   const recommended = useMemo(() => {
     const pool =
-      category === "All" ? communities : communities.filter((c) => c.category === category);
+      category === ALL ? communities : communities.filter((c) => c.category === category);
     return sortByActivity(pool);
   }, [communities, category]);
 
   const topicSections = useMemo(() => {
-    if (category !== "All") return [];
+    if (category !== ALL) return [];
     const recommendedIds = new Set(recommended.slice(0, INITIAL_VISIBLE).map((c) => c.id));
     const byCat = new Map<string, ForumCommunity[]>();
     for (const c of communities) {
@@ -242,14 +257,16 @@ export default function CommunitiesDiscovery({
     }
     return [...byCat.entries()]
       .map(([cat, list]) => ({
-        title: `More like ${cat}`,
         category: cat,
+        title: interpolate(f.moreLike, { category: categoryLabel(locale, cat) }),
         communities: sortByActivity(list),
       }))
       .filter((s) => s.communities.length > 0)
       .sort((a, b) => b.communities.length - a.communities.length)
       .slice(0, 4);
-  }, [communities, category, recommended]);
+  }, [communities, category, recommended, f.moreLike, locale]);
+
+  const categoryDisplay = categoryLabel(locale, category);
 
   return (
     <div className="space-y-8">
@@ -257,7 +274,7 @@ export default function CommunitiesDiscovery({
         <div
           className="flex max-w-full gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           role="tablist"
-          aria-label="Community categories"
+          aria-label={f.categoriesAria}
         >
           {categoryChips.map((cat) => {
             const active = category === cat;
@@ -274,7 +291,7 @@ export default function CommunitiesDiscovery({
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
-                {cat}
+                {categoryLabel(locale, cat)}
               </button>
             );
           })}
@@ -282,43 +299,44 @@ export default function CommunitiesDiscovery({
 
         <button
           type="button"
-          onClick={() => openCreate(category !== "All" ? category : undefined)}
+          onClick={() => openCreate(category !== ALL ? category : undefined)}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
         >
           <Plus size={16} strokeWidth={2.5} />
-          Create community
+          {f.createCommunity}
         </button>
       </div>
 
       {recommended.length > 0 ? (
         <CommunitySection
-          title={category === "All" ? "Recommended for you" : category}
+          title={category === ALL ? f.recommended : categoryDisplay}
           communities={recommended}
           onJoinedChange={onJoinedChange}
         />
       ) : (
         <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
           <p className="text-sm font-semibold text-slate-700">
-            {category === "All"
-              ? "No communities yet"
-              : `No communities in ${category} yet`}
+            {category === ALL
+              ? f.noCommunities
+              : interpolate(f.noCommunitiesIn, { category: categoryDisplay })}
           </p>
-          <p className="mt-1 text-sm text-slate-500">Be the first to start one.</p>
+          <p className="mt-1 text-sm text-slate-500">{f.beFirst}</p>
           <button
             type="button"
-            onClick={() => openCreate(category !== "All" ? category : undefined)}
+            onClick={() => openCreate(category !== ALL ? category : undefined)}
             className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
           >
             <Plus size={16} strokeWidth={2.5} />
-            Create community
-            {category !== "All" ? ` in ${category}` : ""}
+            {category === ALL
+              ? f.createCommunity
+              : interpolate(f.createCommunityIn, { category: categoryDisplay })}
           </button>
         </div>
       )}
 
       {topicSections.map((section) => (
         <CommunitySection
-          key={section.title}
+          key={section.category}
           title={section.title}
           communities={section.communities}
           initialCount={3}

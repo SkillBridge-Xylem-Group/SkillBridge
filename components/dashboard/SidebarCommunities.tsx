@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, Plus, Settings, Star } from "lucide-react";
 import type { SidebarCommunity } from "@/lib/forumCommunities";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type SidebarCommunitiesProps = {
   communities: SidebarCommunity[];
@@ -47,6 +48,7 @@ function CommunityRow({
   onNavigate?: () => void;
   onToggleFavorite: () => void;
 }) {
+  const { dictionary } = useLocale();
   const href = `/dashboard/forum/c/${community.slug}`;
 
   return (
@@ -66,7 +68,7 @@ function CommunityRow({
       </Link>
       <button
         type="button"
-        aria-label={favorited ? "Unfavorite" : "Favorite"}
+        aria-label={favorited ? dictionary.forum.unfavorite : dictionary.forum.favorite}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -84,6 +86,8 @@ function CommunityRow({
 
 export default function SidebarCommunities({ communities, onNavigate }: SidebarCommunitiesProps) {
   const pathname = usePathname();
+  const { dictionary } = useLocale();
+  const f = dictionary.forum;
   const [open, setOpen] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
@@ -119,7 +123,7 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
           aria-expanded={open}
         >
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            Communities
+            {f.communities}
           </span>
           <ChevronDown
             size={14}
@@ -130,8 +134,8 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
           href="/dashboard/forum?create=1"
           onClick={onNavigate}
           className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-          aria-label="Create community"
-          title="Create community"
+          aria-label={f.createCommunity}
+          title={f.createCommunity}
         >
           <Plus size={14} strokeWidth={2.5} />
         </Link>
@@ -150,7 +154,7 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
             }`}
           >
             <Settings size={16} className="shrink-0 text-slate-500" strokeWidth={1.75} />
-            <span className="whitespace-nowrap">Manage</span>
+            <span className="whitespace-nowrap">{f.manageCommunities}</span>
           </Link>
 
           {list.length > 0 ? (
@@ -172,7 +176,7 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
             </nav>
           ) : (
             <p className="px-2 py-2 text-xs leading-relaxed text-slate-400">
-              Join communities from the Forum.
+              {f.joinFromForum}
             </p>
           )}
         </div>

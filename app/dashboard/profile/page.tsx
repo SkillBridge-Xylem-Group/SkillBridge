@@ -41,10 +41,9 @@ export default async function ProfilePage() {
     trust_score: row?.trust_score ? row.trust_score : null,
     created_at: user.created_at,
   };
-  const memberSince = new Date(profile.created_at).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  const memberSinceDays = Math.floor(
+    (Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24)
+  );
   const timezoneDisplay =
     new Intl.DateTimeFormat("en-US", {
       timeZone: profile.timezone,
@@ -59,10 +58,6 @@ export default async function ProfilePage() {
     getFullSkillCatalog(supabase),
     getUserReviews(supabase, user.id),
   ]);
-
-  const memberSinceDays = Math.floor(
-    (Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24)
-  );
 
   const badges = await syncUserBadges(supabase, user.id, {
     level: profile.level,
@@ -79,7 +74,6 @@ export default async function ProfilePage() {
       <div className="space-y-6 lg:col-span-2">
         <ProfileClient
           profile={profile}
-          memberSince={memberSince}
           timezoneDisplay={timezoneDisplay}
           initialOffered={offered}
           initialWanted={wanted}

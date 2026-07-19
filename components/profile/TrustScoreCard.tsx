@@ -1,12 +1,18 @@
+"use client";
+
 import { ShieldCheck, Info } from "lucide-react";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 type TrustScoreCardProps = {
-  // FR-014: average of all session ratings received; null until the first rating exists.
   trustScore: number | null;
   reviewCount?: number;
 };
 
 export default function TrustScoreCard({ trustScore, reviewCount }: TrustScoreCardProps) {
+  const { dictionary } = useLocale();
+  const p = dictionary.profile;
+
   return (
     <div className="nb-card-sm p-6">
       <div className="flex items-center gap-3">
@@ -17,7 +23,7 @@ export default function TrustScoreCard({ trustScore, reviewCount }: TrustScoreCa
           <ShieldCheck size={20} />
         </div>
         <h2 className="flex items-center gap-1.5 text-lg font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>
-          Trust Score
+          {p.trustScore}
           <Info size={14} style={{ color: "var(--sb-muted)" }} />
         </h2>
       </div>
@@ -26,15 +32,15 @@ export default function TrustScoreCard({ trustScore, reviewCount }: TrustScoreCa
         {trustScore != null ? trustScore.toFixed(1) : "—"}
         {trustScore != null && reviewCount != null && (
           <span className="text-sm font-semibold" style={{ color: "var(--sb-muted)" }}>
-            ({reviewCount} review{reviewCount === 1 ? "" : "s"})
+            {interpolate(reviewCount === 1 ? p.reviewCountOne : p.reviewCountMany, { n: reviewCount })}
           </span>
         )}
       </p>
 
       {trustScore == null && (
         <>
-          <p className="mt-2 text-sm font-semibold" style={{ color: "var(--sb-muted)" }}>No ratings yet</p>
-          <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>Complete your first swap to build your Trust Score.</p>
+          <p className="mt-2 text-sm font-semibold" style={{ color: "var(--sb-muted)" }}>{p.noRatingsYet}</p>
+          <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>{p.trustNoRatingsHint}</p>
         </>
       )}
     </div>

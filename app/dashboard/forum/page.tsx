@@ -6,6 +6,7 @@ import { listCommunities } from "@/lib/forumCommunities";
 import QuestionComposer from "@/components/forum/QuestionComposer";
 import CommunitiesDiscovery from "@/components/forum/CommunitiesDiscovery";
 import TrendingTopics from "@/components/forum/TrendingTopics";
+import ForumDiscoverHeader from "@/components/forum/ForumDiscoverHeader";
 
 type PageProps = {
   searchParams: Promise<{ create?: string }>;
@@ -43,12 +44,7 @@ export default async function ForumPage({ searchParams }: PageProps) {
   return (
     <div className="grid grid-cols-1 gap-6 pt-2 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
-        <div>
-          <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>Discover Communities</h1>
-          <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>
-            Find communities to join, or create your own and start posting.
-          </p>
-        </div>
+        <ForumDiscoverHeader />
 
         <QuestionComposer
           userInitials={userInitials}

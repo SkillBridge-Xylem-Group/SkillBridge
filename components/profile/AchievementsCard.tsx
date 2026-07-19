@@ -3,13 +3,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, Trophy } from "lucide-react";
-import { TIER_LABEL, TIER_STYLE, ICON_MAP, DEFAULT_ICON, type EvaluatedBadge } from "@/lib/badges";
+import { TIER_STYLE, ICON_MAP, DEFAULT_ICON, type BadgeTier, type EvaluatedBadge } from "@/lib/badges";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
+import { formatAppDate } from "@/lib/i18n/locales";
 
 type AchievementsCardProps = {
   badges: EvaluatedBadge[];
 };
 
 export default function AchievementsCard({ badges }: AchievementsCardProps) {
+  const { dictionary } = useLocale();
+  const p = dictionary.profile;
   const unlockedCount = badges.filter((b) => b.unlocked).length;
   const overallPct = badges.length > 0 ? Math.round((unlockedCount / badges.length) * 100) : 0;
 
@@ -24,7 +29,7 @@ export default function AchievementsCard({ badges }: AchievementsCardProps) {
             <Trophy size={20} />
           </div>
           <h2 className="text-lg font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>
-            Achievements
+            {p.achievements}
           </h2>
         </div>
 
@@ -32,7 +37,7 @@ export default function AchievementsCard({ badges }: AchievementsCardProps) {
           className="rounded-full px-3 py-1.5 text-sm font-extrabold"
           style={{ background: "var(--sb-emerald-light)", color: "var(--sb-emerald-dark)" }}
         >
-          {unlockedCount} / {badges.length} unlocked
+          {interpolate(p.unlockedCount, { n: unlockedCount, total: badges.length })}
         </div>
       </div>
 
@@ -56,9 +61,18 @@ export default function AchievementsCard({ badges }: AchievementsCardProps) {
 }
 
 function BadgeTile({ badge, index }: { badge: EvaluatedBadge; index: number }) {
+  const { locale, dictionary } = useLocale();
+  const p = dictionary.profile;
   const [hovered, setHovered] = useState(false);
   const tier = TIER_STYLE[badge.tier];
   const Icon = ICON_MAP[badge.icon] ?? DEFAULT_ICON;
+
+  const tierLabels: Record<BadgeTier, string> = {
+    common: p.tierCommon,
+    rare: p.tierRare,
+    epic: p.tierEpic,
+    legendary: p.tierLegendary,
+  };
 
   return (
     <motion.div
@@ -100,7 +114,7 @@ function BadgeTile({ badge, index }: { badge: EvaluatedBadge; index: number }) {
           className="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide"
           style={{ background: tier.chipBg, color: tier.chipInk }}
         >
-          {TIER_LABEL[badge.tier]}
+          {tierLabels[badge.tier]}
         </span>
       )}
 
@@ -114,8 +128,8 @@ function BadgeTile({ badge, index }: { badge: EvaluatedBadge; index: number }) {
       {badge.unlocked ? (
         <p className="text-xs" style={{ color: "var(--sb-muted)" }}>
           {badge.unlockedAt
-            ? new Date(badge.unlockedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })
-            : "Unlocked"}
+            ? formatAppDate(badge.unlockedAt, locale, { month: "short", year: "numeric" })
+            : p.unlocked}
         </p>
       ) : (
         <>
@@ -145,7 +159,6 @@ function BadgeTile({ badge, index }: { badge: EvaluatedBadge; index: number }) {
   );
 }
 
-/** Diagonal light sweep for unlocked legendary badges — a small "wow" cue. */
 function ShineSweep() {
   return (
     <motion.div

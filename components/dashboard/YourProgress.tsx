@@ -1,3 +1,8 @@
+"use client";
+
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
+
 type YourProgressProps = {
   level?: number;
   experiencePoints?: number;
@@ -10,6 +15,8 @@ export default function YourProgress({
   experiencePoints = 0,
   trustScore = null,
 }: YourProgressProps) {
+  const { dictionary } = useLocale();
+  const h = dictionary.home;
   const xpGoal = 20;
   const xpIntoLevel = experiencePoints % xpGoal;
   const progress = Math.min(100, (xpIntoLevel / xpGoal) * 100);
@@ -17,11 +24,11 @@ export default function YourProgress({
   return (
     <div className="nb-card-sm p-5" style={{ background: "#fbfaff" }}>
       <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--neu-text-muted)" }}>
-        Your Progress
+        {h.yourProgress}
       </p>
 
       <div className="mt-3 flex items-baseline justify-between">
-        <span className="text-sm font-extrabold nb-heading">Level {level}</span>
+        <span className="text-sm font-extrabold nb-heading">{interpolate(h.level, { n: level })}</span>
         <span className="text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>
           {xpIntoLevel} / {xpGoal} XP
         </span>
@@ -32,12 +39,12 @@ export default function YourProgress({
 
       <div className="mt-4">
         <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--neu-text-muted)" }}>
-          Trust Score
+          {h.trustScore}
         </p>
         <p className="mt-1 text-sm font-bold nb-heading">
           {trustScore != null ? trustScore.toFixed(1) : "—"}
         </p>
-        {trustScore == null && <p className="text-xs" style={{ color: "var(--neu-text-muted)" }}>No ratings yet</p>}
+        {trustScore == null && <p className="text-xs" style={{ color: "var(--neu-text-muted)" }}>{h.noRatingsYet}</p>}
       </div>
     </div>
   );

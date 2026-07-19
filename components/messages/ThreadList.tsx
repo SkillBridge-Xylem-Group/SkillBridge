@@ -4,11 +4,16 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageSquare, Search } from "lucide-react";
-import { formatRelativeTime, getInitials } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
 import type { ThreadSummary } from "@/lib/messages";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
+import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
 
 export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
   const pathname = usePathname();
+  const { locale, dictionary } = useLocale();
+  const m = dictionary.messages;
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -24,7 +29,7 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
     <div className="flex h-full w-full flex-col overflow-hidden" style={{ background: "#fbfffc" }}>
       <div className="px-4 pb-3 pt-4" style={{ borderBottom: "1px solid #eef7f0" }}>
         <div className="mb-3">
-          <h1 className="text-lg font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>Messages</h1>
+          <h1 className="text-lg font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>{m.title}</h1>
         </div>
         <label className="relative block">
           <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--sb-muted)" }} />
@@ -32,7 +37,7 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search conversations"
+            placeholder={m.searchConversations}
             className="nb-input w-full py-2.5 pl-9 pr-3 text-sm"
           />
         </label>
@@ -47,21 +52,23 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
             >
               <MessageSquare size={22} />
             </div>
-            <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>No conversations yet</p>
+            <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>{m.noConversations}</p>
             <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--sb-muted)" }}>
-              Visit someone&apos;s profile and tap Message to start chatting.
+              {m.noConversationsHint}
             </p>
             <Link href="/dashboard/browse-people" className="nb-btn mt-4 px-4 py-2 text-xs text-white" style={{ background: "var(--sb-gradient)" }}>
-              Browse people
+              {m.browsePeople}
             </Link>
           </div>
         ) : filtered.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm" style={{ color: "var(--sb-muted)" }}>No chats match "{query.trim()}".</p>
+          <p className="px-4 py-8 text-center text-sm" style={{ color: "var(--sb-muted)" }}>
+            {interpolate(m.noChatsMatch, { q: query.trim() })}
+          </p>
         ) : (
           <ul className="space-y-0.5 p-2">
             {filtered.map((t) => {
               const active = pathname === `/dashboard/messages/${t.partner.slug}`;
-              const preview = t.lastMessage?.content?.trim() || "Say hello!";
+              const preview = t.lastMessage?.content?.trim() || m.sayHello;
               return (
                 <li key={t.thread_id}>
                   <Link
@@ -80,7 +87,7 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
                         <p className="truncate text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>{t.partner.fullname}</p>
                         {t.lastMessage?.sent_at && (
                           <span className="shrink-0 text-[11px]" style={{ color: "var(--sb-muted)" }}>
-                            {formatRelativeTime(t.lastMessage.sent_at)}
+                            {formatRelativeTimeLabel(t.lastMessage.sent_at, dictionary.common, locale)}
                           </span>
                         )}
                       </div>
