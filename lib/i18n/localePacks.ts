@@ -127,6 +127,11 @@ export const idPack: Dictionary = {
     conversationStart:
       "Ini adalah awal percakapan Anda. Kirim catatan untuk memulai tukar skill.",
     messagePlaceholder: "Pesan {name}...",
+    selectConversation: "Pilih percakapan",
+    selectConversationHint:
+      "Pilih seseorang di kiri untuk lanjut mengobrol, atau temukan partner baru untuk dipesan.",
+    today: "Hari ini",
+    yesterday: "Kemarin",
   },
   browse: {
     searchPlaceholder: "Cari nama atau skill...",
@@ -454,6 +459,11 @@ export const jaPack: Dictionary = {
     conversationStart:
       "ここが会話の始まりです。一言送ってスワップを始めましょう。",
     messagePlaceholder: "{name} にメッセージ…",
+    selectConversation: "会話を選択",
+    selectConversationHint:
+      "左から相手を選んでチャットを続けるか、新しい相手を探してメッセージしましょう。",
+    today: "今日",
+    yesterday: "昨日",
   },
   browse: {
     searchPlaceholder: "名前またはスキルで検索…",
@@ -779,6 +789,11 @@ export const koPack: Dictionary = {
     conversationStart:
       "대화의 시작입니다. 메시지를 보내 스킬 교환을 시작해 보세요.",
     messagePlaceholder: "{name}에게 메시지…",
+    selectConversation: "대화 선택",
+    selectConversationHint:
+      "왼쪽에서 상대를 골라 계속 채팅하거나, 새 파트너를 찾아 메시지를 보내세요.",
+    today: "오늘",
+    yesterday: "어제",
   },
   browse: {
     searchPlaceholder: "이름 또는 스킬로 검색…",

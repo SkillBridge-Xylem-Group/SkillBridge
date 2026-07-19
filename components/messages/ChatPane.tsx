@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type FormEvent } from "react";
 import Link from "next/link";
-import { ArrowLeft, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Send, Trash2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { deleteThreadAction } from "@/lib/actions/messages";
@@ -12,7 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
-import { formatAppTime } from "@/lib/i18n/locales";
+import { dateLocaleTag, formatAppTime, type AppLocale } from "@/lib/i18n/locales";
 
 type ChatPaneProps = {
   threadId: string;
@@ -24,6 +24,31 @@ type ChatPaneProps = {
 type PendingDelete =
   | { type: "thread" }
   | { type: "message"; messageId: string };
+
+function dayKey(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function formatDayLabel(
+  iso: string,
+  locale: AppLocale,
+  labels: { today: string; yesterday: string }
+) {
+  const date = new Date(iso);
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startMsg = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((startToday.getTime() - startMsg.getTime()) / 86_400_000);
+  if (diffDays === 0) return labels.today;
+  if (diffDays === 1) return labels.yesterday;
+  return date.toLocaleDateString(dateLocaleTag(locale), {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+  });
+}
 
 export default function ChatPane({ threadId, viewerId, partner, initialMessages }: ChatPaneProps) {
   const { locale, dictionary } = useLocale();
@@ -37,6 +62,10 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages, threadId]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -87,8 +116,6 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
       });
       if (res.ok) {
         const data = await res.json();
-        // A poll tick can land between the send resolving and this callback running,
-        // and may already include this message — avoid appending a duplicate.
         setMessages((prev) =>
           prev.some((m) => m.message_id === data.message.message_id) ? prev : [...prev, data.message]
         );
@@ -109,7 +136,6 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           setDeleteError(result.error);
           setPendingDelete(null);
         }
-        // On success, deleteThreadAction redirects to /dashboard/messages itself.
       });
       return;
     }
@@ -132,21 +158,49 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
   const firstName = partner.fullname.split(" ")[0] || partner.fullname;
   const confirmBusy = pendingDelete?.type === "thread" ? isDeleting : false;
 
+  const rows = useMemo(() => {
+    const out: Array<
+      | { kind: "day"; key: string; label: string }
+      | { kind: "msg"; message: MessageRow; showAvatar: boolean }
+    > = [];
+    let lastDay = "";
+    messages.forEach((m, i) => {
+      const key = dayKey(m.sent_at);
+      if (key !== lastDay) {
+        lastDay = key;
+        out.push({
+          kind: "day",
+          key,
+          label: formatDayLabel(m.sent_at, locale, { today: msg.today, yesterday: msg.yesterday }),
+        });
+      }
+      const next = messages[i + 1];
+      const showAvatar =
+        m.sender_id !== viewerId &&
+        (!next || next.sender_id === viewerId || dayKey(next.sent_at) !== key);
+      out.push({ kind: "msg", message: m, showAvatar });
+    });
+    return out;
+  }, [messages, viewerId, locale, msg.today, msg.yesterday]);
+
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between gap-3 bg-white px-4 py-3.5" style={{ borderBottom: "1px solid #eef7f0" }}>
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+    <div className="flex h-full flex-col bg-white">
+      <div
+        className="flex items-center justify-between gap-3 px-3 py-2.5 sm:px-4"
+        style={{ background: "#f7fcf9", borderBottom: "1px solid #e8f3ec" }}
+      >
+        <div className="flex min-w-0 items-center gap-2.5">
           <Link
             href="/dashboard/messages"
             aria-label={msg.backToConversations}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-95 md:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-white/80 active:scale-95 md:hidden"
             style={{ color: "var(--sb-muted)" }}
           >
             <ArrowLeft size={18} />
           </Link>
           <Avatar className="h-10 w-10 text-sm">
-            {partner.avatar_url && <AvatarImage src={partner.avatar_url} alt="" />}
-            <AvatarFallback style={{ background: "var(--sb-gradient)", color: "#fff" }}>
+            {partner.avatar_url ? <AvatarImage src={partner.avatar_url} alt="" /> : null}
+            <AvatarFallback className="font-bold text-white" style={{ background: "var(--sb-gradient)" }}>
               {getInitials(partner.fullname)}
             </AvatarFallback>
           </Avatar>
@@ -154,15 +208,19 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
             {partner.slug ? (
               <Link
                 href={`/dashboard/profile/${partner.slug}`}
-                className="block truncate text-sm font-semibold hover:underline"
+                className="block truncate text-[15px] font-semibold hover:underline"
                 style={{ color: "var(--sb-ink)" }}
               >
                 {partner.fullname}
               </Link>
             ) : (
-              <p className="truncate text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>{partner.fullname}</p>
+              <p className="truncate text-[15px] font-semibold" style={{ color: "var(--sb-ink)" }}>
+                {partner.fullname}
+              </p>
             )}
-            <p className="text-xs" style={{ color: "var(--sb-muted)" }}>{msg.directMessage}</p>
+            <p className="text-xs" style={{ color: "var(--sb-muted)" }}>
+              {msg.directMessage}
+            </p>
           </div>
         </div>
         <button
@@ -176,14 +234,16 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           <Trash2 size={16} />
         </button>
       </div>
-      {deleteError && <p className="bg-white px-4 pt-2 text-xs font-medium text-red-600">{deleteError}</p>}
+      {deleteError ? (
+        <p className="bg-white px-4 pt-2 text-xs font-medium text-red-600">{deleteError}</p>
+      ) : null}
 
-      <div className="flex-1 space-y-2.5 overflow-y-auto px-4 py-4">
+      <div className="sb-chat-wallpaper flex-1 space-y-1 overflow-y-auto px-3 py-3 sm:px-5">
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <Avatar className="mb-3 h-12 w-12">
-              {partner.avatar_url && <AvatarImage src={partner.avatar_url} alt="" />}
-              <AvatarFallback style={{ background: "var(--sb-gradient)", color: "#fff" }}>
+            <Avatar className="mb-3 h-16 w-16 text-lg shadow-sm">
+              {partner.avatar_url ? <AvatarImage src={partner.avatar_url} alt="" /> : null}
+              <AvatarFallback className="font-bold text-white" style={{ background: "var(--sb-gradient)" }}>
                 {getInitials(partner.fullname)}
               </AvatarFallback>
             </Avatar>
@@ -195,14 +255,41 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
             </p>
           </div>
         ) : (
-          messages.map((m) => {
+          rows.map((row) => {
+            if (row.kind === "day") {
+              return (
+                <div key={`day-${row.key}`} className="flex justify-center py-2">
+                  <span className="sb-chat-date-pill">{row.label}</span>
+                </div>
+              );
+            }
+
+            const m = row.message;
             const mine = m.sender_id === viewerId;
             return (
               <div
                 key={m.message_id}
-                className={`group flex items-end gap-1.5 ${mine ? "justify-end" : "justify-start"}`}
+                className={`group flex items-end gap-1.5 ${mine ? "justify-end" : "justify-start"} ${
+                  row.showAvatar || mine ? "mt-1.5" : "mt-0.5"
+                }`}
               >
-                {mine && (
+                {!mine ? (
+                  <div className="mb-0.5 w-7 shrink-0">
+                    {row.showAvatar ? (
+                      <Avatar className="h-7 w-7 text-[10px]">
+                        {partner.avatar_url ? <AvatarImage src={partner.avatar_url} alt="" /> : null}
+                        <AvatarFallback
+                          className="font-bold text-white"
+                          style={{ background: "var(--sb-gradient)" }}
+                        >
+                          {getInitials(partner.fullname)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {mine ? (
                   <button
                     type="button"
                     onClick={() => setPendingDelete({ type: "message", messageId: m.message_id })}
@@ -213,20 +300,13 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                   >
                     <Trash2 size={14} />
                   </button>
-                )}
-                <div className={`max-w-[min(75%,22rem)] ${mine ? "items-end" : "items-start"} flex flex-col`}>
-                  <div
-                    className="break-words px-3.5 py-2.5 text-sm leading-relaxed"
-                    style={
-                      mine
-                        ? { borderRadius: "20px 20px 6px 20px", background: "var(--sb-gradient)", color: "#fff" }
-                        : { borderRadius: "20px 20px 20px 6px", background: "#f3f4f6", color: "var(--sb-ink)" }
-                    }
-                  >
-                    {m.content}
-                  </div>
-                  <span className="mt-1 px-1 text-[10px]" style={{ color: "var(--sb-muted)" }}>
+                ) : null}
+
+                <div className={`sb-chat-bubble ${mine ? "sb-chat-bubble-mine" : "sb-chat-bubble-theirs"}`}>
+                  <span className="sb-chat-bubble-body">{m.content}</span>
+                  <span className="sb-chat-meta">
                     {formatAppTime(m.sent_at, locale)}
+                    {mine ? <Check size={12} strokeWidth={2.5} aria-hidden /> : null}
                   </span>
                 </div>
               </div>
@@ -238,27 +318,30 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
 
       <form
         onSubmit={handleSend}
-        className="bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 lg:pb-4"
-        style={{ borderTop: "1px solid #eef7f0" }}
+        className="px-2.5 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-3 sm:py-2.5"
+        style={{ background: "#f7fcf9", borderTop: "1px solid #e8f3ec" }}
       >
-        <div className="nb-input flex items-center gap-2 px-2 py-1.5">
-          <EmojiPicker onSelect={(emoji) => setDraft((prev) => prev + emoji)} />
-          <input
-            type="text"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder={interpolate(msg.messagePlaceholder, { name: firstName })}
-            maxLength={2000}
-            className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm outline-none"
-            style={{ color: "var(--sb-ink)" }}
-          />
+        <div className="flex items-end gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-1 rounded-[1.5rem] bg-white px-2 py-1 shadow-sm">
+            <EmojiPicker onSelect={(emoji) => setDraft((prev) => prev + emoji)} />
+            <input
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={interpolate(msg.messagePlaceholder, { name: firstName })}
+              maxLength={2000}
+              className="min-w-0 flex-1 bg-transparent px-1 py-2.5 text-sm outline-none"
+              style={{ color: "var(--sb-ink)" }}
+            />
+          </div>
           <button
             type="submit"
             disabled={sending || !draft.trim()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition hover:-translate-y-0.5 active:scale-95 disabled:opacity-45"
-            style={{ background: "var(--sb-gradient)" }}
+            aria-label="Send"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white transition hover:brightness-105 active:scale-95 disabled:opacity-45"
+            style={{ background: "var(--sb-gradient)", boxShadow: "var(--sb-shadow-sm)" }}
           >
-            <Send size={16} />
+            <Send size={18} />
           </button>
         </div>
       </form>
