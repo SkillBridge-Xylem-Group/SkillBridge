@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 import { getRequestOrigin } from "@/lib/request-origin";
 
@@ -41,14 +41,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const { user, supabase, error: authError } = await requireActiveUser();
+  if (authError) return authError;
 
   if ((user.email ?? "").toLowerCase() === parsed.data.email) {
     return NextResponse.json({ error: "That is already your email address." }, { status: 400 });

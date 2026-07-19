@@ -23,12 +23,20 @@ export async function createSupabaseServerClient(persistSession = true) {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            const finalOptions = persistSession
-              ? options
-              : { ...options, maxAge: undefined, expires: undefined };
-            cookieStore.set(name, value, finalOptions);
-          });
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              const finalOptions = persistSession
+                ? options
+                : { ...options, maxAge: undefined, expires: undefined };
+              cookieStore.set(name, value, finalOptions);
+            });
+          } catch {
+            // Called from a Server Component during a page render (not a
+            // Server Action or Route Handler) — Next.js doesn't allow
+            // writing cookies there. Safe to ignore: proxy.ts already
+            // refreshes the session cookie on every request via middleware,
+            // so the session still gets renewed, just not from this call site.
+          }
         },
       },
       global: {

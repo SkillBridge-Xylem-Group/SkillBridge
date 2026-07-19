@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Pencil, Calendar, Clock, Check, X, Plus } from "lucide-react";
 import { uploadAvatar } from "@/lib/avatarUpload";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type ProfileHeaderProps = {
   userId: string;
@@ -77,17 +78,12 @@ export default function ProfileHeader({
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative shrink-0">
-            <div
-              className="nb-avatar flex h-24 w-24 items-center justify-center overflow-hidden text-3xl"
-              style={{ background: avatarUrl ? "#fff" : "var(--sb-gradient)", color: "#fff" }}
-            >
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt={fullname} className="h-full w-full object-cover" />
-              ) : (
-                initials
-              )}
-            </div>
+            <Avatar className="nb-avatar h-24 w-24 text-3xl">
+              {avatarUrl && <AvatarImage src={avatarUrl} alt={fullname} />}
+              <AvatarFallback style={{ background: "var(--sb-gradient)", color: "#fff" }}>
+                {initials}
+              </AvatarFallback>
+            </Avatar>
             <input
               ref={fileInputRef}
               type="file"

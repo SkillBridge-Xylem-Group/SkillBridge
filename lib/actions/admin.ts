@@ -62,3 +62,39 @@ export async function updateReportStatusAction(params: {
   revalidatePath("/dashboard/admin/reports");
   return { success: true };
 }
+
+export async function deleteReportedContentAction(params: {
+  reportId: string;
+  reportType: "forum_question" | "forum_answer";
+  questionId?: string | null;
+  answerId?: string | null;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "You need to be signed in." };
+  if (!(await isAdminUser(supabase, user.id))) return { error: "Not authorized." };
+
+  if (params.reportType === "forum_question" && params.questionId) {
+    const { error } = await supabase.from("forum_questions").delete().eq("question_id", params.questionId);
+    if (error) return { error: error.message };
+  } else if (params.reportType === "forum_answer" && params.answerId) {
+    const { error } = await supabase.from("forum_answers").delete().eq("answer_id", params.answerId);
+    if (error) return { error: error.message };
+  } else {
+    return { error: "Nothing to delete for this report." };
+  }
+
+  const { error: statusError } = await supabase
+    .from("reports")
+    .update({ status: "actioned" })
+    .eq("report_id", params.reportId);
+
+  if (statusError) return { error: statusError.message };
+
+  revalidatePath("/dashboard/admin/reports");
+  revalidatePath("/dashboard/forum");
+  return { success: true };
+}

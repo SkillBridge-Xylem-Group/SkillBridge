@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { updateOrCreateUser } from "@/lib/profile/upsertUser";
 
-const profileSchema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name is too long"),
-  bio: z.string().trim().max(300, "Bio must be 300 characters or fewer"),
-  timezone: z.string().trim().min(1, "Timezone is required").max(100, "Timezone is too long").optional(),
+const avatarSchema = z.object({
+  avatarUrl: z.string().url(),
 });
 
 export async function POST(request: Request) {
@@ -17,32 +15,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = profileSchema.safeParse(body);
+  const parsed = avatarSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Validation failed" }, { status: 400 });
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const { user, supabase, error: authError } = await requireActiveUser();
+  if (authError) return authError;
 
   const { error } = await updateOrCreateUser(supabase, user, {
-    fullname: parsed.data.name,
-    bio: parsed.data.bio,
-    ...(parsed.data.timezone ? { timezone: parsed.data.timezone } : {}),
+    avatar_url: parsed.data.avatarUrl,
   });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: "Profile saved" });
+  return NextResponse.json({ message: "Avatar saved" });
 }

@@ -10,6 +10,7 @@ import GoogleButton from "./GoogleButton";
 import AuthHoneypot from "./AuthHoneypot";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
 import { signOutEverywhere } from "@/lib/auth/sign-out";
+import { isAdminUser } from "@/lib/auth/isAdmin";
 
 type LoginFormProps = {
   redirectTo?: string | null;
@@ -96,6 +97,15 @@ export default function LoginForm({
         }
       }
 
+      // Admin accounts only sign in through the internal admin portal, never
+      // the public form. Same generic message as bad credentials — this page
+      // never confirms an account is an admin.
+      if (await isAdminUser(supabase, data.user.id)) {
+        await supabase.auth.signOut();
+        setError("Invalid email or password");
+        return;
+      }
+
       // Cookies are already set by the browser client; one navigation is enough.
       router.replace(redirectTo);
     } catch {
@@ -129,6 +139,12 @@ export default function LoginForm({
       {urlError === "auth-unavailable" && (
         <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           We could not verify your session just now. You can still sign in below.
+        </p>
+      )}
+
+      {urlError === "account-suspended" && (
+        <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          This account has been suspended. Contact support if you think this is a mistake.
         </p>
       )}
 
