@@ -236,6 +236,29 @@ export type Dictionary = {
     startFeed: string;
     noPostsFor: string;
     deleteCommunity: string;
+    joinConversation: string;
+    commentAction: string;
+    commentCancel: string;
+    sortBy: string;
+    sortBest: string;
+    sortNew: string;
+    sortOld: string;
+    searchComments: string;
+    noCommentsYet: string;
+    noCommentsMatch: string;
+    replyAction: string;
+    shareAction: string;
+    copyLink: string;
+    linkCopied: string;
+    reportAction: string;
+    reportThanks: string;
+    reportFailed: string;
+    opBadge: string;
+    topComment: string;
+    collapseThread: string;
+    expandThread: string;
+    commentsCount: string;
+    moreActions: string;
   };
   profile: {
     memberSince: string;
@@ -549,6 +572,29 @@ const en: Dictionary = {
     startFeed: "Make one and get this feed started.",
     noPostsFor: 'No posts found for "{q}"',
     deleteCommunity: "Delete community",
+    joinConversation: "Join the conversation",
+    commentAction: "Comment",
+    commentCancel: "Cancel",
+    sortBy: "Sort by",
+    sortBest: "Best",
+    sortNew: "New",
+    sortOld: "Old",
+    searchComments: "Search comments",
+    noCommentsYet: "No replies yet — be the first to comment.",
+    noCommentsMatch: "No comments match your search.",
+    replyAction: "Reply",
+    shareAction: "Share",
+    copyLink: "Copy link",
+    linkCopied: "Link copied",
+    reportAction: "Report",
+    reportThanks: "Thanks — we'll review this comment.",
+    reportFailed: "Couldn't submit the report.",
+    opBadge: "OP",
+    topComment: "Top comment",
+    collapseThread: "Collapse thread",
+    expandThread: "Expand thread",
+    commentsCount: "{n} comments",
+    moreActions: "More actions",
   },
   profile: {
     memberSince: "Member since",
@@ -858,6 +904,29 @@ const zhCN: Dictionary = {
     startFeed: "发一篇，开启讨论吧。",
     noPostsFor: "没有找到与「{q}」相关的帖子",
     deleteCommunity: "删除社区",
+    joinConversation: "参与讨论",
+    commentAction: "评论",
+    commentCancel: "取消",
+    sortBy: "排序",
+    sortBest: "最佳",
+    sortNew: "最新",
+    sortOld: "最早",
+    searchComments: "搜索评论",
+    noCommentsYet: "还没有回复 — 来做第一个评论的人吧。",
+    noCommentsMatch: "没有匹配的评论。",
+    replyAction: "回复",
+    shareAction: "分享",
+    copyLink: "复制链接",
+    linkCopied: "链接已复制",
+    reportAction: "举报",
+    reportThanks: "已提交，我们会尽快审核。",
+    reportFailed: "举报提交失败。",
+    opBadge: "楼主",
+    topComment: "热门评论",
+    collapseThread: "折叠线程",
+    expandThread: "展开线程",
+    commentsCount: "{n} 条评论",
+    moreActions: "更多操作",
   },
   profile: {
     memberSince: "加入于",
