@@ -120,6 +120,10 @@ export type Dictionary = {
     sayHelloTo: string;
     conversationStart: string;
     messagePlaceholder: string;
+    selectConversation: string;
+    selectConversationHint: string;
+    today: string;
+    yesterday: string;
   };
   browse: {
     searchPlaceholder: string;
@@ -428,6 +432,10 @@ const en: Dictionary = {
     conversationStart:
       "This is the beginning of your conversation. Send a note to get the swap started.",
     messagePlaceholder: "Message {name}...",
+    selectConversation: "Select a conversation",
+    selectConversationHint: "Pick someone from the left to keep chatting, or find a new partner to message.",
+    today: "Today",
+    yesterday: "Yesterday",
   },
   browse: {
     searchPlaceholder: "Search by name or skill...",
@@ -734,6 +742,10 @@ const zhCN: Dictionary = {
     sayHelloTo: "向 {name} 打个招呼",
     conversationStart: "这是你们对话的开始。发一条消息，开启技能交换吧。",
     messagePlaceholder: "给 {name} 发消息…",
+    selectConversation: "选择一个对话",
+    selectConversationHint: "从左侧选择联系人继续聊天，或去浏览用户开始新对话。",
+    today: "今天",
+    yesterday: "昨天",
   },
   browse: {
     searchPlaceholder: "按姓名或技能搜索…",

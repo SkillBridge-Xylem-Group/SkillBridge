@@ -159,14 +159,14 @@ export default function DashboardChrome({
         <Suspense fallback={null}>
           <NavigationProgressBar active={isPending} />
         </Suspense>
-        <div className="nb-page flex min-h-screen items-start gap-0 p-0 lg:gap-5 lg:p-5">
+        <div className="nb-page flex min-h-screen items-start gap-0 p-0 lg:gap-3 lg:px-3 lg:pb-3 lg:pt-2">
           <Sidebar communities={communities} />
 
           <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
             <Topbar userName={shell.userName} avatarUrl={shell.avatarUrl} communities={communities} />
             <main
               className={
-                mainClassName ?? "min-w-0 px-4 pb-24 pt-4 sm:px-8 lg:px-0 lg:pb-10 lg:pt-5"
+                mainClassName ?? "min-w-0 px-4 pb-24 pt-2 sm:px-6 lg:px-0 lg:pb-8 lg:pt-1"
               }
             >
               {children}
