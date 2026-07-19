@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Plus, Settings, Star } from "lucide-react";
+import { ChevronDown, Settings, Star } from "lucide-react";
 import type { SidebarCommunity } from "@/lib/forumCommunities";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
 
@@ -110,12 +110,12 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
   });
 
   return (
-    <div className="mt-6 border-t border-slate-100 pt-4">
-      <div className="mb-0.5 flex items-center gap-1 px-2">
+    <div className="mt-3 border-t border-slate-100 pt-2">
+      <div className="mb-0.5 flex items-center px-2">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex min-w-0 flex-1 items-center justify-between rounded-md px-1 py-1.5 text-left hover:bg-slate-50"
+          className="flex min-w-0 flex-1 items-center justify-between rounded-md px-1 py-1 text-left hover:bg-slate-50"
           aria-expanded={open}
         >
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
@@ -126,15 +126,6 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
             className={`shrink-0 text-slate-400 transition ${open ? "rotate-180" : ""}`}
           />
         </button>
-        <Link
-          href="/dashboard/forum?create=1"
-          onClick={onNavigate}
-          className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-          aria-label="Create community"
-          title="Create community"
-        >
-          <Plus size={14} strokeWidth={2.5} />
-        </Link>
       </div>
 
       {open ? (
