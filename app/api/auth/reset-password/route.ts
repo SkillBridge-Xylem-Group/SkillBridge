@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resetPasswordSchema } from "@/lib/auth/validation";
 import { checkPasswordBreached } from "@/lib/auth/password";
 import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_RESET_PER_IP = 10;
@@ -32,12 +32,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  const { user, supabase, error: authError } = await requireActiveUser();
+  if (authError) {
     return NextResponse.json(
       { error: "Your password reset link has expired. Please request a new one." },
       { status: 401 }

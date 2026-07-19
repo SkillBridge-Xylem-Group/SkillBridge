@@ -11,6 +11,7 @@ import {
   createOAuthBrowserClient,
 } from "@/lib/supabase/oauth-client";
 import { getSafeRedirectPath } from "@/lib/auth/safe-redirect";
+import { isAdminUser } from "@/lib/auth/isAdmin";
 
 export default function AuthCallbackClient() {
   const router = useRouter();
@@ -75,6 +76,20 @@ export default function AuthCallbackClient() {
           if (!cancelled) {
             setStatus("error");
             setMessage("Signed in with Google, but saving your session failed. Please try again.");
+          }
+          return;
+        }
+
+        // Google OAuth skips LoginForm's handleSubmit entirely, so the admin
+        // block has to be re-checked here too — otherwise an admin account
+        // with Google sign-in enabled could bypass the /login restriction.
+        if (await isAdminUser(cookieClient, data.session.user.id)) {
+          await Promise.all([oauthClient.auth.signOut(), cookieClient.auth.signOut()]);
+          clearOAuthPkceStorage();
+          clearGoogleReauthRequired();
+          if (!cancelled) {
+            setStatus("error");
+            setMessage("This account can't sign in here.");
           }
           return;
         }

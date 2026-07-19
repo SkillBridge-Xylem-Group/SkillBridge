@@ -28,6 +28,7 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
     browse: dictionary.nav.browse,
     swaps: dictionary.nav.swaps,
     forum: dictionary.nav.forum,
+    profile: dictionary.nav.profile,
   } as const;
 
   // Read the persisted preference after mount only, so server and first

@@ -11,7 +11,7 @@ export type MessageRow = {
 
 export type ThreadSummary = {
   thread_id: string;
-  partner: { id: string; fullname: string; slug: string };
+  partner: { id: string; fullname: string; slug: string; avatar_url: string | null };
   lastMessage: { content: string; sent_at: string; sender_id: string } | null;
 };
 
@@ -77,7 +77,7 @@ export async function getThreadParticipant(
   supabase: SupabaseClient,
   threadId: string,
   viewerId: string
-): Promise<{ id: string; fullname: string; slug: string } | null> {
+): Promise<{ id: string; fullname: string; slug: string; avatar_url: string | null } | null> {
   const { data: participants } = await supabase
     .from("thread_participants")
     .select("user_id")
@@ -91,7 +91,7 @@ export async function getThreadParticipant(
 
   const { data: partner } = await supabase
     .from("users")
-    .select("id, fullname, slug")
+    .select("id, fullname, slug, avatar_url")
     .eq("id", partnerId)
     .maybeSingle();
   return partner ?? null;
@@ -101,8 +101,8 @@ export async function getThreadParticipant(
 export async function getUserBySlug(
   supabase: SupabaseClient,
   slug: string
-): Promise<{ id: string; fullname: string; slug: string } | null> {
-  const { data } = await supabase.from("users").select("id, fullname, slug").eq("slug", slug).maybeSingle();
+): Promise<{ id: string; fullname: string; slug: string; avatar_url: string | null } | null> {
+  const { data } = await supabase.from("users").select("id, fullname, slug, avatar_url").eq("slug", slug).maybeSingle();
   return data ?? null;
 }
 
@@ -135,7 +135,7 @@ export async function getUserThreads(supabase: SupabaseClient, userId: string): 
   });
 
   const partnerIds = [...new Set(partnerIdByThread.values())];
-  const { data: users } = await supabase.from("users").select("id, fullname, slug").in("id", partnerIds);
+  const { data: users } = await supabase.from("users").select("id, fullname, slug, avatar_url").in("id", partnerIds);
   const userById = new Map((users ?? []).map((u) => [u.id, u]));
 
   const { data: messages } = await supabase
@@ -155,7 +155,12 @@ export async function getUserThreads(supabase: SupabaseClient, userId: string): 
       const partnerUser = userById.get(partnerId);
       return {
         thread_id: threadId,
-        partner: { id: partnerId, fullname: partnerUser?.fullname ?? "Unknown", slug: partnerUser?.slug ?? "" },
+        partner: {
+          id: partnerId,
+          fullname: partnerUser?.fullname ?? "Unknown",
+          slug: partnerUser?.slug ?? "",
+          avatar_url: partnerUser?.avatar_url ?? null,
+        },
         lastMessage: lastByThread.get(threadId) ?? null,
       };
     })

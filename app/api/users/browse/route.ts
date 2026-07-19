@@ -1,21 +1,15 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { user, supabase, error: authError } = await requireActiveUser();
+  if (authError) return authError;
 
   const selectClause = `
     id,
     slug,
     fullname,
+    avatar_url,
     trust_score,
     user_skill_offered ( skills ( skill_name, category ) ),
     reviews_received:reviews!reviews_reviewed_user_id_fkey ( count )
@@ -45,6 +39,7 @@ export async function GET() {
       id: c.id,
       slug: c.slug,
       name: c.fullname,
+      avatarUrl: c.avatar_url ?? null,
       rating: c.trust_score ?? 0,
       reviewCount: reviewsAgg?.count ?? 0,
       tags: [...new Set(skillEntries.map((s) => s.skill_name))],

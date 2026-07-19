@@ -5,12 +5,19 @@ const OAUTH_STORAGE_KEY = "skillbridge-oauth-pkce";
 export const FORCE_GOOGLE_REAUTH_KEY = "skillbridge-force-google-reauth";
 
 /**
- * Dedicated browser client for Google OAuth PKCE.
- * Uses localStorage so the PKCE code verifier survives the redirect back from Google
- * (cookie storage often fails that round-trip).
+ * Dedicated browser client for Google OAuth PKCE. Singleton for the same
+ * reason as createSupabaseBrowserClient — reuse one GoTrueClient instead of
+ * creating a fresh one on every call (this one's called from several forum
+ * upload/composer components in addition to the auth flow itself).
+ * Uses localStorage so the PKCE code verifier survives the redirect back
+ * from Google (cookie storage often fails that round-trip).
  */
+let oauthClient: SupabaseClient | undefined;
+
 export function createOAuthBrowserClient(): SupabaseClient {
-  return createClient(
+  if (oauthClient) return oauthClient;
+
+  oauthClient = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -24,6 +31,8 @@ export function createOAuthBrowserClient(): SupabaseClient {
       },
     }
   );
+
+  return oauthClient;
 }
 
 /** Clear stale PKCE/session keys so each Google login starts clean. */

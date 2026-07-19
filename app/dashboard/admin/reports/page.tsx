@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ReportStatusControl from "@/components/admin/ReportStatusControl";
+import DeleteContentButton from "@/components/admin/DeleteContentButton";
+import SuspendToggleButton from "@/components/admin/SuspendToggleButton";
 
 export const metadata: Metadata = {
   title: "Flagged Content | Admin | SkillBridge",
@@ -19,7 +22,7 @@ const STATUS_STYLES: Record<string, string> = {
   actioned: "bg-red-50 text-red-600",
 };
 
-type UserRow = { id: string; fullname: string; email: string };
+type UserRow = { id: string; fullname: string; email: string; is_suspended: boolean };
 type QuestionRow = { question_id: string; title: string; user_id: string };
 type AnswerRow = { answer_id: string; content: string; question_id: string; user_id: string };
 
@@ -30,6 +33,10 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     : "pending";
 
   const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
 
   let reportsQuery = supabase
     .from("reports")
@@ -45,8 +52,6 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
   const { data: reports, error } = await reportsQuery;
   const reportList = reports ?? [];
 
-  // Resolve whatever each report points at (a user, a question, or an
-  // answer) so the table can show something meaningful instead of raw IDs.
   const questionIds = [...new Set(reportList.map((r) => r.question_id).filter((v): v is string => !!v))];
   const answerIds = [...new Set(reportList.map((r) => r.answer_id).filter((v): v is string => !!v))];
   const directUserIds = [...new Set(reportList.map((r) => r.reported_user_id).filter((v): v is string => !!v))];
@@ -63,9 +68,6 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
   const questionMap = new Map((questions ?? []).map((q) => [q.question_id, q]));
   const answerMap = new Map((answers ?? []).map((a) => [a.answer_id, a]));
 
-  // Now that we know question/answer authors, gather every user id we need
-  // a name for in one batched query: reporters, directly-reported users,
-  // and question/answer authors.
   const allUserIds = new Set<string>();
   reportList.forEach((r) => {
     allUserIds.add(r.reporter_id);
@@ -76,7 +78,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
   directUserIds.forEach((id) => allUserIds.add(id));
 
   const { data: users } = allUserIds.size
-    ? await supabase.from("users").select("id, fullname, email").in("id", [...allUserIds])
+    ? await supabase.from("users").select("id, fullname, email, is_suspended").in("id", [...allUserIds])
     : { data: [] as UserRow[] };
   const userMap = new Map((users ?? []).map((u) => [u.id, u]));
 
@@ -84,26 +86,35 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     const reporter = userMap.get(r.reporter_id);
     let targetLabel = "Unknown";
     let targetDetail = "";
+    let targetUserId: string | null = null;
 
     if (r.report_type === "user") {
       const u = r.reported_user_id ? userMap.get(r.reported_user_id) : undefined;
       targetLabel = u?.fullname ?? "Unknown user";
       targetDetail = u?.email ?? "";
+      targetUserId = r.reported_user_id ?? null;
     } else if (r.report_type === "forum_question") {
       const q = r.question_id ? questionMap.get(r.question_id) : undefined;
       targetLabel = q?.title ?? "Unknown question";
       targetDetail = q ? `posted by ${userMap.get(q.user_id)?.fullname ?? "unknown"}` : "";
+      targetUserId = q?.user_id ?? null;
     } else if (r.report_type === "forum_answer") {
       const a = r.answer_id ? answerMap.get(r.answer_id) : undefined;
       targetLabel = a ? a.content.slice(0, 80) + (a.content.length > 80 ? "…" : "") : "Unknown answer";
       targetDetail = a ? `answered by ${userMap.get(a.user_id)?.fullname ?? "unknown"}` : "";
+      targetUserId = a?.user_id ?? null;
     }
+
+    const targetUser = targetUserId ? userMap.get(targetUserId) : undefined;
 
     return {
       ...r,
       reporterName: reporter?.fullname ?? "Unknown",
       targetLabel,
       targetDetail,
+      targetUserId,
+      targetUserIsSuspended: targetUser?.is_suspended ?? false,
+      canSuspendTarget: !!targetUserId && targetUserId !== viewer?.id,
     };
   });
 
@@ -117,7 +128,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
 
       <div className="mt-6 flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => (
-          <a
+          <Link
             key={tab}
             href={tab === "pending" ? "/dashboard/admin/reports" : `/dashboard/admin/reports?status=${tab}`}
             className={`rounded-full px-3.5 py-1.5 text-xs font-semibold capitalize transition ${
@@ -125,7 +136,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
             }`}
           >
             {tab}
-          </a>
+          </Link>
         ))}
       </div>
 
@@ -166,7 +177,20 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <ReportStatusControl reportId={r.report_id} currentStatus={r.status} />
+                  <div className="flex flex-col items-end gap-2">
+                    {(r.report_type === "forum_question" || r.report_type === "forum_answer") && (
+                      <DeleteContentButton
+                        reportId={r.report_id}
+                        reportType={r.report_type as "forum_question" | "forum_answer"}
+                        questionId={r.question_id}
+                        answerId={r.answer_id}
+                      />
+                    )}
+                    {r.canSuspendTarget && (
+                      <SuspendToggleButton userId={r.targetUserId!} isSuspended={r.targetUserIsSuspended} />
+                    )}
+                    <ReportStatusControl reportId={r.report_id} currentStatus={r.status} />
+                  </div>
                 </td>
               </tr>
             ))}

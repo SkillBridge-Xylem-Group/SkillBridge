@@ -70,8 +70,6 @@ export function useRealtimeNotifications() {
         console.error("[notifications] realtime setup failed:", err);
       }
 
-      // Refresh immediately when the user returns to the tab/window, and keep a
-      // short poll as a fallback in case Realtime replication is unavailable.
       window.addEventListener("focus", onFocus);
       document.addEventListener("visibilitychange", onVisible);
       pollId = setInterval(() => {

@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { getInitials } from "@/lib/utils";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type Match = {
   id: string;
   slug: string;
   name: string;
+  avatarUrl: string | null;
   rating: number;
   reviewCount: number;
   tags: string[];
@@ -81,9 +83,15 @@ export default function TopRatedMembers() {
                 style={{ background: "#fbfffc", boxShadow: "var(--sb-shadow-sm)" }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-extrabold" style={{ background: avatarTint.bg, color: avatarTint.ink }}>
-                    {getInitials(m.name)}
-                  </div>
+                  <Avatar className="h-12 w-12">
+                    {m.avatarUrl && <AvatarImage src={m.avatarUrl} alt="" />}
+                    <AvatarFallback
+                      className="text-sm font-extrabold"
+                      style={{ background: avatarTint.bg, color: avatarTint.ink }}
+                    >
+                      {getInitials(m.name)}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="min-w-0 flex-1">
                     <p
                       className="truncate text-sm font-extrabold"

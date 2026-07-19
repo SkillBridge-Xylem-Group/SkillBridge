@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { updateOrCreateUser } from "@/lib/profile/upsertUser";
 
@@ -38,14 +39,8 @@ async function replaceSkillRows(
 }
 
 export async function POST(request: Request) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { user, supabase, error: authError } = await requireActiveUser();
+  if (authError) return authError;
 
   const body = await request.json().catch(() => null);
   const parsed = skillsSchema.safeParse(body);

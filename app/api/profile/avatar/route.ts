@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { updateOrCreateUser } from "@/lib/profile/upsertUser";
 
 const avatarSchema = z.object({
@@ -20,14 +20,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Validation failed" }, { status: 400 });
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const { user, supabase, error: authError } = await requireActiveUser();
+  if (authError) return authError;
 
   const { error } = await updateOrCreateUser(supabase, user, {
     avatar_url: parsed.data.avatarUrl,

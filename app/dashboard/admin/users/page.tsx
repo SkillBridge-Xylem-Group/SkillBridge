@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import SuspendToggleButton from "@/components/admin/SuspendToggleButton";
 
@@ -54,12 +55,12 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
           Search
         </button>
         {term && (
-          <a
+          <Link
             href="/dashboard/admin/users"
             className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100"
           >
             Clear
-          </a>
+          </Link>
         )}
       </form>
 

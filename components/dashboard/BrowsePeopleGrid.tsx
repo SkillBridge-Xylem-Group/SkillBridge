@@ -2,11 +2,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search, Star, SlidersHorizontal } from "lucide-react";
 import { getInitials } from "@/lib/utils";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type Person = {
   id: string;
   slug: string;
   name: string;
+  avatarUrl: string | null;
   rating: number;
   reviewCount: number;
   tags: string[];
@@ -148,12 +150,15 @@ export default function BrowsePeopleGrid() {
                     style={{ boxShadow: "var(--sb-shadow-sm)" }}
                   >
                     <div className="flex items-center gap-3">
-                      <div
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-extrabold"
-                        style={{ background: avatarTint.bg, color: avatarTint.ink }}
-                      >
-                        {getInitials(p.name)}
-                      </div>
+                      <Avatar className="h-11 w-11">
+                        {p.avatarUrl && <AvatarImage src={p.avatarUrl} alt="" />}
+                        <AvatarFallback
+                          className="text-sm font-extrabold"
+                          style={{ background: avatarTint.bg, color: avatarTint.ink }}
+                        >
+                          {getInitials(p.name)}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-bold" style={{ color: "var(--sb-ink)" }} title={p.name}>
                           {p.name}

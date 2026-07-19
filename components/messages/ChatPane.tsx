@@ -6,21 +6,16 @@ import { ArrowLeft, Send, Trash2 } from "lucide-react";
 import { formatMessageTime, getInitials } from "@/lib/utils";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { deleteThreadAction } from "@/lib/actions/messages";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import EmojiPicker from "./EmojiPicker";
 import type { MessageRow } from "@/lib/messages";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type ChatPaneProps = {
   threadId: string;
   viewerId: string;
-  partner: { id: string; fullname: string; slug?: string };
+  partner: { id: string; fullname: string; slug?: string; avatar_url?: string | null };
   initialMessages: MessageRow[];
 };
-
-type PendingDelete =
-  | { kind: "message"; messageId: string }
-  | { kind: "thread" }
-  | null;
 
 export default function ChatPane({ threadId, viewerId, partner, initialMessages }: ChatPaneProps) {
   const [messages, setMessages] = useState(initialMessages);
@@ -29,7 +24,6 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, startDeleteTransition] = useTransition();
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,6 +75,8 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
       });
       if (res.ok) {
         const data = await res.json();
+        // A poll tick can land between the send resolving and this callback running,
+        // and may already include this message — avoid appending a duplicate.
         setMessages((prev) =>
           prev.some((m) => m.message_id === data.message.message_id) ? prev : [...prev, data.message]
         );
@@ -90,51 +86,34 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
     }
   }
 
-  function requestDeleteThread() {
+  function handleDelete() {
+    if (!window.confirm(`Delete this conversation with ${partner.fullname}? This can't be undone.`)) return;
     setDeleteError("");
-    setPendingDelete({ kind: "thread" });
+    startDeleteTransition(async () => {
+      const result = await deleteThreadAction(threadId);
+      if (result?.error) setDeleteError(result.error);
+      // On success, deleteThreadAction redirects to /dashboard/messages itself.
+    });
   }
 
-  function requestDeleteMessage(messageId: string) {
-    setPendingDelete({ kind: "message", messageId });
-  }
-
-  function confirmPendingDelete() {
-    if (!pendingDelete) return;
-
-    if (pendingDelete.kind === "thread") {
-      setPendingDelete(null);
-      startDeleteTransition(async () => {
-        const result = await deleteThreadAction(threadId);
-        if (result?.error) setDeleteError(result.error);
-      });
-      return;
-    }
-
-    const messageId = pendingDelete.messageId;
-    setPendingDelete(null);
+  async function handleDeleteMessage(messageId: string) {
+    if (!window.confirm("Delete this message?")) return;
     setDeletingMessageId(messageId);
-    void (async () => {
-      try {
-        const res = await fetch(`/api/messages/${threadId}/${messageId}`, { method: "DELETE" });
-        if (res.ok) {
-          setMessages((prev) => prev.filter((m) => m.message_id !== messageId));
-        }
-      } finally {
-        setDeletingMessageId(null);
+    try {
+      const res = await fetch(`/api/messages/${threadId}/${messageId}`, { method: "DELETE" });
+      if (res.ok) {
+        setMessages((prev) => prev.filter((m) => m.message_id !== messageId));
       }
-    })();
+    } finally {
+      setDeletingMessageId(null);
+    }
   }
 
   const firstName = partner.fullname.split(" ")[0] || partner.fullname;
-  const confirmBusy = isDeleting || deletingMessageId !== null;
 
   return (
     <div className="flex h-full flex-col">
-      <div
-        className="flex items-center justify-between gap-3 bg-white px-4 py-3.5"
-        style={{ borderBottom: "1px solid #eef7f0" }}
-      >
+      <div className="flex items-center justify-between gap-3 bg-white px-4 py-3.5" style={{ borderBottom: "1px solid #eef7f0" }}>
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Link
             href="/dashboard/messages"
@@ -144,12 +123,12 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           >
             <ArrowLeft size={18} />
           </Link>
-          <div
-            className="nb-avatar flex h-10 w-10 shrink-0 items-center justify-center text-sm"
-            style={{ background: "var(--sb-gradient)", color: "#fff" }}
-          >
-            {getInitials(partner.fullname)}
-          </div>
+          <Avatar className="h-10 w-10 text-sm">
+            {partner.avatar_url && <AvatarImage src={partner.avatar_url} alt="" />}
+            <AvatarFallback style={{ background: "var(--sb-gradient)", color: "#fff" }}>
+              {getInitials(partner.fullname)}
+            </AvatarFallback>
+          </Avatar>
           <div className="min-w-0">
             {partner.slug ? (
               <Link
@@ -160,18 +139,14 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                 {partner.fullname}
               </Link>
             ) : (
-              <p className="truncate text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>
-                {partner.fullname}
-              </p>
+              <p className="truncate text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>{partner.fullname}</p>
             )}
-            <p className="text-xs" style={{ color: "var(--sb-muted)" }}>
-              Direct message
-            </p>
+            <p className="text-xs" style={{ color: "var(--sb-muted)" }}>Direct message</p>
           </div>
         </div>
         <button
           type="button"
-          onClick={requestDeleteThread}
+          onClick={handleDelete}
           disabled={isDeleting}
           aria-label="Delete conversation"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition hover:bg-red-50 hover:text-red-500 active:scale-95 disabled:opacity-50"
@@ -180,20 +155,18 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           <Trash2 size={16} />
         </button>
       </div>
-      {deleteError ? <p className="bg-white px-4 pt-2 text-xs font-medium text-red-600">{deleteError}</p> : null}
+      {deleteError && <p className="bg-white px-4 pt-2 text-xs font-medium text-red-600">{deleteError}</p>}
 
       <div className="flex-1 space-y-2.5 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <div
-              className="nb-avatar mb-3 flex h-12 w-12 items-center justify-center"
-              style={{ background: "var(--sb-gradient)", color: "#fff" }}
-            >
-              {getInitials(partner.fullname)}
-            </div>
-            <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>
-              Say hello to {firstName}
-            </p>
+            <Avatar className="mb-3 h-12 w-12">
+              {partner.avatar_url && <AvatarImage src={partner.avatar_url} alt="" />}
+              <AvatarFallback style={{ background: "var(--sb-gradient)", color: "#fff" }}>
+                {getInitials(partner.fullname)}
+              </AvatarFallback>
+            </Avatar>
+            <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>Say hello to {firstName}</p>
             <p className="mt-1 max-w-xs text-xs" style={{ color: "var(--sb-muted)" }}>
               This is the beginning of your conversation. Send a note to get the swap started.
             </p>
@@ -206,10 +179,10 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                 key={m.message_id}
                 className={`group flex items-end gap-1.5 ${mine ? "justify-end" : "justify-start"}`}
               >
-                {mine ? (
+                {mine && (
                   <button
                     type="button"
-                    onClick={() => requestDeleteMessage(m.message_id)}
+                    onClick={() => handleDeleteMessage(m.message_id)}
                     disabled={deletingMessageId === m.message_id}
                     aria-label="Delete message"
                     className="mb-1 opacity-0 transition group-hover:opacity-100 hover:text-red-500 disabled:opacity-50"
@@ -217,8 +190,8 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
                   >
                     <Trash2 size={14} />
                   </button>
-                ) : null}
-                <div className={`flex max-w-[min(75%,22rem)] flex-col ${mine ? "items-end" : "items-start"}`}>
+                )}
+                <div className={`max-w-[min(75%,22rem)] ${mine ? "items-end" : "items-start"} flex flex-col`}>
                   <div
                     className="break-words px-3.5 py-2.5 text-sm leading-relaxed"
                     style={
@@ -266,29 +239,6 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           </button>
         </div>
       </form>
-
-      <ConfirmDialog
-        open={pendingDelete?.kind === "message"}
-        title="Delete message?"
-        description="This message will be removed from the conversation. This can’t be undone."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
-        danger
-        busy={confirmBusy}
-        onCancel={() => setPendingDelete(null)}
-        onConfirm={confirmPendingDelete}
-      />
-      <ConfirmDialog
-        open={pendingDelete?.kind === "thread"}
-        title="Delete conversation?"
-        description={`Delete this conversation with ${partner.fullname}? This can’t be undone.`}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
-        danger
-        busy={confirmBusy}
-        onCancel={() => setPendingDelete(null)}
-        onConfirm={confirmPendingDelete}
-      />
     </div>
   );
 }

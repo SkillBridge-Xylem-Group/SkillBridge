@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getInitials } from "@/lib/utils";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { ThreadSummary } from "@/lib/messages";
 
 function timeAgo(iso: string) {
@@ -52,9 +53,15 @@ export default function RecentMessages() {
             className="flex items-center gap-3 py-2.5"
             style={i > 0 ? { borderTop: "1px solid #eef7f0" } : undefined}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-extrabold" style={{ background: "var(--sb-tint-violet-bg)", color: "var(--sb-tint-violet-ink)" }}>
-              {getInitials(t.partner.fullname)}
-            </div>
+            <Avatar className="h-10 w-10">
+              {t.partner.avatar_url && <AvatarImage src={t.partner.avatar_url} alt="" />}
+              <AvatarFallback
+                className="text-xs font-extrabold"
+                style={{ background: "var(--sb-tint-violet-bg)", color: "var(--sb-tint-violet-ink)" }}
+              >
+                {getInitials(t.partner.fullname)}
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{t.partner.fullname}</p>
               <p className="truncate text-xs font-medium" style={{ color: "var(--sb-muted)" }}>{t.lastMessage?.content ?? "Say hello!"}</p>

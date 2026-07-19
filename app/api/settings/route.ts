@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { updateOrCreateUser } from "@/lib/profile/upsertUser";
 import { COUNTRY_OPTIONS } from "@/lib/settingsOptions";
 import { LOCALE_OPTIONS } from "@/lib/i18n/locales";
@@ -59,14 +59,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+  const { user, supabase, error: authError } = await requireActiveUser();
+  if (authError) return authError;
 
   const { error } = await updateOrCreateUser(supabase, user, {
     ...(parsed.data.gender !== undefined ? { gender: parsed.data.gender } : {}),
