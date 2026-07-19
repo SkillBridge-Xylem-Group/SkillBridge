@@ -18,6 +18,7 @@ import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload"
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { categoryLabel } from "@/lib/i18n/communityCategoryLabels";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
+import { openForumCompose } from "@/components/forum/QuestionComposer";
 
 type CommunityPageHeaderProps = {
   community: ForumCommunity;
@@ -223,8 +224,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
               <button
                 type="button"
                 onClick={() => {
-                  window.dispatchEvent(new Event("sb-forum-compose-open"));
-                  router.replace(`/dashboard/forum/c/${community.slug}?compose=1`, { scroll: false });
+                  openForumCompose(`/dashboard/forum/c/${community.slug}?compose=1`);
                 }}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50"
               >

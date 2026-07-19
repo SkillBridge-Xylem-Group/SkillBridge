@@ -24,6 +24,20 @@ type QuestionComposerProps = {
   defaultOpen?: boolean;
 };
 
+const COMPOSE_OPEN_EVENT = "sb-forum-compose-open";
+
+/** Survives soft-nav remounts so Create Post still opens after URL sync. */
+let pendingComposeOpen = false;
+
+/** Open the create-post modal without triggering an RSC remount race. */
+export function openForumCompose(composeUrl?: string) {
+  pendingComposeOpen = true;
+  window.dispatchEvent(new Event(COMPOSE_OPEN_EVENT));
+  if (composeUrl) {
+    window.history.replaceState(window.history.state, "", composeUrl);
+  }
+}
+
 export default function QuestionComposer({
   userInitials,
   subforumSlug: lockedSlug,
@@ -38,7 +52,7 @@ export default function QuestionComposer({
       ? communityOptions
       : FORUM_SUBFORUMS.map((s) => ({ slug: s.slug, title: s.title }));
 
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(() => defaultOpen || pendingComposeOpen);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedSlug, setSelectedSlug] = useState(lockedSlug ?? "");
@@ -57,17 +71,20 @@ export default function QuestionComposer({
       : null;
   const lockedSubforum = lockedSlug ? { slug: lockedSlug, title: lockedTitle ?? lockedSlug } : null;
 
-  // Soft-nav to ?compose=1 does not remount this client tree — sync open state.
   useEffect(() => {
-    if (defaultOpen) setOpen(true);
+    if (defaultOpen || pendingComposeOpen) {
+      pendingComposeOpen = false;
+      setOpen(true);
+    }
   }, [defaultOpen]);
 
   useEffect(() => {
     function onComposeOpen() {
+      pendingComposeOpen = false;
       setOpen(true);
     }
-    window.addEventListener("sb-forum-compose-open", onComposeOpen);
-    return () => window.removeEventListener("sb-forum-compose-open", onComposeOpen);
+    window.addEventListener(COMPOSE_OPEN_EVENT, onComposeOpen);
+    return () => window.removeEventListener(COMPOSE_OPEN_EVENT, onComposeOpen);
   }, []);
 
   useEffect(() => {
@@ -96,13 +113,21 @@ export default function QuestionComposer({
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
+  function stripComposeFromUrl() {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("compose")) return;
+    url.searchParams.delete("compose");
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState(window.history.state, "", next);
+  }
+
   function close() {
     if (isPending) return;
+    pendingComposeOpen = false;
     setOpen(false);
     resetForm();
-    if (lockedSlug) {
-      router.replace(`/dashboard/forum/c/${lockedSlug}`, { scroll: false });
-    }
+    stripComposeFromUrl();
   }
 
   function onPickImage(file: File | undefined) {
@@ -160,8 +185,10 @@ export default function QuestionComposer({
         setError(result.error);
         return;
       }
+      pendingComposeOpen = false;
       setOpen(false);
       resetForm();
+      stripComposeFromUrl();
       if (result?.questionId) {
         router.push(`/dashboard/forum/${result.questionId}`);
         router.refresh();

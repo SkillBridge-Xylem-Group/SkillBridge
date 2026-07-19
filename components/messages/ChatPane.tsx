@@ -67,6 +67,25 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
     setMessages(initialMessages);
   }, [initialMessages, threadId]);
 
+  // Clear sidebar / bell unread as soon as this chat is open (layout list does not remount).
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("sb-messages-thread-read", { detail: { threadId } })
+    );
+    window.dispatchEvent(new Event("sb-notifications-reload"));
+
+    let cancelled = false;
+    void (async () => {
+      await fetch(`/api/messages/${threadId}`);
+      if (cancelled) return;
+      window.dispatchEvent(new Event("sb-notifications-reload"));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId]);
+
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     const channel = supabase
@@ -79,6 +98,15 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           setMessages((prev) =>
             prev.some((m) => m.message_id === incoming.message_id) ? prev : [...prev, incoming]
           );
+          // Viewing this thread — keep unread badges clear for new inbound messages.
+          if (incoming.sender_id !== viewerId) {
+            window.dispatchEvent(
+              new CustomEvent("sb-messages-thread-read", { detail: { threadId } })
+            );
+            void fetch(`/api/messages/${threadId}`).then(() => {
+              window.dispatchEvent(new Event("sb-notifications-reload"));
+            });
+          }
         }
       )
       .on(
@@ -95,7 +123,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [threadId]);
+  }, [threadId, viewerId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
