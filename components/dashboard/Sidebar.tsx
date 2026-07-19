@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -58,12 +59,7 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-7">
         <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2`}>
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
-            <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[15px] font-extrabold text-white"
-              style={{ background: "var(--sb-gradient)" }}
-            >
-              S
-            </span>
+            <Image src="/images/logo-mark.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0" />
             {!collapsed && (
               <span className="truncate text-lg font-extrabold nb-heading">SkillBridge</span>
             )}
