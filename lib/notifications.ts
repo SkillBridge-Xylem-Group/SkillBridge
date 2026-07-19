@@ -122,6 +122,27 @@ export async function getUnreadMessageNotificationCount(supabase: SupabaseClient
   return count ?? 0;
 }
 
+/** Unread DM notification counts keyed by thread_id (`related_entity_id`). */
+export async function getUnreadMessageCountsByThread(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<Map<string, number>> {
+  const { data } = await supabase
+    .from("notifications")
+    .select("related_entity_id")
+    .eq("user_id", userId)
+    .eq("type", "message")
+    .eq("is_read", false)
+    .not("related_entity_id", "is", null);
+
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    const threadId = row.related_entity_id as string;
+    counts.set(threadId, (counts.get(threadId) ?? 0) + 1);
+  }
+  return counts;
+}
+
 export async function markNotificationRead(supabase: SupabaseClient, notificationId: string) {
   await supabase.from("notifications").update({ is_read: true }).eq("notification_id", notificationId);
 }
