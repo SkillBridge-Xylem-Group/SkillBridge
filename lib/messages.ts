@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getUnreadMessageCountsByThread } from "@/lib/notifications";
 
 export type MessageRow = {
   message_id: string;
@@ -13,6 +14,7 @@ export type ThreadSummary = {
   thread_id: string;
   partner: { id: string; fullname: string; slug: string; avatar_url: string | null };
   lastMessage: { content: string; sent_at: string; sender_id: string } | null;
+  unreadCount: number;
 };
 
 /** Finds a thread both users already share, or creates a fresh one (and adds both as participants). */
@@ -149,6 +151,8 @@ export async function getUserThreads(supabase: SupabaseClient, userId: string): 
     if (!lastByThread.has(m.thread_id)) lastByThread.set(m.thread_id, m);
   });
 
+  const unreadByThread = await getUnreadMessageCountsByThread(supabase, userId);
+
   return threadIds
     .map((threadId) => {
       const partnerId = partnerIdByThread.get(threadId) ?? "";
@@ -162,7 +166,11 @@ export async function getUserThreads(supabase: SupabaseClient, userId: string): 
           avatar_url: partnerUser?.avatar_url ?? null,
         },
         lastMessage: lastByThread.get(threadId) ?? null,
+        unreadCount: unreadByThread.get(threadId) ?? 0,
       };
     })
-    .sort((a, b) => (b.lastMessage?.sent_at ?? "").localeCompare(a.lastMessage?.sent_at ?? ""));
+    .sort((a, b) => {
+      if (a.unreadCount > 0 !== b.unreadCount > 0) return a.unreadCount > 0 ? -1 : 1;
+      return (b.lastMessage?.sent_at ?? "").localeCompare(a.lastMessage?.sent_at ?? "");
+    });
 }

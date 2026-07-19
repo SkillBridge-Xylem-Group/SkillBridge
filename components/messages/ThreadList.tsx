@@ -81,6 +81,7 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
             {filtered.map((t) => {
               const active = pathname === `/dashboard/messages/${t.partner.slug}`;
               const preview = t.lastMessage?.content?.trim() || m.sayHello;
+              const unread = t.unreadCount > 0;
               return (
                 <li key={t.thread_id}>
                   <Link
@@ -91,32 +92,62 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
                       borderBottom: "1px solid #f3faf6",
                     }}
                   >
-                    <Avatar className="h-12 w-12 shrink-0 text-sm">
-                      {t.partner.avatar_url ? <AvatarImage src={t.partner.avatar_url} alt="" /> : null}
-                      <AvatarFallback
-                        className="font-bold text-white"
-                        style={{ background: "var(--sb-gradient)" }}
-                      >
-                        {getInitials(t.partner.fullname)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative shrink-0">
+                      <Avatar className="h-12 w-12 text-sm">
+                        {t.partner.avatar_url ? <AvatarImage src={t.partner.avatar_url} alt="" /> : null}
+                        <AvatarFallback
+                          className="font-bold text-white"
+                          style={{ background: "var(--sb-gradient)" }}
+                        >
+                          {getInitials(t.partner.fullname)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {unread ? (
+                        <span
+                          className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white"
+                          style={{ background: "var(--sb-emerald)" }}
+                          aria-hidden
+                        />
+                      ) : null}
+                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="truncate text-[15px] font-semibold" style={{ color: "var(--sb-ink)" }}>
+                        <p
+                          className={`truncate text-[15px] ${unread ? "font-extrabold" : "font-semibold"}`}
+                          style={{ color: "var(--sb-ink)" }}
+                        >
                           {t.partner.fullname}
                         </p>
                         {t.lastMessage?.sent_at ? (
                           <span
-                            className="shrink-0 text-[11px] font-medium"
-                            style={{ color: active ? "var(--sb-emerald-dark)" : "var(--sb-muted)" }}
+                            className={`shrink-0 text-[11px] font-semibold ${unread ? "" : "font-medium"}`}
+                            style={{
+                              color: unread || active ? "var(--sb-emerald-dark)" : "var(--sb-muted)",
+                            }}
                           >
                             {formatRelativeTimeLabel(t.lastMessage.sent_at, dictionary.common, locale)}
                           </span>
                         ) : null}
                       </div>
-                      <p className="mt-0.5 truncate text-[13px] leading-snug" style={{ color: "var(--sb-muted)" }}>
-                        {preview}
-                      </p>
+                      <div className="mt-0.5 flex items-center gap-2">
+                        <p
+                          className={`min-w-0 flex-1 truncate text-[13px] leading-snug ${
+                            unread ? "font-semibold" : ""
+                          }`}
+                          style={{ color: unread ? "var(--sb-ink)" : "var(--sb-muted)" }}
+                        >
+                          {preview}
+                        </p>
+                        {unread ? (
+                          <span
+                            className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white"
+                            style={{ background: "var(--sb-emerald)" }}
+                            aria-label={dictionary.common.unread}
+                          >
+                            {t.unreadCount > 9 ? "9+" : t.unreadCount}
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                   </Link>
                 </li>

@@ -220,13 +220,17 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
             </div>
 
             <div className="flex shrink-0 flex-wrap items-center gap-2">
-              <Link
-                href={`/dashboard/forum/c/${community.slug}?compose=1`}
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new Event("sb-forum-compose-open"));
+                  router.replace(`/dashboard/forum/c/${community.slug}?compose=1`, { scroll: false });
+                }}
                 className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50"
               >
                 <Plus size={16} strokeWidth={2.5} />
                 {f.createPost}
-              </Link>
+              </button>
               {!isOwner ? (
                 <button
                   type="button"
