@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Loader2 } from "lucide-react";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -11,7 +10,6 @@ type ConfirmDialogProps = {
   cancelLabel?: string;
   danger?: boolean;
   busy?: boolean;
-  busyLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -25,7 +23,6 @@ export default function ConfirmDialog({
   cancelLabel = "Cancel",
   danger = false,
   busy = false,
-  busyLabel = "Working…",
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -47,27 +44,16 @@ export default function ConfirmDialog({
         aria-label="Close dialog"
         className="absolute inset-0 bg-slate-900/40"
         disabled={busy}
-        onClick={() => {
-          if (!busy) onCancel();
-        }}
+        onClick={onCancel}
       />
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         aria-describedby="confirm-dialog-desc"
-        aria-busy={busy}
         className="relative z-10 w-full max-w-sm overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl"
       >
-        {busy ? (
-          <div
-            className={`h-1 w-full animate-pulse ${danger ? "bg-red-400" : "bg-brand/70"}`}
-            aria-hidden
-          />
-        ) : (
-          <div className="h-1 w-full bg-transparent" aria-hidden />
-        )}
-        <div className="px-5 pt-4 pb-2">
+        <div className="px-5 pt-5 pb-2">
           <h3 id="confirm-dialog-title" className="text-base font-bold text-slate-900">
             {title}
           </h3>
@@ -88,18 +74,11 @@ export default function ConfirmDialog({
             type="button"
             disabled={busy}
             onClick={onConfirm}
-            className={`inline-flex min-w-[5.5rem] items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white transition disabled:opacity-80 ${
+            className={`rounded-full px-4 py-2 text-sm font-bold text-white transition disabled:opacity-60 ${
               danger ? "bg-red-600 hover:bg-red-700" : "bg-brand hover:bg-brand-dark"
             }`}
           >
-            {busy ? (
-              <>
-                <Loader2 size={16} className="shrink-0 animate-spin" aria-hidden />
-                <span>{busyLabel}</span>
-              </>
-            ) : (
-              confirmLabel
-            )}
+            {busy ? "…" : confirmLabel}
           </button>
         </div>
       </div>

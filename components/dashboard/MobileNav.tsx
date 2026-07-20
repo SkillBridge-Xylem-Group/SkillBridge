@@ -28,6 +28,7 @@ export function MobileNavDrawer({ open, onClose, communities = [] }: MobileNavDr
     browse: dictionary.nav.browse,
     swaps: dictionary.nav.swaps,
     forum: dictionary.nav.forum,
+    profile: dictionary.nav.profile,
   } as const;
 
   useEffect(() => {
@@ -133,6 +134,7 @@ export function MobileBottomNav() {
     browse: dictionary.nav.browseShort,
     swaps: dictionary.nav.swapsShort,
     forum: dictionary.nav.forumShort,
+    profile: dictionary.nav.profileShort,
   } as const;
 
   return (

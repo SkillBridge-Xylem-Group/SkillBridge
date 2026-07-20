@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus, Send, X } from "lucide-react";
+import { ImagePlus, Plus, Send, X } from "lucide-react";
 import { createQuestionAction } from "@/lib/actions/forum";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
@@ -24,20 +24,6 @@ type QuestionComposerProps = {
   defaultOpen?: boolean;
 };
 
-const COMPOSE_OPEN_EVENT = "sb-forum-compose-open";
-
-/** Survives soft-nav remounts so Create Post still opens after URL sync. */
-let pendingComposeOpen = false;
-
-/** Open the create-post modal without triggering an RSC remount race. */
-export function openForumCompose(composeUrl?: string) {
-  pendingComposeOpen = true;
-  window.dispatchEvent(new Event(COMPOSE_OPEN_EVENT));
-  if (composeUrl) {
-    window.history.replaceState(window.history.state, "", composeUrl);
-  }
-}
-
 export default function QuestionComposer({
   userInitials,
   subforumSlug: lockedSlug,
@@ -52,7 +38,7 @@ export default function QuestionComposer({
       ? communityOptions
       : FORUM_SUBFORUMS.map((s) => ({ slug: s.slug, title: s.title }));
 
-  const [open, setOpen] = useState(() => defaultOpen || pendingComposeOpen);
+  const [open, setOpen] = useState(defaultOpen);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedSlug, setSelectedSlug] = useState(lockedSlug ?? "");
@@ -70,22 +56,6 @@ export default function QuestionComposer({
       ? options.find((o) => o.slug === lockedSlug)?.title ?? getForumSubforum(lockedSlug).title
       : null;
   const lockedSubforum = lockedSlug ? { slug: lockedSlug, title: lockedTitle ?? lockedSlug } : null;
-
-  useEffect(() => {
-    if (defaultOpen || pendingComposeOpen) {
-      pendingComposeOpen = false;
-      setOpen(true);
-    }
-  }, [defaultOpen]);
-
-  useEffect(() => {
-    function onComposeOpen() {
-      pendingComposeOpen = false;
-      setOpen(true);
-    }
-    window.addEventListener(COMPOSE_OPEN_EVENT, onComposeOpen);
-    return () => window.removeEventListener(COMPOSE_OPEN_EVENT, onComposeOpen);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -113,21 +83,13 @@ export default function QuestionComposer({
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  function stripComposeFromUrl() {
-    if (typeof window === "undefined") return;
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has("compose")) return;
-    url.searchParams.delete("compose");
-    const next = `${url.pathname}${url.search}${url.hash}`;
-    window.history.replaceState(window.history.state, "", next);
-  }
-
   function close() {
     if (isPending) return;
-    pendingComposeOpen = false;
     setOpen(false);
     resetForm();
-    stripComposeFromUrl();
+    if (defaultOpen && lockedSlug) {
+      router.replace(`/dashboard/forum/c/${lockedSlug}`);
+    }
   }
 
   function onPickImage(file: File | undefined) {
@@ -185,10 +147,8 @@ export default function QuestionComposer({
         setError(result.error);
         return;
       }
-      pendingComposeOpen = false;
       setOpen(false);
       resetForm();
-      stripComposeFromUrl();
       if (result?.questionId) {
         router.push(`/dashboard/forum/${result.questionId}`);
         router.refresh();
@@ -203,138 +163,167 @@ export default function QuestionComposer({
     (content.trim().length > 0 || !!imageFile) &&
     (!!lockedSlug || !!selectedSlug);
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <button
-        type="button"
-        aria-label={dictionary.common.close}
-        className="absolute inset-0 bg-slate-900/55"
-        onClick={close}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="relative z-10 flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-t-2xl bg-white sm:rounded-[24px]"
-        style={{ boxShadow: "var(--sb-shadow-lg)" }}
-      >
-        <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid #eef7f0" }}>
-          <h2 id={titleId} className="text-xl font-extrabold nb-heading">
-            {f.createPost}
-          </h2>
+    <>
+      <div className="flex flex-wrap items-center gap-3.5">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="nb-btn shrink-0 px-5 py-3 text-sm text-white"
+          style={{ background: "var(--sb-gradient)" }}
+        >
+          <Plus size={16} strokeWidth={2.5} />
+          {f.create}
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="nb-chip flex min-w-0 flex-1 items-center gap-3 px-5 py-2 text-left text-sm transition hover:-translate-y-0.5"
+          style={{ color: "var(--sb-muted)" }}
+        >
+          <span className="nb-avatar h-9 w-9 text-xs" style={{ background: "var(--sb-gradient)" }}>
+            {userInitials}
+          </span>
+          <span className="truncate">
+            {lockedSubforum
+              ? interpolate(f.postIn, { title: lockedSubforum.title })
+              : f.createPostPlaceholder}
+          </span>
+        </button>
+      </div>
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
           <button
             type="button"
+            aria-label={dictionary.common.close}
+            className="absolute inset-0 bg-slate-900/55"
             onClick={close}
-            disabled={isPending}
-            aria-label="Close"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-50"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            className="relative z-10 flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-t-2xl bg-white sm:rounded-[24px]"
+            style={{ boxShadow: "var(--sb-shadow-lg)" }}
           >
-            <X size={16} />
-          </button>
-        </div>
-
-        <div className="space-y-3.5 overflow-y-auto px-6 py-5">
-          <div className="mb-1 flex items-center gap-3.5">
-            <div className="nb-avatar h-11 w-11 text-sm" style={{ background: "var(--sb-gradient)" }}>
-              {userInitials}
-            </div>
-            <p className="text-[15px] font-semibold" style={{ color: "var(--sb-ink)" }}>
-              {lockedSubforum
-                ? interpolate(f.postingIn, { title: lockedSubforum.title })
-                : f.shareWithCommunity}
-            </p>
-          </div>
-
-          {requireSubforumSelect && !lockedSlug ? (
-            <div>
-              <label htmlFor="composer-subforum" className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--sb-muted)" }}>
-                {f.community}
-              </label>
-              <select
-                id="composer-subforum"
-                value={selectedSlug}
-                onChange={(e) => setSelectedSlug(e.target.value)}
-                className="nb-input mt-1.5 px-3 py-2.5 text-sm font-semibold"
-              >
-                <option value="">{f.chooseCommunity}</option>
-                {options.map((s) => (
-                  <option key={s.slug} value={s.slug}>
-                    {s.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
-
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={f.titlePlaceholder}
-            maxLength={150}
-            className="nb-input px-4 py-3.5 text-[14.5px]"
-          />
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder={f.detailsPlaceholder}
-            rows={5}
-            className="nb-input resize-none px-4 py-3.5 text-[14.5px]"
-          />
-
-          {imagePreview ? (
-            <div className="relative overflow-hidden rounded-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imagePreview} alt="Upload preview" className="max-h-72 w-full object-contain" />
+            <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid #eef7f0" }}>
+              <h2 id={titleId} className="text-xl font-extrabold nb-heading">
+                {f.createPost}
+              </h2>
               <button
                 type="button"
-                onClick={clearImage}
+                onClick={close}
                 disabled={isPending}
-                className="absolute right-2 top-2 rounded-full bg-slate-900/70 p-1.5 text-white hover:bg-slate-900 disabled:opacity-50"
-                aria-label="Remove image"
+                aria-label="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-50"
               >
-                <X size={14} />
+                <X size={16} />
               </button>
             </div>
-          ) : null}
 
-          {error && <p className="text-xs font-medium text-red-600">{error}</p>}
-        </div>
+            <div className="space-y-3.5 overflow-y-auto px-6 py-5">
+              <div className="mb-1 flex items-center gap-3.5">
+                <div className="nb-avatar h-11 w-11 text-sm" style={{ background: "var(--sb-gradient)" }}>
+                  {userInitials}
+                </div>
+                <p className="text-[15px] font-semibold" style={{ color: "var(--sb-ink)" }}>
+                  {lockedSubforum
+                    ? interpolate(f.postingIn, { title: lockedSubforum.title })
+                    : f.shareWithCommunity}
+                </p>
+              </div>
 
-        <div className="flex items-center justify-between gap-3 px-6 py-4" style={{ borderTop: "1px solid #eef7f0" }}>
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              className="hidden"
-              onChange={(e) => onPickImage(e.target.files?.[0])}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isPending}
-              className="nb-btn bg-white px-4 py-2.5 text-sm disabled:opacity-50"
-              style={{ color: "var(--sb-muted)" }}
-            >
-              <ImagePlus size={16} />
-              {f.uploadImage}
-            </button>
+              {requireSubforumSelect && !lockedSlug ? (
+                <div>
+                  <label htmlFor="composer-subforum" className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--sb-muted)" }}>
+                    {f.community}
+                  </label>
+                  <select
+                    id="composer-subforum"
+                    value={selectedSlug}
+                    onChange={(e) => setSelectedSlug(e.target.value)}
+                    className="nb-input mt-1.5 px-3 py-2.5 text-sm font-semibold"
+                  >
+                    <option value="">{f.chooseCommunity}</option>
+                    {options.map((s) => (
+                      <option key={s.slug} value={s.slug}>
+                        {s.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={f.titlePlaceholder}
+                maxLength={150}
+                className="nb-input px-4 py-3.5 text-[14.5px]"
+              />
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder={f.detailsPlaceholder}
+                rows={5}
+                className="nb-input resize-none px-4 py-3.5 text-[14.5px]"
+              />
+
+              {imagePreview ? (
+                <div className="relative overflow-hidden rounded-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imagePreview} alt="Upload preview" className="max-h-72 w-full object-contain" />
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    disabled={isPending}
+                    className="absolute right-2 top-2 rounded-full bg-slate-900/70 p-1.5 text-white hover:bg-slate-900 disabled:opacity-50"
+                    aria-label="Remove image"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : null}
+
+              {error && <p className="text-xs font-medium text-red-600">{error}</p>}
+            </div>
+
+            <div className="flex items-center justify-between gap-3 px-6 py-4" style={{ borderTop: "1px solid #eef7f0" }}>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={(e) => onPickImage(e.target.files?.[0])}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isPending}
+                  className="nb-btn bg-white px-4 py-2.5 text-sm disabled:opacity-50"
+                  style={{ color: "var(--sb-muted)" }}
+                >
+                  <ImagePlus size={16} />
+                  {f.uploadImage}
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={submit}
+                disabled={isPending || !canSubmit}
+                className="nb-btn px-6 py-2.5 text-[14.5px] text-white disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ background: "var(--sb-gradient)" }}
+              >
+                {isPending ? f.posting : f.postAction}
+                <Send size={14} />
+              </button>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={submit}
-            disabled={isPending || !canSubmit}
-            className="nb-btn px-6 py-2.5 text-[14.5px] text-white disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ background: "var(--sb-gradient)" }}
-          >
-            {isPending ? f.posting : f.postAction}
-            <Send size={14} />
-          </button>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

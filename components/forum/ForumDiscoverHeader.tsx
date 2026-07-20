@@ -11,6 +11,9 @@ export default function ForumDiscoverHeader() {
       <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>
         {f.discoverTitle}
       </h1>
+      <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>
+        {f.discoverSubtitle}
+      </p>
     </div>
   );
 }

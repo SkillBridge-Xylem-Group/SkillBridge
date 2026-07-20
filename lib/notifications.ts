@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { tryCreateSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type NotificationType =
   | "message"
@@ -23,34 +22,16 @@ export type NotificationRow = {
 };
 
 export async function createNotification(
-  _supabase: SupabaseClient,
-  params: {
-    userId: string;
-    type: NotificationType;
-    message: string;
-    relatedEntityType?: string;
-    relatedEntityId?: string;
-  }
+  supabase: SupabaseClient,
+  params: { userId: string; type: NotificationType; message: string; relatedEntityType?: string; relatedEntityId?: string }
 ) {
-  // Privileged write only — after security-hardening.sql, clients cannot insert for others.
-  const admin = tryCreateSupabaseAdminClient();
-  if (!admin) {
-    console.error(
-      "[notifications] SUPABASE_SERVICE_ROLE_KEY missing; notification not sent:",
-      params.type
-    );
-    return;
-  }
-  const { error } = await admin.from("notifications").insert({
+  await supabase.from("notifications").insert({
     user_id: params.userId,
     type: params.type,
     message: params.message,
     related_entity_type: params.relatedEntityType ?? null,
     related_entity_id: params.relatedEntityId ?? null,
   });
-  if (error) {
-    console.error("[notifications] insert failed:", error.message);
-  }
 }
 
 function staticLink(type: NotificationType, relatedEntityId: string | null): string | null {
@@ -139,27 +120,6 @@ export async function getUnreadMessageNotificationCount(supabase: SupabaseClient
     .eq("type", "message")
     .eq("is_read", false);
   return count ?? 0;
-}
-
-/** Unread DM notification counts keyed by thread_id (`related_entity_id`). */
-export async function getUnreadMessageCountsByThread(
-  supabase: SupabaseClient,
-  userId: string
-): Promise<Map<string, number>> {
-  const { data } = await supabase
-    .from("notifications")
-    .select("related_entity_id")
-    .eq("user_id", userId)
-    .eq("type", "message")
-    .eq("is_read", false)
-    .not("related_entity_id", "is", null);
-
-  const counts = new Map<string, number>();
-  for (const row of data ?? []) {
-    const threadId = row.related_entity_id as string;
-    counts.set(threadId, (counts.get(threadId) ?? 0) + 1);
-  }
-  return counts;
 }
 
 export async function markNotificationRead(supabase: SupabaseClient, notificationId: string) {

@@ -54,21 +54,6 @@ export default function ResetPasswordHashHandler({
         return;
       }
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session) {
-        await fetch("/api/auth/complete-recovery", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "recovery",
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          }),
-        });
-      }
-
       onReady();
     }
 

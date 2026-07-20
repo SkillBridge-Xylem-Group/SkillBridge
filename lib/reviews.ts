@@ -130,19 +130,7 @@ export async function createSessionReview(
 
   const { trustScore } = await getUserReviews(supabase, params.reviewedUserId);
   if (trustScore != null) {
-    const { tryCreateSupabaseAdminClient } = await import("@/lib/supabase/admin");
-    const admin = tryCreateSupabaseAdminClient();
-    if (!admin) {
-      console.error("[reviews] SUPABASE_SERVICE_ROLE_KEY missing; trust_score not updated");
-    } else {
-      const { error: trustError } = await admin
-        .from("users")
-        .update({ trust_score: Number(trustScore.toFixed(2)) })
-        .eq("id", params.reviewedUserId);
-      if (trustError) {
-        console.error("[reviews] trust_score update failed:", trustError.message);
-      }
-    }
+    await supabase.from("users").update({ trust_score: Number(trustScore.toFixed(2)) }).eq("id", params.reviewedUserId);
   }
 
   return { error: null };

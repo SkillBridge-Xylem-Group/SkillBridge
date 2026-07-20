@@ -9,7 +9,6 @@ import {
   completeSessionRequest,
   cancelSessionRequest,
   rescheduleSessionRequest,
-  hideSessionFromHistory,
 } from "@/lib/sessionRequests";
 import { createNotification } from "@/lib/notifications";
 import { awardSessionCompletionXp } from "@/lib/gamification";
@@ -175,46 +174,6 @@ export async function rescheduleSessionAction(requestId: string, scheduledTime: 
 
   const { error } = await rescheduleSessionRequest(supabase, requestId, scheduledTime);
   if (error) return { error: error.message };
-
-  revalidatePath("/dashboard/swap-requests");
-  return { success: true };
-}
-
-export async function hideSessionHistoryAction(requestId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
-
-  const { data } = await supabase
-    .from("session_requests")
-    .select("requester_id, receiver_id, status")
-    .eq("request_id", requestId)
-    .maybeSingle();
-
-  if (!data) return { error: "Session not found." };
-  if (data.requester_id !== user.id && data.receiver_id !== user.id) {
-    return { error: "You can't update this session." };
-  }
-
-  const historyStatuses = new Set(["completed", "cancelled", "declined"]);
-  if (!historyStatuses.has(data.status)) {
-    return { error: "Only finished sessions can be removed from history." };
-  }
-
-  const { error } = await hideSessionFromHistory(supabase, {
-    requestId,
-    userId: user.id,
-    isRequester: data.requester_id === user.id,
-  });
-
-  if (error) {
-    if (error.message?.toLowerCase().includes("requester_hidden")) {
-      return { error: "History hide needs a database update. Run supabase/session-history-hide.sql." };
-    }
-    return { error: error.message };
-  }
 
   revalidatePath("/dashboard/swap-requests");
   return { success: true };

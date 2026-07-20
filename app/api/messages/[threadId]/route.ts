@@ -1,12 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { requireActiveUser } from "@/lib/auth/requireActiveUser";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getThreadParticipant, getThreadMessages } from "@/lib/messages";
 import { createNotification, markThreadMessageNotificationsRead } from "@/lib/notifications";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ threadId: string }> }) {
   const { threadId } = await params;
-  const { user, supabase, error: authError } = await requireActiveUser();
-  if (authError) return authError;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const partner = await getThreadParticipant(supabase, threadId, user.id);
   if (!partner) {
@@ -20,8 +27,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ thr
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ threadId: string }> }) {
   const { threadId } = await params;
-  const { user, supabase, error: authError } = await requireActiveUser();
-  if (authError) return authError;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const partner = await getThreadParticipant(supabase, threadId, user.id);
   if (!partner) {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loginSchema } from "@/lib/auth/validation";
 import { isSuspiciousSubmission } from "@/lib/auth/bot-guard";
-import { checkRateLimitAsync, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 import { authResponseDelay } from "@/lib/auth/timing";
 import { isAdminUser } from "@/lib/auth/isAdmin";
 
@@ -47,12 +47,7 @@ export async function POST(request: Request) {
   // email (stops targeting one admin account from many IPs), and a longer
   // hourly IP cap so someone can't just wait out the 15-minute window
   // forever. Any one tripping is enough to block the attempt.
-  const ipLimit = await checkRateLimitAsync(
-    "auth:admin-login:ip",
-    ip,
-    MAX_ATTEMPTS_PER_IP,
-    WINDOW_MS
-  );
+  const ipLimit = checkRateLimit("auth:admin-login:ip", ip, MAX_ATTEMPTS_PER_IP, WINDOW_MS);
   if (!ipLimit.allowed) {
     return NextResponse.json(
       { error: "Too many attempts. Try again later." },
@@ -60,7 +55,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const ipHourlyLimit = await checkRateLimitAsync(
+  const ipHourlyLimit = checkRateLimit(
     "auth:admin-login:ip-hourly",
     ip,
     MAX_ATTEMPTS_PER_IP_HOURLY,
@@ -73,12 +68,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const emailLimit = await checkRateLimitAsync(
-    "auth:admin-login:email",
-    email,
-    MAX_ATTEMPTS_PER_EMAIL,
-    WINDOW_MS
-  );
+  const emailLimit = checkRateLimit("auth:admin-login:email", email, MAX_ATTEMPTS_PER_EMAIL, WINDOW_MS);
   if (!emailLimit.allowed) {
     return NextResponse.json(
       { error: "Too many attempts. Try again later." },

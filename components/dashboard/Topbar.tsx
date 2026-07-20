@@ -22,7 +22,7 @@ export default function Topbar({ userName, avatarUrl = null, communities = [] }:
 
   return (
     <>
-      <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 bg-white/90 px-4 py-2.5 backdrop-blur-sm sm:px-6 lg:mb-0 lg:justify-end lg:bg-[var(--sb-bg)]/90 lg:px-0 lg:py-2">
+      <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 bg-white/90 px-4 py-3 backdrop-blur-sm sm:px-8 lg:mb-2 lg:justify-end lg:bg-[var(--sb-bg)]/90 lg:px-0 lg:py-4">
         <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"

@@ -15,7 +15,7 @@ export type SessionRequestSummary = {
   isRequester: boolean;
   /** True when the current user has already left a review for this session. */
   hasReviewedPartner: boolean;
-  partner: { id: string; fullname: string; avatar_url: string | null };
+  partner: { id: string; fullname: string };
   topic: { skill_name: string; category: string } | null;
 };
 
@@ -31,53 +31,20 @@ function matchTopic(a: SkillSet, b: SkillSet): Skill | null {
 }
 
 export async function getUserSessions(supabase: SupabaseClient, userId: string): Promise<SessionRequestSummary[]> {
-  const withHidden = await supabase
+  const { data: rows } = await supabase
     .from("session_requests")
-    .select(
-      "request_id, thread_id, requester_id, receiver_id, scheduled_time, completed_at, status, created_at, requester_hidden, receiver_hidden"
-    )
+    .select("request_id, thread_id, requester_id, receiver_id, scheduled_time, completed_at, status, created_at")
     .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`)
     .order("scheduled_time", { ascending: true, nullsFirst: false });
 
-  let sessionRows = withHidden.data ?? [];
-
-  // Fallback before migration: no hide columns.
-  if (withHidden.error?.message?.toLowerCase().includes("requester_hidden")) {
-    const legacy = await supabase
-      .from("session_requests")
-      .select("request_id, thread_id, requester_id, receiver_id, scheduled_time, completed_at, status, created_at")
-      .or(`requester_id.eq.${userId},receiver_id.eq.${userId}`)
-      .order("scheduled_time", { ascending: true, nullsFirst: false });
-    sessionRows = (legacy.data ?? []).map((r) => ({
-      ...r,
-      requester_hidden: false,
-      receiver_hidden: false,
-    }));
-  } else {
-    sessionRows = sessionRows.filter((r) => {
-      const isRequester = r.requester_id === userId;
-      const hidden = isRequester
-        ? Boolean((r as { requester_hidden?: boolean }).requester_hidden)
-        : Boolean((r as { receiver_hidden?: boolean }).receiver_hidden);
-      return !hidden;
-    });
-  }
-
+  const sessionRows = rows ?? [];
   if (sessionRows.length === 0) return [];
 
   const partnerIds = [...new Set(sessionRows.map((r) => (r.requester_id === userId ? r.receiver_id : r.requester_id)))];
   const allUserIds = [...new Set([userId, ...partnerIds])];
 
-  const { data: users } = await supabase.from("users").select("id, fullname, avatar_url").in("id", allUserIds);
-  const userById = new Map(
-    (users ?? []).map((u) => [
-      u.id,
-      {
-        fullname: u.fullname as string,
-        avatar_url: ((u as { avatar_url?: string | null }).avatar_url ?? null) as string | null,
-      },
-    ])
-  );
+  const { data: users } = await supabase.from("users").select("id, fullname").in("id", allUserIds);
+  const nameById = new Map((users ?? []).map((u) => [u.id, u.fullname]));
 
   const skillsByUser = new Map<string, SkillSet>();
   await Promise.all(
@@ -98,7 +65,6 @@ export async function getUserSessions(supabase: SupabaseClient, userId: string):
     const mySkills = skillsByUser.get(userId) ?? { offered: [], wanted: [] };
     const partnerSkills = skillsByUser.get(partnerId) ?? { offered: [], wanted: [] };
     const topicSkill = matchTopic(mySkills, partnerSkills);
-    const partnerUser = userById.get(partnerId);
 
     return {
       request_id: r.request_id,
@@ -109,11 +75,7 @@ export async function getUserSessions(supabase: SupabaseClient, userId: string):
       created_at: r.created_at,
       isRequester,
       hasReviewedPartner: reviewedSessionIds.has(r.request_id),
-      partner: {
-        id: partnerId,
-        fullname: partnerUser?.fullname ?? "Unknown",
-        avatar_url: partnerUser?.avatar_url ?? null,
-      },
+      partner: { id: partnerId, fullname: nameById.get(partnerId) ?? "Unknown" },
       topic: topicSkill ? { skill_name: topicSkill.skill_name, category: topicSkill.category } : null,
     };
   });
@@ -163,16 +125,4 @@ export async function rescheduleSessionRequest(supabase: SupabaseClient, request
     .from("session_requests")
     .update({ status: "rescheduled", scheduled_time: scheduledTime })
     .eq("request_id", requestId);
-}
-
-/** Hide a finished session from the current user's list only. */
-export async function hideSessionFromHistory(
-  supabase: SupabaseClient,
-  params: { requestId: string; userId: string; isRequester: boolean }
-) {
-  const column = params.isRequester ? "requester_hidden" : "receiver_hidden";
-  return supabase
-    .from("session_requests")
-    .update({ [column]: true })
-    .eq("request_id", params.requestId);
 }

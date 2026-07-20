@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { registerSchema } from "@/lib/auth/validation";
 import { checkPasswordBreached } from "@/lib/auth/password";
 import { isSuspiciousSubmission } from "@/lib/auth/bot-guard";
-import { checkRateLimitAsync, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_REGISTER_PER_IP = 5;
@@ -35,12 +35,7 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  const ipLimit = await checkRateLimitAsync(
-    "auth:register:ip",
-    ip,
-    MAX_REGISTER_PER_IP,
-    WINDOW_MS
-  );
+  const ipLimit = checkRateLimit("auth:register:ip", ip, MAX_REGISTER_PER_IP, WINDOW_MS);
   if (!ipLimit.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Try again later." },
@@ -48,12 +43,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const emailLimit = await checkRateLimitAsync(
-    "auth:register:email",
-    email,
-    MAX_REGISTER_PER_EMAIL,
-    WINDOW_MS
-  );
+  const emailLimit = checkRateLimit("auth:register:email", email, MAX_REGISTER_PER_EMAIL, WINDOW_MS);
   if (!emailLimit.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Try again later." },

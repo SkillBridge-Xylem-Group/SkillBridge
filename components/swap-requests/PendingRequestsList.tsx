@@ -59,16 +59,8 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
               <div key={r.request_id} className="rounded-2xl p-3" style={{ background: "#fbfffc", boxShadow: "var(--sb-shadow-sm)" }}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div
-                      className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-extrabold text-white"
-                      style={{ background: "var(--sb-gradient)" }}
-                    >
-                      {r.partner.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={r.partner.avatar_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        initials
-                      )}
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-extrabold text-white" style={{ background: "var(--sb-gradient)" }}>
+                      {initials}
                     </div>
                     <div>
                       <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{r.partner.fullname}</p>
