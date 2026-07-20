@@ -15,10 +15,6 @@ function needsAuthentication(pathname: string) {
   );
 }
 
-function hasSupabaseSessionCookie(request: NextRequest) {
-  return request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-") && cookie.value);
-}
-
 function redirectToLogin(
   request: NextRequest,
   pathname: string,
@@ -85,13 +81,9 @@ export async function proxy(request: NextRequest) {
     ]);
 
     if (!sessionResult) {
-      // Timed out. If session cookies exist (e.g. just signed in), fail open so
-      // page-level getUser() can finish the check instead of bouncing to a scary banner.
-      if (hasSupabaseSessionCookie(request)) {
-        console.warn("[proxy] auth check timed out; allowing request with session cookies present");
-        return response;
-      }
-      return redirectToLogin(request, pathname, search);
+      // Timed out — fail closed. Page-level auth can still recover after refresh.
+      console.warn("[proxy] auth check timed out; redirecting to login");
+      return redirectToLogin(request, pathname, search, "auth-unavailable");
     }
 
     const {
@@ -112,10 +104,6 @@ export async function proxy(request: NextRequest) {
     }
   } catch (err) {
     console.error("[proxy] auth check failed:", err);
-    if (hasSupabaseSessionCookie(request)) {
-      console.warn("[proxy] auth check errored; allowing request with session cookies present");
-      return response;
-    }
     return redirectToLogin(request, pathname, search, "auth-unavailable");
   }
 
