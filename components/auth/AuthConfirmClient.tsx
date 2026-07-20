@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -24,8 +24,14 @@ export default function AuthConfirmClient() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "error">("loading");
   const [message, setMessage] = useState("Verifying your link...");
+  // Supabase recovery/confirm tokens are single-use. React Strict Mode
+  // double-invokes effects in development, which would otherwise burn the
+  // token on the throwaway first run and leave the real run "expired."
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    if (hasRun.current) return;
+    hasRun.current = true;
     let cancelled = false;
 
     async function confirmFromHash() {
