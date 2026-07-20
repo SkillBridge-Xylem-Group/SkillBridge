@@ -4,7 +4,7 @@ import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { updateOrCreateUser } from "@/lib/profile/upsertUser";
 import { COUNTRY_OPTIONS } from "@/lib/settingsOptions";
 import { LOCALE_OPTIONS } from "@/lib/i18n/locales";
-import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+import { checkRateLimitAsync, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 
 export const GENDER_VALUES = ["man", "woman", "non_binary", "prefer_not_to_say"] as const;
 
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  const ipLimit = checkRateLimit("settings:update:ip", ip, MAX_PER_IP, WINDOW_MS);
+  const ipLimit = await checkRateLimitAsync("settings:update:ip", ip, MAX_PER_IP, WINDOW_MS);
   if (!ipLimit.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Try again later." },

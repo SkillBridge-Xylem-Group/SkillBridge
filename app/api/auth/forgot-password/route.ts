@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { forgotPasswordSchema } from "@/lib/auth/validation";
 import { isSuspiciousSubmission } from "@/lib/auth/bot-guard";
-import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+import { checkRateLimitAsync, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 import { getRequestOrigin } from "@/lib/request-origin";
 
 const WINDOW_MS = 15 * 60 * 1000;
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  const ipLimit = checkRateLimit("auth:forgot:ip", ip, MAX_FORGOT_PER_IP, WINDOW_MS);
+  const ipLimit = await checkRateLimitAsync("auth:forgot:ip", ip, MAX_FORGOT_PER_IP, WINDOW_MS);
   if (!ipLimit.allowed) {
     return NextResponse.json(
       { message: GENERIC_MESSAGE },
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const emailLimit = checkRateLimit(
+  const emailLimit = await checkRateLimitAsync(
     "auth:forgot:email",
     parsed.data.email,
     MAX_FORGOT_PER_EMAIL,
