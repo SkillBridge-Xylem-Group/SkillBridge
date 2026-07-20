@@ -105,13 +105,15 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
     });
   }
 
-  // Reddit-style: one list of communities you belong to (created + joined).
-  const list = [...communities].sort((a, b) => {
-    const aFav = favorites.has(a.id) ? 0 : 1;
-    const bFav = favorites.has(b.id) ? 0 : 1;
-    if (aFav !== bFav) return aFav - bFav;
-    return a.title.localeCompare(b.title);
-  });
+  // Sidebar lists communities you created; joined-only communities live under Manage.
+  const list = [...communities]
+    .filter((c) => c.isOwner)
+    .sort((a, b) => {
+      const aFav = favorites.has(a.id) ? 0 : 1;
+      const bFav = favorites.has(b.id) ? 0 : 1;
+      if (aFav !== bFav) return aFav - bFav;
+      return a.title.localeCompare(b.title);
+    });
 
   return (
     <div className="mt-6 border-t border-slate-100 pt-4">
@@ -176,7 +178,7 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
             </nav>
           ) : (
             <p className="px-2 py-2 text-xs leading-relaxed text-slate-400">
-              {f.joinFromForum}
+              {f.noCommunities}
             </p>
           )}
         </div>

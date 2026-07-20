@@ -15,6 +15,8 @@ import {
   updateCommunityAccent,
   updateCommunityImage,
 } from "@/lib/forumCommunities";
+import { composeReportReason, isReportReasonKey } from "@/lib/forumReportReasons";
+import { createReport } from "@/lib/reports";
 
 export async function createQuestionAction(
   title: string,
@@ -333,7 +335,8 @@ export async function toggleVoteAction(answerId: string, questionId: string) {
 export async function createReportAction(params: {
   answerId: string;
   questionId: string;
-  reason?: string;
+  reasonKey: string;
+  details?: string;
 }) {
   const supabase = await createSupabaseServerClient();
   const {
@@ -354,18 +357,63 @@ export async function createReportAction(params: {
     return { error: "You can't report your own comment." };
   }
 
-  const reason = (params.reason ?? "Reported by user").trim().slice(0, 500) || "Reported by user";
+  if (!isReportReasonKey(params.reasonKey)) {
+    return { error: "Please choose a report reason." };
+  }
 
-  const { error } = await supabase.from("reports").insert({
-    reporter_id: user.id,
-    report_type: "forum_answer",
-    reported_user_id: answer.user_id,
-    question_id: params.questionId,
-    answer_id: params.answerId,
-    reason,
-    status: "pending",
+  const composed = composeReportReason(params.reasonKey, params.details);
+  if (composed.error) return { error: composed.error };
+
+  const { error } = await createReport(supabase, {
+    reporterId: user.id,
+    reportType: "forum_answer",
+    reportedUserId: answer.user_id,
+    questionId: params.questionId,
+    answerId: params.answerId,
+    reason: composed.reason ?? undefined,
   });
 
-  if (error) return { error: error.message };
+  if (error) return { error };
+  return { success: true };
+}
+
+export async function createQuestionReportAction(params: {
+  questionId: string;
+  reasonKey: string;
+  details?: string;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in to report." };
+
+  const { data: question } = await supabase
+    .from("forum_questions")
+    .select("question_id, user_id, title")
+    .eq("question_id", params.questionId)
+    .maybeSingle();
+
+  if (!question) return { error: "Post not found." };
+  if (question.user_id === user.id) {
+    return { error: "You can't report your own post." };
+  }
+
+  if (!isReportReasonKey(params.reasonKey)) {
+    return { error: "Please choose a report reason." };
+  }
+
+  const composed = composeReportReason(params.reasonKey, params.details);
+  if (composed.error) return { error: composed.error };
+
+  const { error } = await createReport(supabase, {
+    reporterId: user.id,
+    reportType: "forum_question",
+    reportedUserId: question.user_id,
+    questionId: params.questionId,
+    reason: composed.reason ?? undefined,
+  });
+
+  if (error) return { error };
   return { success: true };
 }
