@@ -14,7 +14,9 @@ import {
   Share2,
 } from "lucide-react";
 import type { ForumAnswer } from "@/lib/forum";
+import type { ReportReasonKey } from "@/lib/forumReportReasons";
 import { createReportAction, setVoteAction } from "@/lib/actions/forum";
+import ReportContentDialog from "./ReportContentDialog";
 import FormattedContent from "./FormattedContent";
 import ForumAuthorAvatar from "./ForumAuthorAvatar";
 import AnswerComposer from "./AnswerComposer";
@@ -25,24 +27,28 @@ function CommentNode({
   answer,
   questionId,
   userInitials,
+  currentUserId,
   collapsed,
   onToggleCollapse,
 }: {
   answer: ForumAnswer;
   questionId: string;
   userInitials: string;
+  currentUserId: string;
   collapsed: Set<string>;
   onToggleCollapse: (id: string) => void;
 }) {
   const [isPending, startTransition] = useTransition();
   const [replyOpen, setReplyOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [toast, setToast] = useState("");
   const router = useRouter();
   const { locale, dictionary } = useLocale();
   const f = dictionary.forum;
   const isCollapsed = collapsed.has(answer.answer_id);
   const hasChildren = answer.children.length > 0;
+  const isOwnComment = answer.author.id === currentUserId;
 
   function vote(next: -1 | 1) {
     const value: -1 | 0 | 1 = answer.myVote === next ? 0 : next;
@@ -64,14 +70,21 @@ function CommentNode({
     }
   }
 
-  function report() {
+  function submitReport(payload: { reasonKey: ReportReasonKey; details: string }) {
     startTransition(async () => {
       const result = await createReportAction({
         answerId: answer.answer_id,
         questionId,
+        reasonKey: payload.reasonKey,
+        details: payload.details,
       });
       setMenuOpen(false);
-      setToast(result?.error ? f.reportFailed : f.reportThanks);
+      if (result?.error) {
+        setToast(result.error === "You already reported this content." ? f.reportAlready : f.reportFailed);
+      } else {
+        setReportOpen(false);
+        setToast(f.reportThanks);
+      }
       window.setTimeout(() => setToast(""), 2500);
     });
   }
@@ -230,16 +243,21 @@ function CommentNode({
                               <Copy size={14} />
                               {f.copyLink}
                             </button>
-                            <button
-                              type="button"
-                              onClick={report}
-                              disabled={isPending}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium hover:bg-slate-50 disabled:opacity-50"
-                              style={{ color: "var(--sb-ink)" }}
-                            >
-                              <Flag size={14} />
-                              {f.reportAction}
-                            </button>
+                            {!isOwnComment ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMenuOpen(false);
+                                  setReportOpen(true);
+                                }}
+                                disabled={isPending}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium hover:bg-slate-50 disabled:opacity-50"
+                                style={{ color: "var(--sb-ink)" }}
+                              >
+                                <Flag size={14} />
+                                {f.reportAction}
+                              </button>
+                            ) : null}
                           </div>
                         </>
                       ) : null}
@@ -278,6 +296,7 @@ function CommentNode({
                   answer={child}
                   questionId={questionId}
                   userInitials={userInitials}
+                  currentUserId={currentUserId}
                   collapsed={collapsed}
                   onToggleCollapse={onToggleCollapse}
                 />
@@ -286,6 +305,13 @@ function CommentNode({
           ) : null}
         </div>
       </div>
+
+      <ReportContentDialog
+        open={reportOpen}
+        busy={isPending}
+        onClose={() => setReportOpen(false)}
+        onSubmit={submitReport}
+      />
     </div>
   );
 }
@@ -294,10 +320,12 @@ export default function CommentThread({
   roots,
   questionId,
   userInitials,
+  currentUserId,
 }: {
   roots: ForumAnswer[];
   questionId: string;
   userInitials: string;
+  currentUserId: string;
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const { dictionary } = useLocale();
@@ -334,6 +362,7 @@ export default function CommentThread({
           answer={answer}
           questionId={questionId}
           userInitials={userInitials}
+          currentUserId={currentUserId}
           collapsed={collapsed}
           onToggleCollapse={onToggleCollapse}
         />

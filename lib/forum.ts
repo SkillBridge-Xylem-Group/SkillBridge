@@ -316,27 +316,48 @@ function markTopRootComment(roots: ForumAnswer[]) {
   if (top) top.isTopAnswer = true;
 }
 
+function countReplyTree(node: ForumAnswer): number {
+  let n = node.children.length;
+  for (const child of node.children) n += countReplyTree(child);
+  return n;
+}
+
+/** Keep reply threads chronological (oldest first) like Reddit. */
+function normalizeChildOrder(nodes: ForumAnswer[]): ForumAnswer[] {
+  return nodes
+    .slice()
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    .map((n) => ({ ...n, isTopAnswer: false, children: normalizeChildOrder(n.children) }));
+}
+
 export function sortCommentTree(roots: ForumAnswer[], sort: CommentSort): ForumAnswer[] {
-  const compare = (a: ForumAnswer, b: ForumAnswer) => {
+  const normalized = normalizeChildOrder(roots);
+
+  const compareRoot = (a: ForumAnswer, b: ForumAnswer) => {
     if (sort === "new") {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
     if (sort === "old") {
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     }
-    // best
+    // best — score, then discussion size, then recency
     if (b.score !== a.score) return b.score - a.score;
+    const replyDiff = countReplyTree(b) - countReplyTree(a);
+    if (replyDiff !== 0) return replyDiff;
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   };
 
-  function sortNode(nodes: ForumAnswer[]): ForumAnswer[] {
-    return nodes
-      .slice()
-      .sort(compare)
-      .map((n) => ({ ...n, children: sortNode(n.children) }));
+  const sortedRoots = normalized.slice().sort(compareRoot);
+
+  if (sort === "best" && sortedRoots.length > 0) {
+    const maxScore = Math.max(...sortedRoots.map((r) => r.score));
+    if (maxScore > 0) {
+      const top = sortedRoots.find((r) => r.score === maxScore);
+      if (top) top.isTopAnswer = true;
+    }
   }
 
-  return sortNode(roots);
+  return sortedRoots;
 }
 
 /** Keep ancestors of matching nodes so the tree does not break. */

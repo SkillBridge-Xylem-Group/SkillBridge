@@ -31,6 +31,8 @@ export type Dictionary = {
     language: string;
     logOut: string;
     logOutDesc: string;
+    logOutConfirmTitle: string;
+    logOutConfirmDesc: string;
     password: string;
     passwordDesc: string;
     passwordGoogle: string;
@@ -45,7 +47,6 @@ export type Dictionary = {
     updatePassword: string;
     updating: string;
     emailChangeHint: string;
-    locationHint: string;
     locationApproximate: string;
     locationNone: string;
     locationCountry: string;
@@ -229,6 +230,9 @@ export type Dictionary = {
     manageTitle: string;
     manageFilterPlaceholder: string;
     leaveCommunity: string;
+    leaveCommunityConfirmTitle: string;
+    leaveCommunityConfirmDesc: string;
+    leaveCommunityAsOwner: string;
     allCommunities: string;
     favoritesTab: string;
     trendingIn: string;
@@ -236,6 +240,8 @@ export type Dictionary = {
     startFeed: string;
     noPostsFor: string;
     deleteCommunity: string;
+    deleteCommunityConfirmTitle: string;
+    deleteCommunityConfirmDesc: string;
     joinConversation: string;
     commentAction: string;
     commentCancel: string;
@@ -253,6 +259,24 @@ export type Dictionary = {
     reportAction: string;
     reportThanks: string;
     reportFailed: string;
+    reportAlready: string;
+    reportDialogTitle: string;
+    reportDialogSubtitle: string;
+    reportSelectReason: string;
+    reportReasonSpam: string;
+    reportReasonHarassment: string;
+    reportReasonHate: string;
+    reportReasonInappropriate: string;
+    reportReasonMisinformation: string;
+    reportReasonOther: string;
+    reportDetailsLabel: string;
+    reportDetailsRequiredLabel: string;
+    reportDetailsPlaceholder: string;
+    reportDetailsRequired: string;
+    reportDetailsRequiredHint: string;
+    reportDetailsOptionalHint: string;
+    reportSubmit: string;
+    reportSubmitting: string;
     opBadge: string;
     topComment: string;
     collapseThread: string;
@@ -365,10 +389,12 @@ const en: Dictionary = {
     language: "Display language",
     logOut: "Log out",
     logOutDesc: "End your current session on this device.",
+    logOutConfirmTitle: "Log out?",
+    logOutConfirmDesc: "Are you sure you want to end your session on this device?",
     password: "Password",
     passwordDesc: "Change the password you use to sign in.",
     passwordGoogle:
-      "You signed in with Google. Password changes are managed in your Google account.",
+      "You signed in with Google. You can still set a SkillBridge password to sign in with email.",
     change: "Change",
     cancel: "Cancel",
     done: "Done",
@@ -380,8 +406,7 @@ const en: Dictionary = {
     updatePassword: "Update password",
     updating: "Updating…",
     emailChangeHint: "We'll send a confirmation link to your new address before it becomes active.",
-    locationHint: "Personalize feeds and recommendations with geographically relevant content.",
-    locationApproximate: "Use approximate location (based on IP)",
+    locationApproximate: "Use approximate location",
     locationNone: "No location specified",
     locationCountry: "Country",
     genderMan: "Man",
@@ -567,6 +592,9 @@ const en: Dictionary = {
     manageTitle: "Manage communities",
     manageFilterPlaceholder: "Filter your communities",
     leaveCommunity: "Leave community",
+    leaveCommunityConfirmTitle: "Leave this community?",
+    leaveCommunityConfirmDesc: "You can join again later from Discover or the community page.",
+    leaveCommunityAsOwner: "You created this community — delete it from the community page if you want it gone.",
     allCommunities: "All Communities",
     favoritesTab: "Favorites",
     trendingIn: "Trending in {title}",
@@ -574,6 +602,9 @@ const en: Dictionary = {
     startFeed: "Make one and get this feed started.",
     noPostsFor: 'No posts found for "{q}"',
     deleteCommunity: "Delete community",
+    deleteCommunityConfirmTitle: "Delete this community?",
+    deleteCommunityConfirmDesc:
+      "Delete r/{slug}? Posts will move to General. This can't be undone.",
     joinConversation: "Join the conversation",
     commentAction: "Comment",
     commentCancel: "Cancel",
@@ -589,8 +620,26 @@ const en: Dictionary = {
     copyLink: "Copy link",
     linkCopied: "Link copied",
     reportAction: "Report",
-    reportThanks: "Thanks — we'll review this comment.",
+    reportThanks: "Thanks — we'll review this report.",
     reportFailed: "Couldn't submit the report.",
+    reportAlready: "You already reported this.",
+    reportDialogTitle: "Report content",
+    reportDialogSubtitle: "Choose a reason and optionally add details. Reports go to moderators.",
+    reportSelectReason: "Reason for report",
+    reportReasonSpam: "Spam or advertising",
+    reportReasonHarassment: "Harassment or bullying",
+    reportReasonHate: "Hate speech",
+    reportReasonInappropriate: "Inappropriate content",
+    reportReasonMisinformation: "Misinformation",
+    reportReasonOther: "Other",
+    reportDetailsLabel: "Additional details (optional)",
+    reportDetailsRequiredLabel: "Describe the violation",
+    reportDetailsPlaceholder: "Explain what happened or why this violates community rules…",
+    reportDetailsRequired: "Please describe the violation (at least 5 characters).",
+    reportDetailsRequiredHint: "Required when choosing Other — at least 5 characters.",
+    reportDetailsOptionalHint: "Optional — helps moderators review faster.",
+    reportSubmit: "Submit report",
+    reportSubmitting: "Submitting…",
     opBadge: "OP",
     topComment: "Top comment",
     collapseThread: "Collapse thread",
@@ -704,9 +753,11 @@ const zhCN: Dictionary = {
     language: "显示语言",
     logOut: "退出登录",
     logOutDesc: "结束此设备上的当前会话。",
+    logOutConfirmTitle: "确认退出？",
+    logOutConfirmDesc: "确定要结束此设备上的当前会话吗？",
     password: "密码",
     passwordDesc: "更改用于登录的密码。",
-    passwordGoogle: "你使用 Google 登录。请在 Google 账户中管理密码。",
+    passwordGoogle: "你使用 Google 登录。仍可设置 SkillBridge 密码，以便用邮箱登录。",
     change: "更改",
     cancel: "取消",
     done: "完成",
@@ -718,8 +769,7 @@ const zhCN: Dictionary = {
     updatePassword: "更新密码",
     updating: "更新中…",
     emailChangeHint: "我们会向新邮箱发送确认链接，确认后才会生效。",
-    locationHint: "根据地理位置个性化推荐内容。",
-    locationApproximate: "使用大致位置（基于 IP）",
+    locationApproximate: "使用大致位置",
     locationNone: "不指定位置",
     locationCountry: "国家/地区",
     genderMan: "男",
@@ -902,6 +952,9 @@ const zhCN: Dictionary = {
     manageTitle: "管理社区",
     manageFilterPlaceholder: "筛选你的社区",
     leaveCommunity: "退出社区",
+    leaveCommunityConfirmTitle: "退出该社区？",
+    leaveCommunityConfirmDesc: "之后仍可从发现页或社区页重新加入。",
+    leaveCommunityAsOwner: "这是你创建的社区 — 如需移除，请在社区页删除。",
     allCommunities: "全部社区",
     favoritesTab: "收藏",
     trendingIn: "{title} 中的热门",
@@ -909,6 +962,8 @@ const zhCN: Dictionary = {
     startFeed: "发一篇，开启讨论吧。",
     noPostsFor: "没有找到与「{q}」相关的帖子",
     deleteCommunity: "删除社区",
+    deleteCommunityConfirmTitle: "删除该社区？",
+    deleteCommunityConfirmDesc: "删除 r/{slug}？帖子将移至 General，此操作无法撤销。",
     joinConversation: "参与讨论",
     commentAction: "评论",
     commentCancel: "取消",
@@ -926,6 +981,24 @@ const zhCN: Dictionary = {
     reportAction: "举报",
     reportThanks: "已提交，我们会尽快审核。",
     reportFailed: "举报提交失败。",
+    reportAlready: "你已经举报过该内容了。",
+    reportDialogTitle: "举报内容",
+    reportDialogSubtitle: "请选择违规类型，并可补充说明。举报将发送给管理员审核。",
+    reportSelectReason: "举报原因",
+    reportReasonSpam: "垃圾信息或广告",
+    reportReasonHarassment: "骚扰或霸凌",
+    reportReasonHate: "仇恨言论",
+    reportReasonInappropriate: "不当内容",
+    reportReasonMisinformation: "虚假信息",
+    reportReasonOther: "其他",
+    reportDetailsLabel: "补充说明（可选）",
+    reportDetailsRequiredLabel: "请描述违规行为",
+    reportDetailsPlaceholder: "说明发生了什么，或为何违反社区规则…",
+    reportDetailsRequired: "请描述违规行为（至少 5 个字符）。",
+    reportDetailsRequiredHint: "选择「其他」时必填，至少 5 个字符。",
+    reportDetailsOptionalHint: "可选填写，有助于管理员更快处理。",
+    reportSubmit: "提交举报",
+    reportSubmitting: "提交中…",
     opBadge: "楼主",
     topComment: "热门评论",
     collapseThread: "折叠线程",

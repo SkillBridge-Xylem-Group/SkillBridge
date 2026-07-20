@@ -11,10 +11,19 @@ export default function AnswerCard({
   answer,
   questionId,
   userInitials = "?",
+  currentUserId = "",
 }: {
   answer: ForumAnswer;
   questionId: string;
   userInitials?: string;
+  currentUserId?: string;
 }) {
-  return <CommentThread roots={[answer]} questionId={questionId} userInitials={userInitials} />;
+  return (
+    <CommentThread
+      roots={[answer]}
+      questionId={questionId}
+      userInitials={userInitials}
+      currentUserId={currentUserId}
+    />
+  );
 }

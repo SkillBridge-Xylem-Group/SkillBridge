@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       const claims = JSON.parse(json) as { iat?: number };
       const iatMs = typeof claims.iat === "number" ? claims.iat * 1000 : 0;
       const ageMs = Date.now() - iatMs;
-      if (!iatMs || ageMs > 5 * 60 * 1000 || ageMs < -60_000) {
+      if (!iatMs || ageMs > RECOVERY_TTL_MS || ageMs < -60_000) {
         return NextResponse.json(
           { error: "Recovery session is too old. Request a new reset email." },
           { status: 403 }
@@ -111,14 +111,19 @@ export async function POST(request: Request) {
   }
 
   const expiresAt = Date.now() + RECOVERY_TTL_MS;
-  const token = signRecoveryToken(userId, expiresAt);
-  response.cookies.set(recoveryCookieName(), token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: Math.floor(RECOVERY_TTL_MS / 1000),
-  });
+  try {
+    const token = signRecoveryToken(userId, expiresAt);
+    response.cookies.set(recoveryCookieName(), token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: Math.floor(RECOVERY_TTL_MS / 1000),
+    });
+  } catch (err) {
+    // Auth session cookies are still set; reset-password works via client session.
+    console.error("[complete-recovery] recovery cookie sign failed:", err);
+  }
 
   return response;
 }

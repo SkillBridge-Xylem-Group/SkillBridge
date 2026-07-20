@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { tryCreateSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/auth/isAdmin";
 
 export async function setUserSuspensionAction(params: {
@@ -52,7 +53,10 @@ export async function updateReportStatusAction(params: {
   if (!user) return { error: "You need to be signed in." };
   if (!(await isAdminUser(supabase, user.id))) return { error: "Not authorized." };
 
-  const { error } = await supabase
+  const admin = tryCreateSupabaseAdminClient();
+  const db = admin ?? supabase;
+
+  const { error } = await db
     .from("reports")
     .update({ status: params.status })
     .eq("report_id", params.reportId);
@@ -88,21 +92,24 @@ export async function deleteReportedContentAction(params: {
     return { error: "Report type mismatch." };
   }
 
+  const admin = tryCreateSupabaseAdminClient();
+  const db = admin ?? supabase;
+
   if (params.reportType === "forum_question") {
     const questionId = report.question_id;
     if (!questionId) return { error: "Report has no question to delete." };
-    const { error } = await supabase.from("forum_questions").delete().eq("question_id", questionId);
+    const { error } = await db.from("forum_questions").delete().eq("question_id", questionId);
     if (error) return { error: error.message };
   } else if (params.reportType === "forum_answer") {
     const answerId = report.answer_id;
     if (!answerId) return { error: "Report has no answer to delete." };
-    const { error } = await supabase.from("forum_answers").delete().eq("answer_id", answerId);
+    const { error } = await db.from("forum_answers").delete().eq("answer_id", answerId);
     if (error) return { error: error.message };
   } else {
     return { error: "Nothing to delete for this report." };
   }
 
-  const { error: statusError } = await supabase
+  const { error: statusError } = await db
     .from("reports")
     .update({ status: "actioned" })
     .eq("report_id", params.reportId);

@@ -11,12 +11,72 @@ function destinationFor(type: EmailOtpType | null) {
 }
 
 async function completeRecovery(payload: Record<string, string>) {
-  const res = await fetch("/api/auth/complete-recovery", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...payload, type: "recovery" }),
+  try {
+    const res = await fetch("/api/auth/complete-recovery", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, type: "recovery" }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+const RECOVERY_CONFIRM_PREFIX = "sb-recovery-confirm:";
+
+function recoveryConfirmStorageKey(payload: { token_hash?: string | null; code?: string | null }) {
+  if (payload.token_hash) return `${RECOVERY_CONFIRM_PREFIX}hash:${payload.token_hash}`;
+  if (payload.code) return `${RECOVERY_CONFIRM_PREFIX}code:${payload.code}`;
+  return null;
+}
+
+/** PKCE recovery links must be verified in the browser; then mint the httpOnly recovery cookie. */
+async function verifyRecoveryOnClientAndComplete(
+  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/client").createSupabaseBrowserClient>>,
+  payload:
+    | { token_hash: string }
+    | { code: string }
+    | { access_token: string; refresh_token: string }
+): Promise<{ ok: boolean; reason?: string }> {
+  if ("token_hash" in payload) {
+    const { error } = await supabase.auth.verifyOtp({
+      type: "recovery",
+      token_hash: payload.token_hash,
+    });
+    if (error) {
+      console.error("[auth/confirm] verifyOtp (recovery):", error.message);
+      return { ok: false, reason: error.message };
+    }
+  } else if ("code" in payload) {
+    const { error } = await supabase.auth.exchangeCodeForSession(payload.code);
+    if (error) {
+      console.error("[auth/confirm] exchangeCodeForSession (recovery):", error.message);
+      return { ok: false, reason: error.message };
+    }
+  } else {
+    const { error } = await supabase.auth.setSession({
+      access_token: payload.access_token,
+      refresh_token: payload.refresh_token,
+    });
+    if (error) {
+      console.error("[auth/confirm] setSession (recovery):", error.message);
+      return { ok: false, reason: error.message };
+    }
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return { ok: false, reason: "No session after verification." };
+
+  // Recovery cookie is optional hardening — client session is enough for reset-password.
+  await completeRecovery({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
   });
-  return res.ok;
+
+  return { ok: true };
 }
 
 export default function AuthConfirmClient() {
@@ -50,11 +110,13 @@ export default function AuthConfirmClient() {
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
 
       if (type === "recovery") {
-        const ok = await completeRecovery({
+        const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+        const supabase = createSupabaseBrowserClient();
+        const result = await verifyRecoveryOnClientAndComplete(supabase, {
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-        if (!ok) return false;
+        if (!result.ok) return false;
         router.replace("/reset-password");
         return true;
       }
@@ -78,27 +140,67 @@ export default function AuthConfirmClient() {
       const destination = destinationFor(type);
 
       try {
+        const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+        const supabase = createSupabaseBrowserClient();
+
+        // Already verified in this tab (e.g. React re-run) — go straight to reset if session exists.
+        if (type === "recovery") {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          if (session) {
+            router.replace("/reset-password");
+            return;
+          }
+        }
+
+        const confirmKey = recoveryConfirmStorageKey({ token_hash: tokenHash, code });
+        if (confirmKey) {
+          const prior = sessionStorage.getItem(confirmKey);
+          if (prior === "done") {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+            if (session && type === "recovery") {
+              router.replace("/reset-password");
+              return;
+            }
+          }
+          if (prior === "processing") {
+            await new Promise((r) => window.setTimeout(r, 400));
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+            if (session && type === "recovery") {
+              router.replace("/reset-password");
+              return;
+            }
+          }
+        }
+
         if (await confirmFromHash()) return;
 
         if (type === "recovery") {
-          if (tokenHash) {
-            const ok = await completeRecovery({ token_hash: tokenHash });
-            if (ok) {
-              router.replace("/reset-password");
-              return;
-            }
-          }
-          if (code) {
-            const ok = await completeRecovery({ code });
-            if (ok) {
-              router.replace("/reset-password");
-              return;
-            }
-          }
-        } else {
-          const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
-          const supabase = createSupabaseBrowserClient();
+          if (confirmKey) sessionStorage.setItem(confirmKey, "processing");
 
+          let verified = false;
+          if (tokenHash) {
+            const result = await verifyRecoveryOnClientAndComplete(supabase, { token_hash: tokenHash });
+            if (result.ok) verified = true;
+            else console.error("[auth/confirm] recovery token_hash failed:", result.reason);
+          } else if (code) {
+            const result = await verifyRecoveryOnClientAndComplete(supabase, { code });
+            if (result.ok) verified = true;
+            else console.error("[auth/confirm] recovery code failed:", result.reason);
+          }
+
+          if (verified) {
+            if (confirmKey) sessionStorage.setItem(confirmKey, "done");
+            router.replace("/reset-password");
+            return;
+          }
+          if (confirmKey) sessionStorage.removeItem(confirmKey);
+        } else {
           if (code) {
             const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (!error) {

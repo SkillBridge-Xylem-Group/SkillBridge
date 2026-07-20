@@ -11,10 +11,12 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 export default function CommentsSection({
   questionId,
   userInitials,
+  currentUserId,
   initialRoots,
 }: {
   questionId: string;
   userInitials: string;
+  currentUserId: string;
   initialRoots: ForumAnswer[];
 }) {
   const { dictionary } = useLocale();
@@ -47,7 +49,13 @@ export default function CommentsSection({
           {f.noCommentsMatch}
         </p>
       ) : (
-        <CommentThread roots={visible} questionId={questionId} userInitials={userInitials} />
+        <CommentThread
+          key={sort}
+          roots={visible}
+          questionId={questionId}
+          userInitials={userInitials}
+          currentUserId={currentUserId}
+        />
       )}
     </div>
   );

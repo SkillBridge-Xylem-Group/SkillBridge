@@ -30,7 +30,7 @@ export default async function ForumPage({ searchParams }: PageProps) {
       <div className="space-y-6 lg:col-span-2">
         <ForumDiscoverHeader />
 
-        <CommunitiesDiscovery communities={communities} initialCreateOpen={create === "1"} />
+        <CommunitiesDiscovery communities={communities} viewerId={user.id} initialCreateOpen={create === "1"} />
       </div>
 
       <div className="space-y-6">

@@ -12,7 +12,7 @@ const passwordRequirementsMessage =
 
 const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Current password is required").max(PASSWORD_MAX_LENGTH),
+    currentPassword: z.string().max(PASSWORD_MAX_LENGTH).optional(),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -58,25 +58,26 @@ export async function POST(request: Request) {
   const { user, supabase, error: authError } = await requireActiveUser();
   if (authError) return authError;
 
-  const usesEmailPassword = user.identities?.some((identity) => identity.provider === "email");
-  if (!usesEmailPassword) {
-    return NextResponse.json(
-      { error: "Password changes are managed by your Google account." },
-      { status: 400 }
-    );
-  }
-
   if (!user.email) {
     return NextResponse.json({ error: "No email on this account." }, { status: 400 });
   }
 
-  const { error: verifyError } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: parsed.data.currentPassword,
-  });
+  const usesEmailPassword = user.identities?.some((identity) => identity.provider === "email");
 
-  if (verifyError) {
-    return NextResponse.json({ error: "Current password is incorrect." }, { status: 401 });
+  // Email/password accounts must re-authenticate with the current password.
+  // Google-only accounts can set a SkillBridge password from an active session.
+  if (usesEmailPassword) {
+    const current = parsed.data.currentPassword?.trim() ?? "";
+    if (!current) {
+      return NextResponse.json({ error: "Current password is required." }, { status: 400 });
+    }
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: current,
+    });
+    if (verifyError) {
+      return NextResponse.json({ error: "Current password is incorrect." }, { status: 401 });
+    }
   }
 
   const breachCheck = await checkPasswordBreached(parsed.data.password);
