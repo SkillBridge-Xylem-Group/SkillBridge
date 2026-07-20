@@ -31,6 +31,8 @@ export type Dictionary = {
     language: string;
     logOut: string;
     logOutDesc: string;
+    logOutConfirmTitle: string;
+    logOutConfirmDesc: string;
     password: string;
     passwordDesc: string;
     passwordGoogle: string;
@@ -45,7 +47,6 @@ export type Dictionary = {
     updatePassword: string;
     updating: string;
     emailChangeHint: string;
-    locationHint: string;
     locationApproximate: string;
     locationNone: string;
     locationCountry: string;
@@ -383,10 +384,12 @@ const en: Dictionary = {
     language: "Display language",
     logOut: "Log out",
     logOutDesc: "End your current session on this device.",
+    logOutConfirmTitle: "Log out?",
+    logOutConfirmDesc: "Are you sure you want to end your session on this device?",
     password: "Password",
     passwordDesc: "Change the password you use to sign in.",
     passwordGoogle:
-      "You signed in with Google. Password changes are managed in your Google account.",
+      "You signed in with Google. You can still set a SkillBridge password to sign in with email.",
     change: "Change",
     cancel: "Cancel",
     done: "Done",
@@ -398,8 +401,7 @@ const en: Dictionary = {
     updatePassword: "Update password",
     updating: "Updating…",
     emailChangeHint: "We'll send a confirmation link to your new address before it becomes active.",
-    locationHint: "Personalize feeds and recommendations with geographically relevant content.",
-    locationApproximate: "Use approximate location (based on IP)",
+    locationApproximate: "Use approximate location",
     locationNone: "No location specified",
     locationCountry: "Country",
     genderMan: "Man",
@@ -740,9 +742,11 @@ const zhCN: Dictionary = {
     language: "显示语言",
     logOut: "退出登录",
     logOutDesc: "结束此设备上的当前会话。",
+    logOutConfirmTitle: "确认退出？",
+    logOutConfirmDesc: "确定要结束此设备上的当前会话吗？",
     password: "密码",
     passwordDesc: "更改用于登录的密码。",
-    passwordGoogle: "你使用 Google 登录。请在 Google 账户中管理密码。",
+    passwordGoogle: "你使用 Google 登录。仍可设置 SkillBridge 密码，以便用邮箱登录。",
     change: "更改",
     cancel: "取消",
     done: "完成",
@@ -754,8 +758,7 @@ const zhCN: Dictionary = {
     updatePassword: "更新密码",
     updating: "更新中…",
     emailChangeHint: "我们会向新邮箱发送确认链接，确认后才会生效。",
-    locationHint: "根据地理位置个性化推荐内容。",
-    locationApproximate: "使用大致位置（基于 IP）",
+    locationApproximate: "使用大致位置",
     locationNone: "不指定位置",
     locationCountry: "国家/地区",
     genderMan: "男",
