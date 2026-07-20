@@ -47,8 +47,8 @@ with check (created_by = auth.uid());
 drop policy if exists "forum communities update creator" on public.forum_communities;
 create policy "forum communities update creator"
 on public.forum_communities for update to authenticated
-using (created_by = auth.uid() or is_official = true)
-with check (created_by = auth.uid() or is_official = true);
+using (created_by = auth.uid() and is_official = false)
+with check (created_by = auth.uid() and is_official = false);
 
 drop policy if exists "forum communities delete creator" on public.forum_communities;
 create policy "forum communities delete creator"

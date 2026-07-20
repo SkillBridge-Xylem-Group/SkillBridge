@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { tryCreateSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type NotificationType =
   | "message"
@@ -22,16 +23,34 @@ export type NotificationRow = {
 };
 
 export async function createNotification(
-  supabase: SupabaseClient,
-  params: { userId: string; type: NotificationType; message: string; relatedEntityType?: string; relatedEntityId?: string }
+  _supabase: SupabaseClient,
+  params: {
+    userId: string;
+    type: NotificationType;
+    message: string;
+    relatedEntityType?: string;
+    relatedEntityId?: string;
+  }
 ) {
-  await supabase.from("notifications").insert({
+  // Privileged write only — after security-hardening.sql, clients cannot insert for others.
+  const admin = tryCreateSupabaseAdminClient();
+  if (!admin) {
+    console.error(
+      "[notifications] SUPABASE_SERVICE_ROLE_KEY missing; notification not sent:",
+      params.type
+    );
+    return;
+  }
+  const { error } = await admin.from("notifications").insert({
     user_id: params.userId,
     type: params.type,
     message: params.message,
     related_entity_type: params.relatedEntityType ?? null,
     related_entity_id: params.relatedEntityId ?? null,
   });
+  if (error) {
+    console.error("[notifications] insert failed:", error.message);
+  }
 }
 
 function staticLink(type: NotificationType, relatedEntityId: string | null): string | null {

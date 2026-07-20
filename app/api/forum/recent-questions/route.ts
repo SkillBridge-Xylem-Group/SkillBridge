@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { getSafeForumImageUrl } from "@/lib/forumImageUrl";
 import { getForumSubforum } from "@/lib/forumSubforums";
 
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
+  const { supabase, error: authError } = await requireActiveUser();
+  if (authError) return authError;
 
   const primary = await supabase
     .from("forum_questions")
@@ -32,8 +33,6 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to fetch recent forum questions" }, { status: 500 });
   }
 
-  // Note: questions have no upvote concept in the BRD (FR-007/FR-008 —
-  // only answers are voted on, via answer_votes), so no upvotes field here.
   const mapped = (questions ?? []).map((q) => {
     const slug = getForumSubforum((q as { subforum_slug?: string | null }).subforum_slug).slug;
     const sub = getForumSubforum(slug);

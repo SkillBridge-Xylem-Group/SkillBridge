@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getForumSubforum } from "@/lib/forumSubforums";
+import { escapePostgrestFilter } from "@/lib/security";
 
 export type ForumQuestionSummary = {
   question_id: string;
@@ -84,8 +85,10 @@ export async function getForumQuestions(
   }
 
   if (opts.search?.trim()) {
-    const term = opts.search.trim();
-    query = query.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
+    const term = escapePostgrestFilter(opts.search.trim());
+    if (term) {
+      query = query.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
+    }
   }
 
   const { data, error } = await query;
@@ -98,8 +101,10 @@ export async function getForumQuestions(
       .order("created_at", { ascending: false })
       .limit(opts.limit ?? 100);
     if (opts.search?.trim()) {
-      const term = opts.search.trim();
-      legacy = legacy.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
+      const term = escapePostgrestFilter(opts.search.trim());
+      if (term) {
+        legacy = legacy.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
+      }
     }
     const legacyRes = await legacy;
     let results: ForumQuestionSummary[] = (legacyRes.data ?? []).map((q) => ({

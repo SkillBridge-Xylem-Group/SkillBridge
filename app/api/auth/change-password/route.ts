@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { checkPasswordBreached, isPasswordValid, PASSWORD_MAX_LENGTH } from "@/lib/auth/password";
-import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+import { checkRateLimitAsync, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_CHANGE_PER_IP = 10;
@@ -42,7 +42,12 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  const ipLimit = checkRateLimit("auth:change-password:ip", ip, MAX_CHANGE_PER_IP, WINDOW_MS);
+  const ipLimit = await checkRateLimitAsync(
+    "auth:change-password:ip",
+    ip,
+    MAX_CHANGE_PER_IP,
+    WINDOW_MS
+  );
   if (!ipLimit.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Try again later." },

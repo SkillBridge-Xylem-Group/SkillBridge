@@ -5,10 +5,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function destinationFor(type: EmailOtpType | null) {
   return type === "recovery" ? "/reset-password" : "/login";
+}
+
+async function completeRecovery(payload: Record<string, string>) {
+  const res = await fetch("/api/auth/complete-recovery", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...payload, type: "recovery" }),
+  });
+  return res.ok;
 }
 
 export default function AuthConfirmClient() {
@@ -20,7 +28,7 @@ export default function AuthConfirmClient() {
   useEffect(() => {
     let cancelled = false;
 
-    async function confirmFromHash(supabase: ReturnType<typeof createSupabaseBrowserClient>) {
+    async function confirmFromHash() {
       const hash = window.location.hash.startsWith("#")
         ? window.location.hash.slice(1)
         : window.location.hash;
@@ -33,13 +41,25 @@ export default function AuthConfirmClient() {
 
       if (!accessToken || !refreshToken || !type) return false;
 
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+
+      if (type === "recovery") {
+        const ok = await completeRecovery({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (!ok) return false;
+        router.replace("/reset-password");
+        return true;
+      }
+
+      // Non-recovery hash flows still need client session bootstrap.
+      const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+      const supabase = createSupabaseBrowserClient();
       const { error } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,
       });
-
-      window.history.replaceState(null, "", window.location.pathname + window.location.search);
-
       if (error) return false;
       router.replace(destinationFor(type));
       return true;
@@ -50,27 +70,46 @@ export default function AuthConfirmClient() {
       const type = searchParams.get("type") as EmailOtpType | null;
       const code = searchParams.get("code");
       const destination = destinationFor(type);
-      const supabase = createSupabaseBrowserClient();
 
       try {
-        if (await confirmFromHash(supabase)) return;
+        if (await confirmFromHash()) return;
 
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (!error) {
-            router.replace(destination);
-            return;
+        if (type === "recovery") {
+          if (tokenHash) {
+            const ok = await completeRecovery({ token_hash: tokenHash });
+            if (ok) {
+              router.replace("/reset-password");
+              return;
+            }
           }
-          console.error("[auth/confirm] exchangeCodeForSession:", error.message);
-        }
+          if (code) {
+            const ok = await completeRecovery({ code });
+            if (ok) {
+              router.replace("/reset-password");
+              return;
+            }
+          }
+        } else {
+          const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+          const supabase = createSupabaseBrowserClient();
 
-        if (tokenHash && type) {
-          const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
-          if (!error) {
-            router.replace(destination);
-            return;
+          if (code) {
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
+            if (!error) {
+              router.replace(destination);
+              return;
+            }
+            console.error("[auth/confirm] exchangeCodeForSession:", error.message);
           }
-          console.error("[auth/confirm] verifyOtp:", error.message);
+
+          if (tokenHash && type) {
+            const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+            if (!error) {
+              router.replace(destination);
+              return;
+            }
+            console.error("[auth/confirm] verifyOtp:", error.message);
+          }
         }
 
         if (!cancelled) {
