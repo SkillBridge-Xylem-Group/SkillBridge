@@ -81,10 +81,20 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
             <img src={question.image_url} alt="" className="max-h-[32rem] w-full object-contain" />
           </div>
         ) : null}
-        <PostActionBar questionId={questionId} commentCount={commentCount} />
+        <PostActionBar
+          questionId={questionId}
+          commentCount={commentCount}
+          authorId={question.author.id}
+          currentUserId={user.id}
+        />
       </div>
 
-      <CommentsSection questionId={questionId} userInitials={userInitials} initialRoots={answers} />
+      <CommentsSection
+        questionId={questionId}
+        userInitials={userInitials}
+        currentUserId={user.id}
+        initialRoots={answers}
+      />
     </div>
   );
 }

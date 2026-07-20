@@ -94,8 +94,11 @@ export default function ManageCommunities({
   }
 
   const joined = useMemo(
-    () => communities.filter((c) => c.joined).sort((a, b) => a.title.localeCompare(b.title)),
-    [communities]
+    () =>
+      communities
+        .filter((c) => c.joined && c.created_by !== viewerId)
+        .sort((a, b) => a.title.localeCompare(b.title)),
+    [communities, viewerId]
   );
 
   const filtered = useMemo(() => {

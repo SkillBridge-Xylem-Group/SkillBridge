@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       const claims = JSON.parse(json) as { iat?: number };
       const iatMs = typeof claims.iat === "number" ? claims.iat * 1000 : 0;
       const ageMs = Date.now() - iatMs;
-      if (!iatMs || ageMs > 5 * 60 * 1000 || ageMs < -60_000) {
+      if (!iatMs || ageMs > RECOVERY_TTL_MS || ageMs < -60_000) {
         return NextResponse.json(
           { error: "Recovery session is too old. Request a new reset email." },
           { status: 403 }

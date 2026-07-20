@@ -19,6 +19,51 @@ async function completeRecovery(payload: Record<string, string>) {
   return res.ok;
 }
 
+/** PKCE recovery links must be verified in the browser; then mint the httpOnly recovery cookie. */
+async function verifyRecoveryOnClientAndComplete(
+  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/client").createSupabaseBrowserClient>>,
+  payload:
+    | { token_hash: string }
+    | { code: string }
+    | { access_token: string; refresh_token: string }
+) {
+  if ("token_hash" in payload) {
+    const { error } = await supabase.auth.verifyOtp({
+      type: "recovery",
+      token_hash: payload.token_hash,
+    });
+    if (error) {
+      console.error("[auth/confirm] verifyOtp (recovery):", error.message);
+      return false;
+    }
+  } else if ("code" in payload) {
+    const { error } = await supabase.auth.exchangeCodeForSession(payload.code);
+    if (error) {
+      console.error("[auth/confirm] exchangeCodeForSession (recovery):", error.message);
+      return false;
+    }
+  } else {
+    const { error } = await supabase.auth.setSession({
+      access_token: payload.access_token,
+      refresh_token: payload.refresh_token,
+    });
+    if (error) {
+      console.error("[auth/confirm] setSession (recovery):", error.message);
+      return false;
+    }
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return false;
+
+  return completeRecovery({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  });
+}
+
 export default function AuthConfirmClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,7 +89,9 @@ export default function AuthConfirmClient() {
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
 
       if (type === "recovery") {
-        const ok = await completeRecovery({
+        const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+        const supabase = createSupabaseBrowserClient();
+        const ok = await verifyRecoveryOnClientAndComplete(supabase, {
           access_token: accessToken,
           refresh_token: refreshToken,
         });
@@ -75,15 +122,18 @@ export default function AuthConfirmClient() {
         if (await confirmFromHash()) return;
 
         if (type === "recovery") {
+          const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+          const supabase = createSupabaseBrowserClient();
+
           if (tokenHash) {
-            const ok = await completeRecovery({ token_hash: tokenHash });
+            const ok = await verifyRecoveryOnClientAndComplete(supabase, { token_hash: tokenHash });
             if (ok) {
               router.replace("/reset-password");
               return;
             }
           }
           if (code) {
-            const ok = await completeRecovery({ code });
+            const ok = await verifyRecoveryOnClientAndComplete(supabase, { code });
             if (ok) {
               router.replace("/reset-password");
               return;

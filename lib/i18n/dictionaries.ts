@@ -253,6 +253,24 @@ export type Dictionary = {
     reportAction: string;
     reportThanks: string;
     reportFailed: string;
+    reportAlready: string;
+    reportDialogTitle: string;
+    reportDialogSubtitle: string;
+    reportSelectReason: string;
+    reportReasonSpam: string;
+    reportReasonHarassment: string;
+    reportReasonHate: string;
+    reportReasonInappropriate: string;
+    reportReasonMisinformation: string;
+    reportReasonOther: string;
+    reportDetailsLabel: string;
+    reportDetailsRequiredLabel: string;
+    reportDetailsPlaceholder: string;
+    reportDetailsRequired: string;
+    reportDetailsRequiredHint: string;
+    reportDetailsOptionalHint: string;
+    reportSubmit: string;
+    reportSubmitting: string;
     opBadge: string;
     topComment: string;
     collapseThread: string;
@@ -589,8 +607,26 @@ const en: Dictionary = {
     copyLink: "Copy link",
     linkCopied: "Link copied",
     reportAction: "Report",
-    reportThanks: "Thanks — we'll review this comment.",
+    reportThanks: "Thanks — we'll review this report.",
     reportFailed: "Couldn't submit the report.",
+    reportAlready: "You already reported this.",
+    reportDialogTitle: "Report content",
+    reportDialogSubtitle: "Choose a reason and optionally add details. Reports go to moderators.",
+    reportSelectReason: "Reason for report",
+    reportReasonSpam: "Spam or advertising",
+    reportReasonHarassment: "Harassment or bullying",
+    reportReasonHate: "Hate speech",
+    reportReasonInappropriate: "Inappropriate content",
+    reportReasonMisinformation: "Misinformation",
+    reportReasonOther: "Other",
+    reportDetailsLabel: "Additional details (optional)",
+    reportDetailsRequiredLabel: "Describe the violation",
+    reportDetailsPlaceholder: "Explain what happened or why this violates community rules…",
+    reportDetailsRequired: "Please describe the violation (at least 5 characters).",
+    reportDetailsRequiredHint: "Required when choosing Other — at least 5 characters.",
+    reportDetailsOptionalHint: "Optional — helps moderators review faster.",
+    reportSubmit: "Submit report",
+    reportSubmitting: "Submitting…",
     opBadge: "OP",
     topComment: "Top comment",
     collapseThread: "Collapse thread",
@@ -926,6 +962,24 @@ const zhCN: Dictionary = {
     reportAction: "举报",
     reportThanks: "已提交，我们会尽快审核。",
     reportFailed: "举报提交失败。",
+    reportAlready: "你已经举报过该内容了。",
+    reportDialogTitle: "举报内容",
+    reportDialogSubtitle: "请选择违规类型，并可补充说明。举报将发送给管理员审核。",
+    reportSelectReason: "举报原因",
+    reportReasonSpam: "垃圾信息或广告",
+    reportReasonHarassment: "骚扰或霸凌",
+    reportReasonHate: "仇恨言论",
+    reportReasonInappropriate: "不当内容",
+    reportReasonMisinformation: "虚假信息",
+    reportReasonOther: "其他",
+    reportDetailsLabel: "补充说明（可选）",
+    reportDetailsRequiredLabel: "请描述违规行为",
+    reportDetailsPlaceholder: "说明发生了什么，或为何违反社区规则…",
+    reportDetailsRequired: "请描述违规行为（至少 5 个字符）。",
+    reportDetailsRequiredHint: "选择「其他」时必填，至少 5 个字符。",
+    reportDetailsOptionalHint: "可选填写，有助于管理员更快处理。",
+    reportSubmit: "提交举报",
+    reportSubmitting: "提交中…",
     opBadge: "楼主",
     topComment: "热门评论",
     collapseThread: "折叠线程",
