@@ -1,4 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { requireActiveUser } from "@/lib/auth/requireActiveUser";
+import { checkRateLimitAsync, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 
 type GiphyImage = {
   url: string;
@@ -26,7 +28,10 @@ function mapGif(g: GiphyGif) {
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
+  const { error: authError } = await requireActiveUser();
+  if (authError) return authError;
+
   const apiKey = process.env.GIPHY_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -35,16 +40,26 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
-  const offset = request.nextUrl.searchParams.get("offset") ?? "0";
-  const limit = "20";
+  const ip = getClientIp(request);
+  const limit = await checkRateLimitAsync("giphy:ip", ip, 60, 60_000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many GIF requests. Try again shortly." },
+      { status: 429, headers: rateLimitHeaders(limit.retryAfterMs) }
+    );
+  }
+
+  const { searchParams } = new URL(request.url);
+  const q = searchParams.get("q")?.trim() ?? "";
+  const offset = searchParams.get("offset") ?? "0";
+  const pageLimit = "20";
 
   const endpoint = q
-    ? `https://api.giphy.com/v1/gifs/search?api_key=${encodeURIComponent(apiKey)}&q=${encodeURIComponent(q)}&limit=${limit}&offset=${encodeURIComponent(offset)}&rating=g`
-    : `https://api.giphy.com/v1/gifs/trending?api_key=${encodeURIComponent(apiKey)}&limit=${limit}&offset=${encodeURIComponent(offset)}&rating=g`;
+    ? `https://api.giphy.com/v1/gifs/search?api_key=${encodeURIComponent(apiKey)}&q=${encodeURIComponent(q)}&limit=${pageLimit}&offset=${encodeURIComponent(offset)}&rating=g`
+    : `https://api.giphy.com/v1/gifs/trending?api_key=${encodeURIComponent(apiKey)}&limit=${pageLimit}&offset=${encodeURIComponent(offset)}&rating=g`;
 
   try {
-    const res = await fetch(endpoint, { next: { revalidate: q ? 0 : 300 } });
+    const res = await fetch(endpoint, { cache: q ? "no-store" : "force-cache", next: { revalidate: q ? 0 : 300 } });
     if (!res.ok) {
       console.error("[giphy] upstream error:", res.status, await res.text());
       return NextResponse.json({ error: "Could not load GIFs right now." }, { status: 502 });

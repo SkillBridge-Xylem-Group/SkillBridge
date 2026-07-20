@@ -7,10 +7,16 @@ import { createAnswerAction } from "@/lib/actions/forum";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
 import GifPicker from "./GifPicker";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type AnswerComposerProps = {
   questionId: string;
   userInitials: string;
+  parentAnswerId?: string | null;
+  compact?: boolean;
+  defaultExpanded?: boolean;
+  onCancel?: () => void;
+  onPosted?: () => void;
 };
 
 function wrapSelection(
@@ -30,8 +36,18 @@ function revokeBlobPreview(url: string | null) {
   if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
 }
 
-export default function AnswerComposer({ questionId, userInitials }: AnswerComposerProps) {
-  const [expanded, setExpanded] = useState(false);
+export default function AnswerComposer({
+  questionId,
+  userInitials,
+  parentAnswerId = null,
+  compact = false,
+  defaultExpanded = false,
+  onCancel,
+  onPosted,
+}: AnswerComposerProps) {
+  const { dictionary } = useLocale();
+  const f = dictionary.forum;
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [content, setContent] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [remoteImageUrl, setRemoteImageUrl] = useState<string | null>(null);
@@ -70,6 +86,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
     if (isPending) return;
     resetForm();
     setExpanded(false);
+    onCancel?.();
   }
 
   function onPickImage(file: File | undefined) {
@@ -160,35 +177,39 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
         imageUrl = uploaded.url;
       }
 
-      const result = await createAnswerAction(questionId, content, imageUrl);
+      const result = await createAnswerAction(questionId, content, imageUrl, parentAnswerId);
       if (result?.error) {
         setError(result.error);
         return;
       }
       resetForm();
       setExpanded(false);
+      onPosted?.();
       router.refresh();
     });
   }
 
   const canSubmit = content.trim().length > 0 || !!imageFile || !!remoteImageUrl;
+  const placeholder = f.joinConversation;
 
   if (!expanded) {
     return (
-      <div className="flex items-start gap-3">
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-          style={{ background: "var(--sb-gradient)" }}
-        >
-          {userInitials}
-        </div>
+      <div className={`flex items-start gap-3 ${compact ? "pl-0" : ""}`}>
+        {!compact ? (
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+            style={{ background: "var(--sb-gradient)" }}
+          >
+            {userInitials}
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={() => setExpanded(true)}
           className="nb-input min-w-0 flex-1 px-4 py-3 text-left text-sm"
           style={{ color: "var(--sb-muted)" }}
         >
-          Join the conversation
+          {placeholder}
         </button>
       </div>
     );
@@ -196,17 +217,25 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
 
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: "var(--sb-gradient)" }}>
-        {userInitials}
-      </div>
+      {!compact ? (
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+          style={{ background: "var(--sb-gradient)" }}
+        >
+          {userInitials}
+        </div>
+      ) : null}
 
-      <div className="relative min-w-0 flex-1 overflow-visible rounded-2xl bg-white" style={{ boxShadow: "var(--sb-shadow-sm)" }}>
+      <div
+        className="relative min-w-0 flex-1 overflow-visible rounded-2xl bg-white"
+        style={{ boxShadow: "var(--sb-shadow-sm)" }}
+      >
         <textarea
           ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Join the conversation"
-          rows={4}
+          placeholder={placeholder}
+          rows={compact ? 3 : 4}
           className="w-full resize-y border-0 bg-transparent px-4 py-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-0"
           style={{ color: "var(--sb-ink)" }}
         />
@@ -254,7 +283,10 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
 
         {error ? <p className="px-4 pb-2 text-xs font-medium text-red-600">{error}</p> : null}
 
-        <div className="relative flex flex-wrap items-center justify-between gap-2 px-3 py-2.5" style={{ borderTop: "1px solid #eef7f0" }}>
+        <div
+          className="relative flex flex-wrap items-center justify-between gap-2 px-3 py-2.5"
+          style={{ borderTop: "1px solid #eef7f0" }}
+        >
           {showGifPicker ? (
             <div className="absolute left-3 top-full z-30 mt-1 w-[65%] min-w-[280px] max-w-[420px]">
               <GifPicker onSelect={onSelectGif} onClose={() => setShowGifPicker(false)} />
@@ -296,7 +328,10 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
               onClick={() => setShowGifPicker((open) => !open)}
               disabled={isPending}
               className="flex h-9 items-center justify-center rounded-lg px-2 text-xs font-extrabold transition hover:bg-slate-100 disabled:opacity-50"
-              style={{ color: showGifPicker ? "var(--sb-teal-dark)" : "var(--sb-muted)", background: showGifPicker ? "var(--sb-emerald-light)" : "transparent" }}
+              style={{
+                color: showGifPicker ? "var(--sb-teal-dark)" : "var(--sb-muted)",
+                background: showGifPicker ? "var(--sb-emerald-light)" : "transparent",
+              }}
               aria-label="Add GIF"
               aria-expanded={showGifPicker}
             >
@@ -310,7 +345,10 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
               }}
               disabled={isPending}
               className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-extrabold transition hover:bg-slate-100 disabled:opacity-50"
-              style={{ color: showFormat ? "var(--sb-teal-dark)" : "var(--sb-muted)", background: showFormat ? "var(--sb-emerald-light)" : "transparent" }}
+              style={{
+                color: showFormat ? "var(--sb-teal-dark)" : "var(--sb-muted)",
+                background: showFormat ? "var(--sb-emerald-light)" : "transparent",
+              }}
               aria-label="Formatting"
             >
               Aa
@@ -325,7 +363,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
               className="nb-btn bg-white px-4 py-1.5 text-xs disabled:opacity-50"
               style={{ color: "var(--sb-ink)" }}
             >
-              Cancel
+              {f.commentCancel}
             </button>
             <button
               type="button"
@@ -334,7 +372,7 @@ export default function AnswerComposer({ questionId, userInitials }: AnswerCompo
               className="nb-btn px-4 py-1.5 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
               style={{ background: "var(--sb-gradient)" }}
             >
-              {isPending ? "Posting..." : "Comment"}
+              {isPending ? f.posting : parentAnswerId ? f.replyAction : f.commentAction}
             </button>
           </div>
         </div>

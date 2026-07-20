@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loginSchema } from "@/lib/auth/validation";
 import { isSuspiciousSubmission } from "@/lib/auth/bot-guard";
-import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
+import { checkRateLimitAsync, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 import { authResponseDelay } from "@/lib/auth/timing";
 
 const WINDOW_MS = 15 * 60 * 1000;
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
   const ip = getClientIp(request);
 
-  const ipLimit = checkRateLimit("auth:login:ip", ip, MAX_LOGIN_PER_IP, WINDOW_MS);
+  const ipLimit = await checkRateLimitAsync("auth:login:ip", ip, MAX_LOGIN_PER_IP, WINDOW_MS);
   if (!ipLimit.allowed) {
     return NextResponse.json(
       { error: "Too many login attempts. Try again later." },
@@ -42,7 +42,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const emailLimit = checkRateLimit("auth:login:email", email, MAX_LOGIN_PER_EMAIL, WINDOW_MS);
+  const emailLimit = await checkRateLimitAsync(
+    "auth:login:email",
+    email,
+    MAX_LOGIN_PER_EMAIL,
+    WINDOW_MS
+  );
   if (!emailLimit.allowed) {
     return NextResponse.json(
       { error: "Too many login attempts. Try again later." },

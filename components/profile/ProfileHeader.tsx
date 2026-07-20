@@ -43,6 +43,7 @@ export default function ProfileHeader({
   function startEdit() {
     setDraftName(fullname);
     setDraftBio(bio ?? "");
+    setPhotoError("");
     setIsEditing(true);
   }
 
@@ -88,23 +89,27 @@ export default function ProfileHeader({
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => onPickPhoto(e.target.files?.[0])}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploadingPhoto}
-              aria-label={p.changePhoto}
-              className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white disabled:opacity-60"
-              style={{ background: "var(--sb-gradient)", color: "#fff", boxShadow: "var(--sb-shadow-sm)" }}
-            >
-              <Plus size={13} strokeWidth={3} />
-            </button>
+            {isEditing ? (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => onPickPhoto(e.target.files?.[0])}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingPhoto}
+                  aria-label={p.changePhoto}
+                  className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white disabled:opacity-60"
+                  style={{ background: "var(--sb-gradient)", color: "#fff", boxShadow: "var(--sb-shadow-sm)" }}
+                >
+                  <Plus size={13} strokeWidth={3} />
+                </button>
+              </>
+            ) : null}
           </div>
 
           <div>
@@ -129,10 +134,12 @@ export default function ProfileHeader({
                 {timezone}
               </span>
             </div>
-            {isUploadingPhoto && (
+            {isEditing && isUploadingPhoto && (
               <p className="mt-1.5 text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>{p.uploadingPhoto}</p>
             )}
-            {photoError && <p className="mt-1.5 text-xs font-medium text-red-600">{photoError}</p>}
+            {isEditing && photoError && (
+              <p className="mt-1.5 text-xs font-medium text-red-600">{photoError}</p>
+            )}
           </div>
         </div>
 
@@ -175,7 +182,10 @@ export default function ProfileHeader({
               </button>
               <button
                 type="button"
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setPhotoError("");
+                  setIsEditing(false);
+                }}
                 disabled={isSaving}
                 className="nb-btn flex items-center gap-1.5 bg-white px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                 style={{ color: "var(--sb-ink)" }}

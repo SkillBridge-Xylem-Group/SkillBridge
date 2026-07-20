@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, ChevronRight, X } from "lucide-react";
 import { signOutEverywhere } from "@/lib/auth/sign-out";
 import PasswordRequirements from "@/components/auth/PasswordRequirements";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { isPasswordValid } from "@/lib/auth/password";
 import { COUNTRY_OPTIONS, countryName } from "@/lib/settingsOptions";
 import { useLocale } from "@/components/i18n/LocaleProvider";
@@ -131,6 +132,7 @@ export default function SettingsClient({
 
   const [tab, setTab] = useState<SettingsTab>("account");
   const [modal, setModal] = useState<ModalKind>(null);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const [email] = useState(initialEmail);
   const [gender, setGender] = useState<Gender | null>(initialGender);
@@ -281,7 +283,11 @@ export default function SettingsClient({
       const res = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, password, confirmPassword }),
+        body: JSON.stringify({
+          ...(hasEmailPassword ? { currentPassword } : {}),
+          password,
+          confirmPassword,
+        }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -390,7 +396,12 @@ export default function SettingsClient({
 
             <Section title={s.session}>
               <SettingRow label={s.logOut} description={s.logOutDesc}>
-                <button type="button" onClick={handleLogout} disabled={isLoggingOut} className={outlineBtn}>
+                <button
+                  type="button"
+                  onClick={() => setLogoutConfirmOpen(true)}
+                  disabled={isLoggingOut}
+                  className="btn-pill border border-red-600 bg-white px-4 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
+                >
                   {isLoggingOut ? dictionary.menu.loggingOut : s.logOut}
                 </button>
               </SettingRow>
@@ -401,87 +412,83 @@ export default function SettingsClient({
         {tab === "security" ? (
           <div>
             <Section title={s.password}>
-              {hasEmailPassword ? (
-                <>
-                  <SettingRow label={s.password} description={s.passwordDesc}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPasswordOpen((o) => !o);
-                        setPasswordError("");
-                        setPasswordMessage("");
-                      }}
-                      className={outlineBtn}
-                    >
-                      {passwordOpen ? s.cancel : s.change}
-                    </button>
-                  </SettingRow>
+              <SettingRow
+                label={s.password}
+                description={hasEmailPassword ? s.passwordDesc : s.passwordGoogle}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPasswordOpen((o) => !o);
+                    setPasswordError("");
+                    setPasswordMessage("");
+                  }}
+                  className={outlineBtn}
+                >
+                  {passwordOpen ? s.cancel : s.change}
+                </button>
+              </SettingRow>
 
-                  {passwordOpen ? (
-                    <form onSubmit={changePassword} className="mt-2 max-w-xl space-y-4 py-2">
-                      <div>
-                        <label htmlFor="settings-current-password" className="text-sm font-medium text-slate-700">
-                          {s.currentPassword}
-                        </label>
-                        <input
-                          id="settings-current-password"
-                          type="password"
-                          autoComplete="current-password"
-                          value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                          required
-                          className={`mt-1.5 ${inputClass}`}
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="settings-new-password" className="text-sm font-medium text-slate-700">
-                          {s.newPassword}
-                        </label>
-                        <input
-                          id="settings-new-password"
-                          type="password"
-                          autoComplete="new-password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          onFocus={() => setPasswordFocus(true)}
-                          onBlur={() => setPasswordFocus(false)}
-                          required
-                          className={`mt-1.5 ${inputClass}`}
-                        />
-                        <PasswordRequirements password={password} open={passwordFocus || !!password} />
-                      </div>
-                      <div>
-                        <label htmlFor="settings-confirm-password" className="text-sm font-medium text-slate-700">
-                          {s.confirmPassword}
-                        </label>
-                        <input
-                          id="settings-confirm-password"
-                          type="password"
-                          autoComplete="new-password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          required
-                          className={`mt-1.5 ${inputClass}`}
-                        />
-                      </div>
-
-                      {passwordError ? <p className="text-sm font-medium text-red-600">{passwordError}</p> : null}
-                      {passwordMessage ? (
-                        <p className="text-sm font-medium text-emerald-600">{passwordMessage}</p>
-                      ) : null}
-
-                      <button type="submit" disabled={passwordSaving} className={`${doneBtn} w-auto px-6`}>
-                        {passwordSaving ? s.updating : s.updatePassword}
-                      </button>
-                    </form>
+              {passwordOpen ? (
+                <form onSubmit={changePassword} className="mt-2 max-w-xl space-y-4 py-2">
+                  {hasEmailPassword ? (
+                    <div>
+                      <label htmlFor="settings-current-password" className="text-sm font-medium text-slate-700">
+                        {s.currentPassword}
+                      </label>
+                      <input
+                        id="settings-current-password"
+                        type="password"
+                        autoComplete="current-password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        required
+                        className={`mt-1.5 ${inputClass}`}
+                      />
+                    </div>
                   ) : null}
-                </>
-              ) : (
-                <SettingRow label={s.password} description={s.passwordGoogle}>
-                  <span className="text-sm text-slate-500">Google</span>
-                  <ChevronRight size={18} className="text-slate-400" strokeWidth={1.75} />
-                </SettingRow>
-              )}
+                  <div>
+                    <label htmlFor="settings-new-password" className="text-sm font-medium text-slate-700">
+                      {s.newPassword}
+                    </label>
+                    <input
+                      id="settings-new-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onFocus={() => setPasswordFocus(true)}
+                      onBlur={() => setPasswordFocus(false)}
+                      required
+                      className={`mt-1.5 ${inputClass}`}
+                    />
+                    <PasswordRequirements password={password} open={passwordFocus || !!password} />
+                  </div>
+                  <div>
+                    <label htmlFor="settings-confirm-password" className="text-sm font-medium text-slate-700">
+                      {s.confirmPassword}
+                    </label>
+                    <input
+                      id="settings-confirm-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className={`mt-1.5 ${inputClass}`}
+                    />
+                  </div>
+
+                  {passwordError ? <p className="text-sm font-medium text-red-600">{passwordError}</p> : null}
+                  {passwordMessage ? (
+                    <p className="text-sm font-medium text-emerald-600">{passwordMessage}</p>
+                  ) : null}
+
+                  <button type="submit" disabled={passwordSaving} className={`${doneBtn} w-auto px-6`}>
+                    {passwordSaving ? s.updating : s.updatePassword}
+                  </button>
+                </form>
+              ) : null}
             </Section>
           </div>
         ) : null}
@@ -558,7 +565,6 @@ export default function SettingsClient({
             </button>
           }
         >
-          <p className="mb-3 text-sm text-slate-500">{s.locationHint}</p>
           <label htmlFor="settings-location" className="text-sm font-medium text-slate-700">
             {s.locationCustomization}
           </label>
@@ -615,6 +621,20 @@ export default function SettingsClient({
           {modalError ? <p className="mt-2 text-sm font-medium text-red-600">{modalError}</p> : null}
         </SettingsModal>
       ) : null}
+
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        title={s.logOutConfirmTitle}
+        description={s.logOutConfirmDesc}
+        confirmLabel={s.logOut}
+        cancelLabel={s.cancel}
+        danger
+        busy={isLoggingOut}
+        onCancel={() => {
+          if (!isLoggingOut) setLogoutConfirmOpen(false);
+        }}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }

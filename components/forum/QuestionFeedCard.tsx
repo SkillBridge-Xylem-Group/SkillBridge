@@ -1,27 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import type { ForumQuestionSummary } from "@/lib/forum";
 import { getForumSubforum } from "@/lib/forumSubforums";
-
-function timeAgo(dateStr: string) {
-  const diffMs = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-const AVATAR_COLORS = ["bg-brand", "bg-indigo-500", "bg-violet-500", "bg-teal-500", "bg-rose-500"];
-
-function colorFor(id: string) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = (hash + id.charCodeAt(i)) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[hash];
-}
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
+import ForumAuthorAvatar from "./ForumAuthorAvatar";
 
 export default function QuestionFeedCard({
   question,
@@ -30,13 +15,7 @@ export default function QuestionFeedCard({
   question: ForumQuestionSummary;
   showSubforum?: boolean;
 }) {
-  const initials = question.author.fullname
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p.charAt(0).toUpperCase())
-    .join("");
-
+  const { locale, dictionary } = useLocale();
   const subforum = getForumSubforum(question.subforum_slug);
 
   return (
@@ -46,11 +25,7 @@ export default function QuestionFeedCard({
       style={{ borderBottom: "1px solid #eef7f0" }}
     >
       <div className="flex items-start gap-3">
-        <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${colorFor(question.author.id)}`}
-        >
-          {initials}
-        </div>
+        <ForumAuthorAvatar name={question.author.fullname} avatarUrl={question.author.avatar_url} />
         <div className="min-w-0 flex-1">
           <p className="text-sm" style={{ color: "var(--sb-muted)" }}>
             {showSubforum ? (
@@ -59,7 +34,9 @@ export default function QuestionFeedCard({
                 <span> · </span>
               </>
             ) : null}
-            <span className="font-bold" style={{ color: "var(--sb-ink)" }}>{question.author.fullname}</span> · {timeAgo(question.created_at)}
+            <span className="font-bold" style={{ color: "var(--sb-ink)" }}>{question.author.fullname}</span>
+            {" · "}
+            {formatRelativeTimeLabel(question.created_at, dictionary.common, locale)}
           </p>
           <h3 className="mt-0.5 text-base font-extrabold" style={{ color: "var(--sb-ink)" }}>{question.title}</h3>
           {question.content ? (

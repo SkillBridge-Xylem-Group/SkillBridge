@@ -39,6 +39,9 @@ export function useRealtimeNotifications() {
     function onVisible() {
       if (document.visibilityState === "visible") void load();
     }
+    function onReloadRequest() {
+      void load();
+    }
 
     async function setup() {
       await load();
@@ -72,6 +75,7 @@ export function useRealtimeNotifications() {
 
       window.addEventListener("focus", onFocus);
       document.addEventListener("visibilitychange", onVisible);
+      window.addEventListener("sb-notifications-reload", onReloadRequest);
       pollId = setInterval(() => {
         void load();
       }, 15_000);
@@ -83,6 +87,7 @@ export function useRealtimeNotifications() {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("sb-notifications-reload", onReloadRequest);
       if (pollId) clearInterval(pollId);
       if (channel) {
         const supabase = createSupabaseBrowserClient();
