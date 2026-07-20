@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { tryCreateSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/auth/isAdmin";
 
 export async function setUserSuspensionAction(params: {
@@ -53,10 +52,7 @@ export async function updateReportStatusAction(params: {
   if (!user) return { error: "You need to be signed in." };
   if (!(await isAdminUser(supabase, user.id))) return { error: "Not authorized." };
 
-  const admin = tryCreateSupabaseAdminClient();
-  const db = admin ?? supabase;
-
-  const { error } = await db
+  const { error } = await supabase
     .from("reports")
     .update({ status: params.status })
     .eq("report_id", params.reportId);
@@ -81,35 +77,17 @@ export async function deleteReportedContentAction(params: {
   if (!user) return { error: "You need to be signed in." };
   if (!(await isAdminUser(supabase, user.id))) return { error: "Not authorized." };
 
-  const { data: report } = await supabase
-    .from("reports")
-    .select("report_id, report_type, question_id, answer_id, status")
-    .eq("report_id", params.reportId)
-    .maybeSingle();
-
-  if (!report) return { error: "Report not found." };
-  if (report.report_type !== params.reportType) {
-    return { error: "Report type mismatch." };
-  }
-
-  const admin = tryCreateSupabaseAdminClient();
-  const db = admin ?? supabase;
-
-  if (params.reportType === "forum_question") {
-    const questionId = report.question_id;
-    if (!questionId) return { error: "Report has no question to delete." };
-    const { error } = await db.from("forum_questions").delete().eq("question_id", questionId);
+  if (params.reportType === "forum_question" && params.questionId) {
+    const { error } = await supabase.from("forum_questions").delete().eq("question_id", params.questionId);
     if (error) return { error: error.message };
-  } else if (params.reportType === "forum_answer") {
-    const answerId = report.answer_id;
-    if (!answerId) return { error: "Report has no answer to delete." };
-    const { error } = await db.from("forum_answers").delete().eq("answer_id", answerId);
+  } else if (params.reportType === "forum_answer" && params.answerId) {
+    const { error } = await supabase.from("forum_answers").delete().eq("answer_id", params.answerId);
     if (error) return { error: error.message };
   } else {
     return { error: "Nothing to delete for this report." };
   }
 
-  const { error: statusError } = await db
+  const { error: statusError } = await supabase
     .from("reports")
     .update({ status: "actioned" })
     .eq("report_id", params.reportId);

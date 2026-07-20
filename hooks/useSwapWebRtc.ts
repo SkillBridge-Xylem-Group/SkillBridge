@@ -375,26 +375,8 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
 
       if (cancelled) return;
 
-      const channelRes = await fetch(`/api/swap-session/${requestId}/channel`, { method: "POST" });
-      if (!channelRes.ok) {
-        if (!cancelled) {
-          setConnectionState("failed");
-          setMediaError("Could not authorize this session channel. Refresh and try again.");
-        }
-        return;
-      }
-      const channelPayload = (await channelRes.json()) as { channel?: string };
-      const channelTopic = channelPayload.channel;
-      if (!channelTopic) {
-        if (!cancelled) {
-          setConnectionState("failed");
-          setMediaError("Could not authorize this session channel. Refresh and try again.");
-        }
-        return;
-      }
-
       const supabase = createSupabaseBrowserClient();
-      channel = supabase.channel(channelTopic, {
+      channel = supabase.channel(`swap-session:${requestId}`, {
         config: {
           broadcast: { self: false },
           presence: { key: userId },

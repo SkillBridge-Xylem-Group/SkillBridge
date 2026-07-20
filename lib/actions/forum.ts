@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createQuestion, createAnswer, setAnswerVote } from "@/lib/forum";
+import { createQuestion, createAnswer, toggleAnswerVote } from "@/lib/forum";
 import { createNotification } from "@/lib/notifications";
 import { getSafeForumImageUrl } from "@/lib/forumImageUrl";
 import { forumSubforumPath } from "@/lib/forumSubforums";
@@ -15,8 +15,6 @@ import {
   updateCommunityAccent,
   updateCommunityImage,
 } from "@/lib/forumCommunities";
-import { composeReportReason, isReportReasonKey } from "@/lib/forumReportReasons";
-import { createReport } from "@/lib/reports";
 
 export async function createQuestionAction(
   title: string,
@@ -177,17 +175,6 @@ export async function toggleJoinCommunityAction(communityId: string, currentlyJo
     resolvedId = row.id;
   }
 
-  if (currentlyJoined) {
-    const { data: community } = await supabase
-      .from("forum_communities")
-      .select("created_by")
-      .eq("id", resolvedId)
-      .maybeSingle();
-    if (community?.created_by === user.id) {
-      return { error: "You created this community — delete it from the community page if you want it gone." };
-    }
-  }
-
   const result = currentlyJoined
     ? await leaveCommunity(supabase, resolvedId, user.id)
     : await joinCommunity(supabase, resolvedId, user.id);
@@ -223,12 +210,7 @@ export async function deleteCommunityAction(communityId: string) {
   return { success: true };
 }
 
-export async function createAnswerAction(
-  questionId: string,
-  content: string,
-  imageUrl?: string | null,
-  parentAnswerId?: string | null
-) {
+export async function createAnswerAction(questionId: string, content: string, imageUrl?: string | null) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -250,77 +232,29 @@ export async function createAnswerAction(
     .eq("question_id", questionId)
     .maybeSingle();
 
-  let parentAuthorId: string | null = null;
-  if (parentAnswerId) {
-    const { data: parentRow } = await supabase
-      .from("forum_answers")
-      .select("user_id, question_id")
-      .eq("answer_id", parentAnswerId)
-      .maybeSingle();
-    if (!parentRow || parentRow.question_id !== questionId) {
-      return { error: "Parent comment not found." };
-    }
-    parentAuthorId = parentRow.user_id;
-  }
-
-  const { data: created, error } = await createAnswer(supabase, {
+  const { error } = await createAnswer(supabase, {
     questionId,
     userId: user.id,
     content: content.trim(),
     imageUrl: safeImageUrl,
-    parentAnswerId: parentAnswerId ?? null,
   });
   if (error) return { error: error.message };
 
-  const { data: authorRow } = await supabase.from("users").select("fullname").eq("id", user.id).maybeSingle();
-  const authorName = authorRow?.fullname ?? "Someone";
-
   if (question && question.user_id !== user.id) {
+    const { data: authorRow } = await supabase.from("users").select("fullname").eq("id", user.id).maybeSingle();
     await createNotification(supabase, {
       userId: question.user_id,
       type: "forum_reply",
-      message: `${authorName} replied to "${question.title.slice(0, 60)}"`,
+      message: `${authorRow?.fullname ?? "Someone"} replied to "${question.title.slice(0, 60)}"`,
       relatedEntityType: "forum_question",
       relatedEntityId: questionId,
     });
   }
-
-  if (
-    parentAuthorId &&
-    parentAuthorId !== user.id &&
-    parentAuthorId !== question?.user_id
-  ) {
-    await createNotification(supabase, {
-      userId: parentAuthorId,
-      type: "forum_reply",
-      message: `${authorName} replied to your comment`,
-      relatedEntityType: "forum_question",
-      relatedEntityId: questionId,
-    });
-  }
-
-  revalidatePath(`/dashboard/forum/${questionId}`);
-  return { success: true, answerId: created?.answer_id as string | undefined };
-}
-
-export async function setVoteAction(answerId: string, questionId: string, value: -1 | 0 | 1) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in to vote." };
-  if (value !== -1 && value !== 0 && value !== 1) {
-    return { error: "Invalid vote." };
-  }
-
-  const { error } = await setAnswerVote(supabase, { answerId, userId: user.id, value });
-  if (error) return { error: error.message };
 
   revalidatePath(`/dashboard/forum/${questionId}`);
   return { success: true };
 }
 
-/** @deprecated use setVoteAction */
 export async function toggleVoteAction(answerId: string, questionId: string) {
   const supabase = await createSupabaseServerClient();
   const {
@@ -328,103 +262,9 @@ export async function toggleVoteAction(answerId: string, questionId: string) {
   } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be signed in to vote." };
 
-  const { data: existing } = await supabase
-    .from("answer_votes")
-    .select("vote_id")
-    .eq("answer_id", answerId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const next: -1 | 0 | 1 = existing ? 0 : 1;
-  const { error } = await setAnswerVote(supabase, { answerId, userId: user.id, value: next });
+  const { error } = await toggleAnswerVote(supabase, { answerId, userId: user.id });
   if (error) return { error: error.message };
 
   revalidatePath(`/dashboard/forum/${questionId}`);
-  return { success: true };
-}
-
-export async function createReportAction(params: {
-  answerId: string;
-  questionId: string;
-  reasonKey: string;
-  details?: string;
-}) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in to report." };
-
-  const { data: answer } = await supabase
-    .from("forum_answers")
-    .select("answer_id, user_id, question_id")
-    .eq("answer_id", params.answerId)
-    .maybeSingle();
-
-  if (!answer || answer.question_id !== params.questionId) {
-    return { error: "Comment not found." };
-  }
-  if (answer.user_id === user.id) {
-    return { error: "You can't report your own comment." };
-  }
-
-  if (!isReportReasonKey(params.reasonKey)) {
-    return { error: "Please choose a report reason." };
-  }
-
-  const composed = composeReportReason(params.reasonKey, params.details);
-  if (composed.error) return { error: composed.error };
-
-  const { error } = await createReport(supabase, {
-    reporterId: user.id,
-    reportType: "forum_answer",
-    reportedUserId: answer.user_id,
-    questionId: params.questionId,
-    answerId: params.answerId,
-    reason: composed.reason ?? undefined,
-  });
-
-  if (error) return { error };
-  return { success: true };
-}
-
-export async function createQuestionReportAction(params: {
-  questionId: string;
-  reasonKey: string;
-  details?: string;
-}) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in to report." };
-
-  const { data: question } = await supabase
-    .from("forum_questions")
-    .select("question_id, user_id, title")
-    .eq("question_id", params.questionId)
-    .maybeSingle();
-
-  if (!question) return { error: "Post not found." };
-  if (question.user_id === user.id) {
-    return { error: "You can't report your own post." };
-  }
-
-  if (!isReportReasonKey(params.reasonKey)) {
-    return { error: "Please choose a report reason." };
-  }
-
-  const composed = composeReportReason(params.reasonKey, params.details);
-  if (composed.error) return { error: composed.error };
-
-  const { error } = await createReport(supabase, {
-    reporterId: user.id,
-    reportType: "forum_question",
-    reportedUserId: question.user_id,
-    questionId: params.questionId,
-    reason: composed.reason ?? undefined,
-  });
-
-  if (error) return { error };
   return { success: true };
 }

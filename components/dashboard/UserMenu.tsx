@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, User, Settings } from "lucide-react";
+import { ChevronDown, User, Settings, LogOut } from "lucide-react";
+import { signOutEverywhere } from "@/lib/auth/sign-out";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type UserMenuProps = {
@@ -12,6 +13,7 @@ type UserMenuProps = {
 
 export default function UserMenu({ name, avatarUrl = null }: UserMenuProps) {
   const [open, setOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { dictionary } = useLocale();
 
@@ -24,6 +26,16 @@ export default function UserMenu({ name, avatarUrl = null }: UserMenuProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  async function handleLogout() {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await signOutEverywhere();
+    } finally {
+      window.location.replace("/login?loggedOut=1");
+    }
+  }
 
   return (
     <div className="relative" ref={menuRef}>
@@ -71,6 +83,16 @@ export default function UserMenu({ name, avatarUrl = null }: UserMenuProps) {
             <Settings size={16} />
             {dictionary.menu.settings}
           </Link>
+          <div className="my-1 border-t border-[#eef7f0]" />
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+          >
+            <LogOut size={16} />
+            {isLoggingOut ? dictionary.menu.loggingOut : dictionary.menu.logout}
+          </button>
         </div>
       )}
     </div>

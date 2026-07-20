@@ -167,22 +167,6 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                     {r.report_type.replace("forum_", "")}
                     {r.targetDetail ? ` · ${r.targetDetail}` : ""}
                   </p>
-                  {r.report_type === "forum_question" && r.question_id ? (
-                    <Link
-                      href={`/dashboard/forum/${r.question_id}`}
-                      className="mt-1 inline-block text-xs font-semibold text-teal-700 hover:underline"
-                    >
-                      View post
-                    </Link>
-                  ) : null}
-                  {r.report_type === "forum_answer" && r.question_id ? (
-                    <Link
-                      href={`/dashboard/forum/${r.question_id}${r.answer_id ? `#comment-${r.answer_id}` : ""}`}
-                      className="mt-1 inline-block text-xs font-semibold text-teal-700 hover:underline"
-                    >
-                      View comment
-                    </Link>
-                  ) : null}
                 </td>
                 <td className="px-4 py-3 max-w-xs text-slate-500">{r.reason}</td>
                 <td className="px-4 py-3 text-slate-500">{r.reporterName}</td>

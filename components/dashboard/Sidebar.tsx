@@ -28,6 +28,7 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
     browse: dictionary.nav.browse,
     swaps: dictionary.nav.swaps,
     forum: dictionary.nav.forum,
+    profile: dictionary.nav.profile,
   } as const;
 
   // Read the persisted preference after mount only, so server and first
@@ -50,12 +51,12 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
 
   return (
     <aside
-      className={`sticky top-2 hidden h-[calc(100vh-1rem)] shrink-0 flex-col rounded-2xl bg-white transition-[width] duration-200 lg:flex ${
+      className={`sticky top-5 hidden h-[calc(100vh-2.5rem)] shrink-0 flex-col rounded-3xl bg-white transition-[width] duration-200 lg:flex ${
         collapsed ? "w-20" : "w-64"
       }`}
       style={{ boxShadow: "var(--sb-shadow-md)" }}
     >
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-7">
         <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2`}>
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
             <Image src="/images/logo-mark.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0" />
@@ -86,7 +87,7 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
           </button>
         )}
 
-        <nav className={`mt-5 space-y-1 ${collapsed ? "px-0" : ""}`}>
+        <nav className={`mt-8 space-y-1.5 ${collapsed ? "px-0" : ""}`}>
           {DASHBOARD_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = isDashboardNavActive(activePath, item.href);

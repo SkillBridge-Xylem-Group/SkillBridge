@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { updateOrCreateUser } from "@/lib/profile/upsertUser";
-import { isAllowedAvatarUrl } from "@/lib/security";
 
 const avatarSchema = z.object({
   avatarUrl: z.string().url(),
@@ -19,10 +18,6 @@ export async function POST(request: Request) {
   const parsed = avatarSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Validation failed" }, { status: 400 });
-  }
-
-  if (!isAllowedAvatarUrl(parsed.data.avatarUrl)) {
-    return NextResponse.json({ error: "Avatar URL must be from SkillBridge storage." }, { status: 400 });
   }
 
   const { user, supabase, error: authError } = await requireActiveUser();

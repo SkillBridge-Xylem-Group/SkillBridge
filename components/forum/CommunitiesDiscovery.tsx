@@ -1,23 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { COMMUNITY_CATEGORIES, COMMUNITY_TOPICS } from "@/lib/forumCommunities";
 import { toggleJoinCommunityAction } from "@/lib/actions/forum";
 import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import CreateCommunityModal from "@/components/forum/CreateCommunityModal";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
 import { categoryLabel } from "@/lib/i18n/communityCategoryLabels";
 
 type CommunitiesDiscoveryProps = {
   communities: ForumCommunity[];
-  viewerId: string;
   initialCategory?: string;
   initialCreateOpen?: boolean;
 };
@@ -37,119 +35,67 @@ function sortByActivity(list: ForumCommunity[]) {
 
 function JoinButton({
   community,
-  viewerId,
   onJoinedChange,
 }: {
   community: ForumCommunity;
-  viewerId: string;
   onJoinedChange: (communityId: string, joined: boolean) => void;
 }) {
   const router = useRouter();
   const { dictionary } = useLocale();
   const c = dictionary.common;
-  const f = dictionary.forum;
-  const isOwner = community.created_by === viewerId;
   const [joined, setJoined] = useState(community.joined);
-  const [busy, setBusy] = useState(false);
+  const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
 
   useEffect(() => {
     setJoined(community.joined);
   }, [community.joined]);
 
-  function applyJoin(nextJoined: boolean) {
-    if (busy) return;
-    void (async () => {
-      const prev = joined;
-      setBusy(true);
-      setJoined(nextJoined);
-      onJoinedChange(community.id, nextJoined);
-      setError("");
-      try {
-        const res = await toggleJoinCommunityAction(community.id, prev);
-        if (res?.error) {
-          setJoined(prev);
-          onJoinedChange(community.id, prev);
-          setError(res.error);
-          return;
-        }
-        setLeaveConfirmOpen(false);
-        invalidateSidebarCommunitiesCache();
-        router.refresh();
-      } finally {
-        setBusy(false);
-      }
-    })();
-  }
-
-  function onClick(e: React.MouseEvent) {
+  function toggle(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (isOwner || busy) return;
-    if (joined) {
-      setLeaveConfirmOpen(true);
-      return;
-    }
-    applyJoin(true);
-  }
-
-  if (isOwner && joined) {
-    return (
-      <div className="shrink-0">
-        <span
-          className="inline-block rounded-full border border-slate-300 bg-white px-4 py-1.5 text-xs font-bold text-slate-600"
-          title={f.leaveCommunityAsOwner}
-        >
-          {c.joined}
-        </span>
-      </div>
-    );
+    startTransition(async () => {
+      const prev = joined;
+      const next = !prev;
+      setJoined(next);
+      onJoinedChange(community.id, next);
+      setError("");
+      const res = await toggleJoinCommunityAction(community.id, prev);
+      if (res?.error) {
+        setJoined(prev);
+        onJoinedChange(community.id, prev);
+        setError(res.error);
+        return;
+      }
+      invalidateSidebarCommunitiesCache();
+      router.refresh();
+    });
   }
 
   return (
     <div className="shrink-0">
       <button
         type="button"
-        onClick={onClick}
-        disabled={busy}
-        aria-busy={busy}
-        className={`inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition disabled:opacity-60 ${
+        onClick={toggle}
+        disabled={pending}
+        className={`rounded-full px-4 py-1.5 text-xs font-bold transition disabled:opacity-60 ${
           joined
-            ? "border border-red-200 bg-white text-red-600 hover:bg-red-50"
+            ? "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50"
             : "bg-slate-100 text-slate-900 hover:bg-slate-200"
         }`}
       >
-        {busy ? <Loader2 size={12} className="animate-spin" aria-hidden /> : null}
-        {joined ? c.leave : c.join}
+        {joined ? c.joined : c.join}
       </button>
       {error ? <p className="mt-1 max-w-[8rem] text-[10px] font-medium leading-tight text-red-600">{error}</p> : null}
-
-      <ConfirmDialog
-        open={leaveConfirmOpen}
-        title={f.leaveCommunityConfirmTitle}
-        description={f.leaveCommunityConfirmDesc}
-        confirmLabel={f.leaveCommunity}
-        cancelLabel={dictionary.common.cancel}
-        danger
-        busy={busy}
-        busyLabel={c.loading}
-        onCancel={() => {
-          if (!busy) setLeaveConfirmOpen(false);
-        }}
-        onConfirm={() => applyJoin(false)}
-      />
     </div>
   );
 }
 
 function CommunityCard({
   community,
-  viewerId,
   onJoinedChange,
 }: {
   community: ForumCommunity;
-  viewerId: string;
   onJoinedChange: (communityId: string, joined: boolean) => void;
 }) {
   const { dictionary } = useLocale();
@@ -178,7 +124,7 @@ function CommunityCard({
                 {community.post_count} {community.post_count === 1 ? f.post : f.posts}
               </p>
             </Link>
-            <JoinButton community={community} viewerId={viewerId} onJoinedChange={onJoinedChange} />
+            <JoinButton community={community} onJoinedChange={onJoinedChange} />
           </div>
         </div>
       </div>
@@ -194,13 +140,11 @@ function CommunityCard({
 function CommunitySection({
   title,
   communities,
-  viewerId,
   initialCount = INITIAL_VISIBLE,
   onJoinedChange,
 }: {
   title: string;
   communities: ForumCommunity[];
-  viewerId: string;
   initialCount?: number;
   onJoinedChange: (communityId: string, joined: boolean) => void;
 }) {
@@ -217,7 +161,7 @@ function CommunitySection({
       <h2 className="mb-3 text-lg font-extrabold text-slate-900">{title}</h2>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {visible.map((community) => (
-          <CommunityCard key={community.id} community={community} viewerId={viewerId} onJoinedChange={onJoinedChange} />
+          <CommunityCard key={community.id} community={community} onJoinedChange={onJoinedChange} />
         ))}
       </div>
       {canShowMore ? (
@@ -227,7 +171,9 @@ function CommunitySection({
             onClick={() => setExpanded((v) => !v)}
             className="rounded-full bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-200"
           >
-            {expanded ? f.showLess : f.showMore}
+            {expanded
+              ? f.showLess
+              : interpolate(f.showMore, { n: communities.length - initialCount })}
           </button>
         </div>
       ) : null}
@@ -237,7 +183,6 @@ function CommunitySection({
 
 export default function CommunitiesDiscovery({
   communities: initialCommunities,
-  viewerId,
   initialCategory = ALL,
   initialCreateOpen = false,
 }: CommunitiesDiscoveryProps) {
@@ -366,7 +311,6 @@ export default function CommunitiesDiscovery({
         <CommunitySection
           title={category === ALL ? f.recommended : categoryDisplay}
           communities={recommended}
-          viewerId={viewerId}
           onJoinedChange={onJoinedChange}
         />
       ) : (
@@ -395,7 +339,6 @@ export default function CommunitiesDiscovery({
           key={section.category}
           title={section.title}
           communities={section.communities}
-          viewerId={viewerId}
           initialCount={3}
           onJoinedChange={onJoinedChange}
         />

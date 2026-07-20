@@ -3,20 +3,11 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
 import type { SessionRequestSummary } from "@/lib/sessionRequests";
-import {
-  completeSessionAction,
-  cancelSessionAction,
-  rescheduleSessionAction,
-  hideSessionHistoryAction,
-} from "@/lib/actions/sessionRequests";
+import { completeSessionAction, cancelSessionAction, rescheduleSessionAction } from "@/lib/actions/sessionRequests";
 import ReviewModal from "./ReviewModal";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { dateLocaleTag } from "@/lib/i18n/locales";
-import { getInitials } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 const STATUS_STYLES: Record<string, { bg: string; ink: string }> = {
   pending: { bg: "#fff6d9", ink: "#b45309" },
@@ -26,8 +17,6 @@ const STATUS_STYLES: Record<string, { bg: string; ink: string }> = {
   declined: { bg: "#fee2e2", ink: "#b91c1c" },
   cancelled: { bg: "#f1f5f9", ink: "#94a3b8" },
 };
-
-const HISTORY_STATUSES = new Set(["completed", "cancelled", "declined"]);
 
 function formatDateTime(value: string | null, locale: string, notScheduled: string) {
   if (!value) return notScheduled;
@@ -52,13 +41,10 @@ function SessionRow({
   const [isPending, startTransition] = useTransition();
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [newTime, setNewTime] = useState("");
-  const [confirmHide, setConfirmHide] = useState(false);
-  const [hideError, setHideError] = useState("");
   const router = useRouter();
 
   const canManage = session.status === "accepted" || session.status === "rescheduled";
   const canReview = session.status === "completed" && !session.hasReviewedPartner;
-  const canRemoveHistory = HISTORY_STATUSES.has(session.status);
 
   function markComplete() {
     startTransition(async () => {
@@ -85,19 +71,6 @@ function SessionRow({
     });
   }
 
-  function removeFromHistory() {
-    setHideError("");
-    startTransition(async () => {
-      const result = await hideSessionHistoryAction(session.request_id);
-      if (result?.error) {
-        setHideError(result.error);
-        return;
-      }
-      setConfirmHide(false);
-      router.refresh();
-    });
-  }
-
   const status = STATUS_STYLES[session.status] ?? STATUS_STYLES.pending;
 
   return (
@@ -108,19 +81,7 @@ function SessionRow({
         </p>
         <p style={{ color: "var(--sb-muted)" }}>{session.topic?.category ?? ""}</p>
       </td>
-      <td className="py-4">
-        <div className="flex items-center gap-2.5">
-          <Avatar className="h-9 w-9 text-xs">
-            {session.partner.avatar_url ? <AvatarImage src={session.partner.avatar_url} alt="" /> : null}
-            <AvatarFallback className="font-bold text-white" style={{ background: "var(--sb-gradient)" }}>
-              {getInitials(session.partner.fullname)}
-            </AvatarFallback>
-          </Avatar>
-          <span className="font-semibold" style={{ color: "var(--sb-ink)" }}>
-            {session.partner.fullname}
-          </span>
-        </div>
-      </td>
+      <td className="py-4" style={{ color: "var(--sb-ink)" }}>{session.partner.fullname}</td>
       <td className="py-4" style={{ color: "var(--sb-muted)" }}>
         {isRescheduling ? (
           <div className="flex flex-wrap items-center gap-2">
@@ -161,90 +122,61 @@ function SessionRow({
         </span>
       </td>
       <td className="py-4">
-        <div className="flex flex-col items-start gap-1.5">
-          {canManage && !isRescheduling && (
-            <div className="flex w-[11.5rem] flex-col gap-1.5">
-              <Link
-                href={`/dashboard/swap-session/${session.request_id}`}
-                className="nb-btn px-3 py-1.5 text-xs text-white"
-                style={{ background: "var(--sb-gradient)" }}
-              >
-                {s.joinSession}
-              </Link>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={markComplete}
-                className="nb-btn bg-white px-3 py-1.5 text-xs disabled:opacity-50"
-                style={{ color: "var(--sb-ink)" }}
-              >
-                {s.markComplete}
-              </button>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => setIsRescheduling(true)}
-                className="nb-btn bg-white px-3 py-1.5 text-xs disabled:opacity-50"
-                style={{ color: "var(--sb-ink)" }}
-              >
-                {s.reschedule}
-              </button>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={cancel}
-                className="nb-btn bg-white px-3 py-1.5 text-xs text-red-600 disabled:opacity-50"
-              >
-                {s.cancel}
-              </button>
-            </div>
-          )}
-          {canReview && (
-            <button
-              type="button"
-              onClick={() => onReview(session)}
+        {canManage && !isRescheduling && (
+          <div className="flex w-[11.5rem] flex-col gap-1.5">
+            <Link
+              href={`/dashboard/swap-session/${session.request_id}`}
               className="nb-btn px-3 py-1.5 text-xs text-white"
               style={{ background: "var(--sb-gradient)" }}
             >
-              {s.leaveReview}
-            </button>
-          )}
-          {session.status === "completed" && session.hasReviewedPartner && (
-            <span
-              className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
-              style={{ background: "#f1f5f9", color: "var(--sb-muted)" }}
-            >
-              {s.reviewed}
-            </span>
-          )}
-          {canRemoveHistory ? (
+              {s.joinSession}
+            </Link>
             <button
               type="button"
               disabled={isPending}
-              onClick={() => {
-                setHideError("");
-                setConfirmHide(true);
-              }}
-              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+              onClick={markComplete}
+              className="nb-btn bg-white px-3 py-1.5 text-xs disabled:opacity-50"
+              style={{ color: "var(--sb-ink)" }}
             >
-              <Trash2 size={13} />
-              {s.removeFromHistory}
+              {s.markComplete}
             </button>
-          ) : null}
-          {hideError ? <p className="max-w-[11.5rem] text-[11px] font-medium text-red-600">{hideError}</p> : null}
-        </div>
-
-        <ConfirmDialog
-          open={confirmHide}
-          title={s.removeFromHistory}
-          description={s.removeFromHistoryConfirm}
-          confirmLabel={s.removeFromHistory}
-          cancelLabel={dictionary.common.cancel}
-          danger
-          busy={isPending}
-          onCancel={() => setConfirmHide(false)}
-          onConfirm={removeFromHistory}
-        />
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => setIsRescheduling(true)}
+              className="nb-btn bg-white px-3 py-1.5 text-xs disabled:opacity-50"
+              style={{ color: "var(--sb-ink)" }}
+            >
+              {s.reschedule}
+            </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={cancel}
+              className="nb-btn bg-white px-3 py-1.5 text-xs text-red-600 disabled:opacity-50"
+            >
+              {s.cancel}
+            </button>
+          </div>
+        )}
+        {canReview && (
+          <button
+            type="button"
+            onClick={() => onReview(session)}
+            className="nb-btn px-3 py-1.5 text-xs text-white"
+            style={{ background: "var(--sb-gradient)" }}
+          >
+            {s.leaveReview}
+          </button>
+        )}
+        {session.status === "completed" && session.hasReviewedPartner && (
+          <span
+            className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+            style={{ background: "#f1f5f9", color: "var(--sb-muted)" }}
+          >
+            {s.reviewed}
+          </span>
+        )}
       </td>
     </tr>
   );

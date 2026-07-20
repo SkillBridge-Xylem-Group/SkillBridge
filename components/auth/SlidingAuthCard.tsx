@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 import ForgotPasswordForm from "./ForgotPasswordForm";
-import { ArrowLeft } from "lucide-react";
 
 type Mode = "login" | "signup" | "reset";
 
@@ -50,16 +48,7 @@ export default function SlidingAuthCard({ initialMode, redirectTo, urlError, jus
   }, [mode]);
 
   return (
-    <div className="auth-neu-page relative flex min-h-screen items-center justify-center p-4 sm:p-6">
-      {/* Page-level back button, always pinned to the top-left of the auth page. */}
-      <Link
-        href="/"
-        aria-label="Back to landing"
-        className="absolute left-4 top-4 z-50 inline-flex items-center justify-center rounded-full bg-white/70 p-2 text-slate-800 shadow-sm sm:left-6 sm:top-6"
-      >
-        <ArrowLeft size={18} />
-      </Link>
-
+    <div className="auth-neu-page flex min-h-screen items-center justify-center p-4 sm:p-6">
       {/* Desktop: sliding two-panel card */}
       <div
         ref={cardRef}

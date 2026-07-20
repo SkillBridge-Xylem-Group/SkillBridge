@@ -31,8 +31,6 @@ export type Dictionary = {
     language: string;
     logOut: string;
     logOutDesc: string;
-    logOutConfirmTitle: string;
-    logOutConfirmDesc: string;
     password: string;
     passwordDesc: string;
     passwordGoogle: string;
@@ -47,6 +45,7 @@ export type Dictionary = {
     updatePassword: string;
     updating: string;
     emailChangeHint: string;
+    locationHint: string;
     locationApproximate: string;
     locationNone: string;
     locationCountry: string;
@@ -121,10 +120,6 @@ export type Dictionary = {
     sayHelloTo: string;
     conversationStart: string;
     messagePlaceholder: string;
-    selectConversation: string;
-    selectConversationHint: string;
-    today: string;
-    yesterday: string;
   };
   browse: {
     searchPlaceholder: string;
@@ -230,59 +225,8 @@ export type Dictionary = {
     manageTitle: string;
     manageFilterPlaceholder: string;
     leaveCommunity: string;
-    leaveCommunityConfirmTitle: string;
-    leaveCommunityConfirmDesc: string;
-    leaveCommunityAsOwner: string;
     allCommunities: string;
     favoritesTab: string;
-    trendingIn: string;
-    noPostsYet: string;
-    startFeed: string;
-    noPostsFor: string;
-    deleteCommunity: string;
-    deleteCommunityConfirmTitle: string;
-    deleteCommunityConfirmDesc: string;
-    joinConversation: string;
-    commentAction: string;
-    commentCancel: string;
-    sortBy: string;
-    sortBest: string;
-    sortNew: string;
-    sortOld: string;
-    searchComments: string;
-    noCommentsYet: string;
-    noCommentsMatch: string;
-    replyAction: string;
-    shareAction: string;
-    copyLink: string;
-    linkCopied: string;
-    reportAction: string;
-    reportThanks: string;
-    reportFailed: string;
-    reportAlready: string;
-    reportDialogTitle: string;
-    reportDialogSubtitle: string;
-    reportSelectReason: string;
-    reportReasonSpam: string;
-    reportReasonHarassment: string;
-    reportReasonHate: string;
-    reportReasonInappropriate: string;
-    reportReasonMisinformation: string;
-    reportReasonOther: string;
-    reportDetailsLabel: string;
-    reportDetailsRequiredLabel: string;
-    reportDetailsPlaceholder: string;
-    reportDetailsRequired: string;
-    reportDetailsRequiredHint: string;
-    reportDetailsOptionalHint: string;
-    reportSubmit: string;
-    reportSubmitting: string;
-    opBadge: string;
-    topComment: string;
-    collapseThread: string;
-    expandThread: string;
-    commentsCount: string;
-    moreActions: string;
   };
   profile: {
     memberSince: string;
@@ -354,8 +298,6 @@ export type Dictionary = {
     markComplete: string;
     reschedule: string;
     reviewed: string;
-    removeFromHistory: string;
-    removeFromHistoryConfirm: string;
   };
 };
 
@@ -389,12 +331,10 @@ const en: Dictionary = {
     language: "Display language",
     logOut: "Log out",
     logOutDesc: "End your current session on this device.",
-    logOutConfirmTitle: "Log out?",
-    logOutConfirmDesc: "Are you sure you want to end your session on this device?",
     password: "Password",
     passwordDesc: "Change the password you use to sign in.",
     passwordGoogle:
-      "You signed in with Google. You can still set a SkillBridge password to sign in with email.",
+      "You signed in with Google. Password changes are managed in your Google account.",
     change: "Change",
     cancel: "Cancel",
     done: "Done",
@@ -406,7 +346,8 @@ const en: Dictionary = {
     updatePassword: "Update password",
     updating: "Updating…",
     emailChangeHint: "We'll send a confirmation link to your new address before it becomes active.",
-    locationApproximate: "Use approximate location",
+    locationHint: "Personalize feeds and recommendations with geographically relevant content.",
+    locationApproximate: "Use approximate location (based on IP)",
     locationNone: "No location specified",
     locationCountry: "Country",
     genderMan: "Man",
@@ -482,10 +423,6 @@ const en: Dictionary = {
     conversationStart:
       "This is the beginning of your conversation. Send a note to get the swap started.",
     messagePlaceholder: "Message {name}...",
-    selectConversation: "Select a conversation",
-    selectConversationHint: "Pick someone from the left to keep chatting, or find a new partner to message.",
-    today: "Today",
-    yesterday: "Yesterday",
   },
   browse: {
     searchPlaceholder: "Search by name or skill...",
@@ -539,7 +476,7 @@ const en: Dictionary = {
     discoverSubtitle: "Find communities to join, or create your own and start posting.",
     recommended: "Recommended for you",
     moreLike: "More like {category}",
-    showMore: "Show more",
+    showMore: "Show more ({n})",
     showLess: "Show less",
     noCommunities: "No communities yet",
     noCommunitiesIn: "No communities in {category} yet",
@@ -592,60 +529,8 @@ const en: Dictionary = {
     manageTitle: "Manage communities",
     manageFilterPlaceholder: "Filter your communities",
     leaveCommunity: "Leave community",
-    leaveCommunityConfirmTitle: "Leave this community?",
-    leaveCommunityConfirmDesc: "You can join again later from Discover or the community page.",
-    leaveCommunityAsOwner: "You created this community — delete it from the community page if you want it gone.",
     allCommunities: "All Communities",
     favoritesTab: "Favorites",
-    trendingIn: "Trending in {title}",
-    noPostsYet: "This community doesn't have any posts yet",
-    startFeed: "Make one and get this feed started.",
-    noPostsFor: 'No posts found for "{q}"',
-    deleteCommunity: "Delete community",
-    deleteCommunityConfirmTitle: "Delete this community?",
-    deleteCommunityConfirmDesc:
-      "Delete r/{slug}? Posts will move to General. This can't be undone.",
-    joinConversation: "Join the conversation",
-    commentAction: "Comment",
-    commentCancel: "Cancel",
-    sortBy: "Sort by",
-    sortBest: "Best",
-    sortNew: "New",
-    sortOld: "Old",
-    searchComments: "Search comments",
-    noCommentsYet: "No replies yet — be the first to comment.",
-    noCommentsMatch: "No comments match your search.",
-    replyAction: "Reply",
-    shareAction: "Share",
-    copyLink: "Copy link",
-    linkCopied: "Link copied",
-    reportAction: "Report",
-    reportThanks: "Thanks — we'll review this report.",
-    reportFailed: "Couldn't submit the report.",
-    reportAlready: "You already reported this.",
-    reportDialogTitle: "Report content",
-    reportDialogSubtitle: "Choose a reason and optionally add details. Reports go to moderators.",
-    reportSelectReason: "Reason for report",
-    reportReasonSpam: "Spam or advertising",
-    reportReasonHarassment: "Harassment or bullying",
-    reportReasonHate: "Hate speech",
-    reportReasonInappropriate: "Inappropriate content",
-    reportReasonMisinformation: "Misinformation",
-    reportReasonOther: "Other",
-    reportDetailsLabel: "Additional details (optional)",
-    reportDetailsRequiredLabel: "Describe the violation",
-    reportDetailsPlaceholder: "Explain what happened or why this violates community rules…",
-    reportDetailsRequired: "Please describe the violation (at least 5 characters).",
-    reportDetailsRequiredHint: "Required when choosing Other — at least 5 characters.",
-    reportDetailsOptionalHint: "Optional — helps moderators review faster.",
-    reportSubmit: "Submit report",
-    reportSubmitting: "Submitting…",
-    opBadge: "OP",
-    topComment: "Top comment",
-    collapseThread: "Collapse thread",
-    expandThread: "Expand thread",
-    commentsCount: "{n} comments",
-    moreActions: "More actions",
   },
   profile: {
     memberSince: "Member since",
@@ -717,9 +602,6 @@ const en: Dictionary = {
     markComplete: "Mark Complete",
     reschedule: "Reschedule",
     reviewed: "Reviewed",
-    removeFromHistory: "Remove from history",
-    removeFromHistoryConfirm:
-      "Remove this session from your list? Your partner will still see it in their history.",
   },
 };
 
@@ -753,11 +635,9 @@ const zhCN: Dictionary = {
     language: "显示语言",
     logOut: "退出登录",
     logOutDesc: "结束此设备上的当前会话。",
-    logOutConfirmTitle: "确认退出？",
-    logOutConfirmDesc: "确定要结束此设备上的当前会话吗？",
     password: "密码",
     passwordDesc: "更改用于登录的密码。",
-    passwordGoogle: "你使用 Google 登录。仍可设置 SkillBridge 密码，以便用邮箱登录。",
+    passwordGoogle: "你使用 Google 登录。请在 Google 账户中管理密码。",
     change: "更改",
     cancel: "取消",
     done: "完成",
@@ -769,7 +649,8 @@ const zhCN: Dictionary = {
     updatePassword: "更新密码",
     updating: "更新中…",
     emailChangeHint: "我们会向新邮箱发送确认链接，确认后才会生效。",
-    locationApproximate: "使用大致位置",
+    locationHint: "根据地理位置个性化推荐内容。",
+    locationApproximate: "使用大致位置（基于 IP）",
     locationNone: "不指定位置",
     locationCountry: "国家/地区",
     genderMan: "男",
@@ -843,10 +724,6 @@ const zhCN: Dictionary = {
     sayHelloTo: "向 {name} 打个招呼",
     conversationStart: "这是你们对话的开始。发一条消息，开启技能交换吧。",
     messagePlaceholder: "给 {name} 发消息…",
-    selectConversation: "选择一个对话",
-    selectConversationHint: "从左侧选择联系人继续聊天，或去浏览用户开始新对话。",
-    today: "今天",
-    yesterday: "昨天",
   },
   browse: {
     searchPlaceholder: "按姓名或技能搜索…",
@@ -900,7 +777,7 @@ const zhCN: Dictionary = {
     discoverSubtitle: "加入感兴趣的社区，或创建属于你的社区并开始发帖。",
     recommended: "为你推荐",
     moreLike: "更多类似「{category}」",
-    showMore: "显示更多",
+    showMore: "显示更多（{n}）",
     showLess: "收起",
     noCommunities: "暂无社区",
     noCommunitiesIn: "「{category}」下暂无社区",
@@ -952,59 +829,8 @@ const zhCN: Dictionary = {
     manageTitle: "管理社区",
     manageFilterPlaceholder: "筛选你的社区",
     leaveCommunity: "退出社区",
-    leaveCommunityConfirmTitle: "退出该社区？",
-    leaveCommunityConfirmDesc: "之后仍可从发现页或社区页重新加入。",
-    leaveCommunityAsOwner: "这是你创建的社区 — 如需移除，请在社区页删除。",
     allCommunities: "全部社区",
     favoritesTab: "收藏",
-    trendingIn: "{title} 中的热门",
-    noPostsYet: "这个社区还没有帖子",
-    startFeed: "发一篇，开启讨论吧。",
-    noPostsFor: "没有找到与「{q}」相关的帖子",
-    deleteCommunity: "删除社区",
-    deleteCommunityConfirmTitle: "删除该社区？",
-    deleteCommunityConfirmDesc: "删除 r/{slug}？帖子将移至 General，此操作无法撤销。",
-    joinConversation: "参与讨论",
-    commentAction: "评论",
-    commentCancel: "取消",
-    sortBy: "排序",
-    sortBest: "最佳",
-    sortNew: "最新",
-    sortOld: "最早",
-    searchComments: "搜索评论",
-    noCommentsYet: "还没有回复 — 来做第一个评论的人吧。",
-    noCommentsMatch: "没有匹配的评论。",
-    replyAction: "回复",
-    shareAction: "分享",
-    copyLink: "复制链接",
-    linkCopied: "链接已复制",
-    reportAction: "举报",
-    reportThanks: "已提交，我们会尽快审核。",
-    reportFailed: "举报提交失败。",
-    reportAlready: "你已经举报过该内容了。",
-    reportDialogTitle: "举报内容",
-    reportDialogSubtitle: "请选择违规类型，并可补充说明。举报将发送给管理员审核。",
-    reportSelectReason: "举报原因",
-    reportReasonSpam: "垃圾信息或广告",
-    reportReasonHarassment: "骚扰或霸凌",
-    reportReasonHate: "仇恨言论",
-    reportReasonInappropriate: "不当内容",
-    reportReasonMisinformation: "虚假信息",
-    reportReasonOther: "其他",
-    reportDetailsLabel: "补充说明（可选）",
-    reportDetailsRequiredLabel: "请描述违规行为",
-    reportDetailsPlaceholder: "说明发生了什么，或为何违反社区规则…",
-    reportDetailsRequired: "请描述违规行为（至少 5 个字符）。",
-    reportDetailsRequiredHint: "选择「其他」时必填，至少 5 个字符。",
-    reportDetailsOptionalHint: "可选填写，有助于管理员更快处理。",
-    reportSubmit: "提交举报",
-    reportSubmitting: "提交中…",
-    opBadge: "楼主",
-    topComment: "热门评论",
-    collapseThread: "折叠线程",
-    expandThread: "展开线程",
-    commentsCount: "{n} 条评论",
-    moreActions: "更多操作",
   },
   profile: {
     memberSince: "加入于",
@@ -1076,8 +902,6 @@ const zhCN: Dictionary = {
     markComplete: "标记完成",
     reschedule: "改期",
     reviewed: "已评价",
-    removeFromHistory: "从历史记录中删除",
-    removeFromHistoryConfirm: "从你的列表中移除这条会话？对方仍会在自己的历史记录中看到。",
   },
 };
 

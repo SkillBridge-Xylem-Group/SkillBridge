@@ -16,14 +16,14 @@ export default function MessagesShell({
 
   return (
     <div
-      className="mt-0 flex h-[calc(100dvh-9.5rem)] overflow-hidden rounded-2xl bg-white sm:h-[calc(100dvh-10rem)] lg:h-[calc(100vh-5.5rem)]"
+      className="mt-2 flex h-[calc(100dvh-11.5rem)] overflow-hidden rounded-2xl bg-white sm:mt-4 sm:h-[calc(100dvh-12rem)] lg:h-[calc(100vh-9rem)]"
       style={{ boxShadow: "var(--sb-shadow-md)" }}
     >
       <div
         className={`min-w-0 shrink-0 ${
           isThreadOpen ? "hidden md:flex" : "flex"
-        } w-full flex-col md:w-[26rem] lg:w-[28rem]`}
-        style={{ borderRight: "1px solid #e8f3ec" }}
+        } w-full flex-col md:w-[22rem]`}
+        style={{ borderRight: "1px solid #eef7f0" }}
       >
         {list}
       </div>
