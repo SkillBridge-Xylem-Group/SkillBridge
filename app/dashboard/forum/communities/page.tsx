@@ -13,7 +13,7 @@ export default async function ManageCommunitiesPage() {
   if (!user) redirect("/login");
 
   const communities = await listCommunities(supabase, { userId: user.id });
-  const joined = communities.filter((c) => c.joined && c.created_by !== user.id);
+  const joined = communities.filter((c) => c.joined);
 
   return (
     <div className="pt-2">

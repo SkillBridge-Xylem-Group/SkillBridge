@@ -543,6 +543,16 @@ export async function updateCommunityAccent(
 }
 
 export async function leaveCommunity(supabase: SupabaseClient, communityId: string, userId: string) {
+  const { data: community } = await supabase
+    .from("forum_communities")
+    .select("created_by")
+    .eq("id", communityId)
+    .maybeSingle();
+
+  if (community?.created_by === userId) {
+    return { data: null, error: { message: "Community creators cannot leave — delete the community instead." } };
+  }
+
   return supabase
     .from("forum_community_members")
     .delete()

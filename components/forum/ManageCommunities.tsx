@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Star } from "lucide-react";
+import { Loader2, Search, Star } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { toggleJoinCommunityAction } from "@/lib/actions/forum";
 import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 
 const FAVORITES_KEY = "sb-community-favorites";
@@ -49,8 +50,8 @@ export default function ManageCommunities({
   const [tab, setTab] = useState<"all" | "favorites">("all");
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [leaveTarget, setLeaveTarget] = useState<ForumCommunity | null>(null);
   const [error, setError] = useState("");
-  const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     setCommunities(initial);
@@ -70,34 +71,46 @@ export default function ManageCommunities({
     });
   }
 
-  function onLeave(community: ForumCommunity) {
+  function requestLeave(community: ForumCommunity) {
     if (community.created_by === viewerId) {
-      setError("You created this community — delete it from the community page if you want it gone.");
+      setError(f.leaveCommunityAsOwner);
       return;
     }
-    const ok = window.confirm(`Leave ${community.title}?`);
-    if (!ok) return;
-    startTransition(async () => {
+    setLeaveTarget(community);
+  }
+
+  function confirmLeave() {
+    const community = leaveTarget;
+    if (!community || pendingId) return;
+    void (async () => {
       setPendingId(community.id);
       setError("");
-      const res = await toggleJoinCommunityAction(community.id, true);
-      if (res?.error) {
-        setError(res.error);
+      try {
+        const res = await toggleJoinCommunityAction(community.id, true);
+        if (res?.error) {
+          setError(res.error);
+          return;
+        }
+        setCommunities((prev) => prev.filter((c) => c.id !== community.id));
+        setLeaveTarget(null);
+        invalidateSidebarCommunitiesCache();
+        router.refresh();
+      } finally {
         setPendingId(null);
-        return;
       }
-      setCommunities((prev) => prev.filter((c) => c.id !== community.id));
-      setPendingId(null);
-      invalidateSidebarCommunitiesCache();
-      router.refresh();
-    });
+    })();
   }
 
   const joined = useMemo(
     () =>
       communities
-        .filter((c) => c.joined && c.created_by !== viewerId)
-        .sort((a, b) => a.title.localeCompare(b.title)),
+        .filter((c) => c.joined)
+        .sort((a, b) => {
+          const aOwned = a.created_by === viewerId ? 0 : 1;
+          const bOwned = b.created_by === viewerId ? 0 : 1;
+          if (aOwned !== bOwned) return aOwned - bOwned;
+          return a.title.localeCompare(b.title);
+        }),
     [communities, viewerId]
   );
 
@@ -166,7 +179,7 @@ export default function ManageCommunities({
             <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white">
               {filtered.map((community) => {
                 const favorited = favorites.has(community.id);
-                const busy = pending && pendingId === community.id;
+                const busy = pendingId === community.id;
                 return (
                   <li
                     key={community.id}
@@ -214,15 +227,23 @@ export default function ManageCommunities({
                       <button
                         type="button"
                         disabled={busy || community.created_by === viewerId}
-                        onClick={() => onLeave(community)}
+                        onClick={() => requestLeave(community)}
+                        aria-busy={busy}
                         title={
                           community.created_by === viewerId
-                            ? f.createCommunityTitle
+                            ? f.leaveCommunityAsOwner
                             : f.leaveCommunity
                         }
-                        className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-default disabled:opacity-80"
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-bold transition disabled:cursor-default disabled:opacity-80 ${
+                          community.created_by === viewerId
+                            ? "border-slate-300 bg-white text-slate-700"
+                            : "border-red-200 bg-white text-red-600 hover:bg-red-50"
+                        }`}
                       >
-                        {busy ? "…" : dictionary.common.joined}
+                        {busy ? <Loader2 size={14} className="animate-spin" aria-hidden /> : null}
+                        {community.created_by === viewerId
+                          ? dictionary.common.joined
+                          : dictionary.common.leave}
                       </button>
                     </div>
                   </li>
@@ -257,6 +278,21 @@ export default function ManageCommunities({
           </nav>
         </aside>
       </div>
+
+      <ConfirmDialog
+        open={!!leaveTarget}
+        title={f.leaveCommunityConfirmTitle}
+        description={f.leaveCommunityConfirmDesc}
+        confirmLabel={f.leaveCommunity}
+        cancelLabel={dictionary.common.cancel}
+        danger
+        busy={leaveTarget != null && pendingId === leaveTarget.id}
+        busyLabel={dictionary.common.loading}
+        onCancel={() => {
+          if (!pendingId) setLeaveTarget(null);
+        }}
+        onConfirm={confirmLeave}
+      />
     </div>
   );
 }

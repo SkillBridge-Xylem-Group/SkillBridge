@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
-import { Cake, Camera, Globe2, MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Cake, Camera, Globe2, Loader2, LogOut, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { communityAccentHex, normalizeCommunityAccent } from "@/lib/forumCommunities";
 import { formatAppDate } from "@/lib/i18n/locales";
@@ -19,6 +19,8 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 import { categoryLabel } from "@/lib/i18n/communityCategoryLabels";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
 import { openForumCompose } from "@/components/forum/QuestionComposer";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 type CommunityPageHeaderProps = {
   community: ForumCommunity;
@@ -33,16 +35,23 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
   const fileRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [joined, setJoined] = useState(community.joined || isOwner);
-  const [pending, startTransition] = useTransition();
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [accent, setAccent] = useState(normalizeCommunityAccent(community.accent_color));
   const accentHex = communityAccentHex(accent);
   const canDelete = isOwner && !community.is_official && !community.id.startsWith("static-");
+  const canLeave = !isOwner && joined;
 
   useEffect(() => {
     setAccent(normalizeCommunityAccent(community.accent_color));
   }, [community.accent_color]);
+
+  useEffect(() => {
+    setJoined(community.joined || isOwner);
+  }, [community.joined, isOwner]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -62,75 +71,120 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
     };
   }, [menuOpen]);
 
-  function toggleJoin() {
-    if (isOwner) return;
-    startTransition(async () => {
-      const prev = joined;
-      setJoined(!prev);
-      setError("");
-      const res = await toggleJoinCommunityAction(community.id, prev);
-      if (res?.error) {
-        setJoined(prev);
-        setError(res.error);
-        return;
-      }
-      invalidateSidebarCommunitiesCache();
-      router.refresh();
-    });
+  function requestLeave() {
+    if (!canLeave || busy) return;
+    setMenuOpen(false);
+    setLeaveConfirmOpen(true);
   }
 
-  function onDeleteCommunity() {
-    if (!canDelete) return;
-    const ok = window.confirm(
-      `Delete r/${community.slug}? Posts will move to General. This can’t be undone.`
-    );
-    if (!ok) return;
-    setMenuOpen(false);
-    startTransition(async () => {
+  function confirmLeave() {
+    if (!canLeave || busy) return;
+    void (async () => {
+      const prev = joined;
+      setBusy(true);
+      setJoined(false);
       setError("");
-      const res = await deleteCommunityAction(community.id);
-      if (res?.error) {
-        setError(res.error);
-        return;
+      try {
+        const res = await toggleJoinCommunityAction(community.id, true);
+        if (res?.error) {
+          setJoined(prev);
+          setError(res.error);
+          return;
+        }
+        setLeaveConfirmOpen(false);
+        invalidateSidebarCommunitiesCache();
+        router.refresh();
+      } finally {
+        setBusy(false);
       }
-      invalidateSidebarCommunitiesCache();
-      router.push("/dashboard/forum");
-      router.refresh();
-    });
+    })();
+  }
+
+  function joinCommunity() {
+    if (isOwner || joined || busy) return;
+    void (async () => {
+      setBusy(true);
+      setJoined(true);
+      setError("");
+      try {
+        const res = await toggleJoinCommunityAction(community.id, false);
+        if (res?.error) {
+          setJoined(false);
+          setError(res.error);
+          return;
+        }
+        invalidateSidebarCommunitiesCache();
+        router.refresh();
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }
+
+  function requestDelete() {
+    if (!canDelete || busy) return;
+    setMenuOpen(false);
+    setDeleteConfirmOpen(true);
+  }
+
+  function confirmDelete() {
+    if (!canDelete || busy) return;
+    void (async () => {
+      setBusy(true);
+      setError("");
+      try {
+        const res = await deleteCommunityAction(community.id);
+        if (res?.error) {
+          setError(res.error);
+          return;
+        }
+        setDeleteConfirmOpen(false);
+        invalidateSidebarCommunitiesCache();
+        router.push("/dashboard/forum");
+        router.refresh();
+      } finally {
+        setBusy(false);
+      }
+    })();
   }
 
   function onPickAvatar(file: File | undefined) {
-    if (!file || !isOwner) return;
-    startTransition(async () => {
+    if (!file || !isOwner || busy) return;
+    void (async () => {
+      setBusy(true);
       setError("");
-      if (!file.type.startsWith("image/")) {
-        setError("Please choose an image file.");
-        return;
+      try {
+        if (!file.type.startsWith("image/")) {
+          setError("Please choose an image file.");
+          return;
+        }
+        if (file.size > MAX_FORUM_IMAGE_BYTES) {
+          setError("Image is too large (max 10MB).");
+          return;
+        }
+        const supabase = createSupabaseBrowserClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setError("You need to be signed in.");
+          return;
+        }
+        const uploaded = await uploadForumImage({ userId: user.id, file });
+        if (!uploaded.ok) {
+          setError(uploaded.error);
+          return;
+        }
+        const res = await updateCommunityImageAction(community.id, uploaded.url);
+        if (res?.error) {
+          setError(res.error);
+          return;
+        }
+        router.refresh();
+      } finally {
+        setBusy(false);
       }
-      if (file.size > MAX_FORUM_IMAGE_BYTES) {
-        setError("Image is too large (max 10MB).");
-        return;
-      }
-      const supabase = createSupabaseBrowserClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        setError("You need to be signed in.");
-        return;
-      }
-      const uploaded = await uploadForumImage({ userId: user.id, file });
-      if (!uploaded.ok) {
-        setError(uploaded.error);
-        return;
-      }
-      const res = await updateCommunityImageAction(community.id, uploaded.url);
-      if (res?.error) {
-        setError(res.error);
-        return;
-      }
-      router.refresh();
-    });
+    })();
   }
 
   return (
@@ -175,12 +229,13 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                disabled={pending}
+                disabled={busy}
+                aria-busy={busy}
                 aria-label="Change community icon"
                 title="Change community icon"
                 className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md hover:bg-slate-50 disabled:opacity-60"
               >
-                <Camera size={14} />
+                {busy ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
               </button>
             </>
           ) : null}
@@ -232,19 +287,30 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                 {f.createPost}
               </button>
               {!isOwner ? (
-                <button
-                  type="button"
-                  onClick={toggleJoin}
-                  disabled={pending}
-                  className={`rounded-full px-4 py-1.5 text-sm font-bold transition disabled:opacity-60 ${
-                    joined
-                      ? "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                      : "text-white hover:opacity-90"
-                  }`}
-                  style={joined ? undefined : { backgroundColor: accentHex }}
-                >
-                  {joined ? c.joined : c.join}
-                </button>
+                joined ? (
+                  <button
+                    type="button"
+                    onClick={requestLeave}
+                    disabled={busy}
+                    aria-busy={busy}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full border border-red-200 bg-white px-4 py-1.5 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
+                  >
+                    {busy ? <Loader2 size={14} className="animate-spin" aria-hidden /> : null}
+                    {c.leave}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={joinCommunity}
+                    disabled={busy}
+                    aria-busy={busy}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-60"
+                    style={{ backgroundColor: accentHex }}
+                  >
+                    {busy ? <Loader2 size={14} className="animate-spin" aria-hidden /> : null}
+                    {c.join}
+                  </button>
+                )
               ) : (
                 <span className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-bold text-slate-600">
                   {c.joined}
@@ -256,11 +322,12 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                   aria-label="Community options"
                   aria-expanded={menuOpen}
                   aria-haspopup="menu"
-                  disabled={pending}
+                  disabled={busy}
+                  aria-busy={busy}
                   onClick={() => setMenuOpen((v) => !v)}
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-60"
                 >
-                  <MoreHorizontal size={16} />
+                  {busy ? <Loader2 size={16} className="animate-spin" /> : <MoreHorizontal size={16} />}
                 </button>
                 {menuOpen ? (
                   <div
@@ -275,15 +342,27 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                     >
                       {f.allCommunities}
                     </Link>
+                    {canLeave ? (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={busy}
+                        onClick={requestLeave}
+                        className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+                      >
+                        {busy ? <Loader2 size={14} className="animate-spin" /> : <LogOut size={14} />}
+                        {f.leaveCommunity}
+                      </button>
+                    ) : null}
                     {canDelete ? (
                       <button
                         type="button"
                         role="menuitem"
-                        disabled={pending}
-                        onClick={onDeleteCommunity}
+                        disabled={busy}
+                        onClick={requestDelete}
                         className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
                       >
-                        <Trash2 size={14} />
+                        {busy ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                         {f.deleteCommunity}
                       </button>
                     ) : null}
@@ -295,6 +374,36 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
           {error ? <p className="mt-2 text-xs font-medium text-red-600">{error}</p> : null}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={leaveConfirmOpen}
+        title={f.leaveCommunityConfirmTitle}
+        description={f.leaveCommunityConfirmDesc}
+        confirmLabel={f.leaveCommunity}
+        cancelLabel={dictionary.common.cancel}
+        danger
+        busy={busy}
+        busyLabel={c.loading}
+        onCancel={() => {
+          if (!busy) setLeaveConfirmOpen(false);
+        }}
+        onConfirm={confirmLeave}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title={f.deleteCommunityConfirmTitle}
+        description={interpolate(f.deleteCommunityConfirmDesc, { slug: community.slug })}
+        confirmLabel={f.deleteCommunity}
+        cancelLabel={dictionary.common.cancel}
+        danger
+        busy={busy}
+        busyLabel={c.loading}
+        onCancel={() => {
+          if (!busy) setDeleteConfirmOpen(false);
+        }}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

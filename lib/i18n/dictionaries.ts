@@ -230,6 +230,9 @@ export type Dictionary = {
     manageTitle: string;
     manageFilterPlaceholder: string;
     leaveCommunity: string;
+    leaveCommunityConfirmTitle: string;
+    leaveCommunityConfirmDesc: string;
+    leaveCommunityAsOwner: string;
     allCommunities: string;
     favoritesTab: string;
     trendingIn: string;
@@ -237,6 +240,8 @@ export type Dictionary = {
     startFeed: string;
     noPostsFor: string;
     deleteCommunity: string;
+    deleteCommunityConfirmTitle: string;
+    deleteCommunityConfirmDesc: string;
     joinConversation: string;
     commentAction: string;
     commentCancel: string;
@@ -587,6 +592,9 @@ const en: Dictionary = {
     manageTitle: "Manage communities",
     manageFilterPlaceholder: "Filter your communities",
     leaveCommunity: "Leave community",
+    leaveCommunityConfirmTitle: "Leave this community?",
+    leaveCommunityConfirmDesc: "You can join again later from Discover or the community page.",
+    leaveCommunityAsOwner: "You created this community — delete it from the community page if you want it gone.",
     allCommunities: "All Communities",
     favoritesTab: "Favorites",
     trendingIn: "Trending in {title}",
@@ -594,6 +602,9 @@ const en: Dictionary = {
     startFeed: "Make one and get this feed started.",
     noPostsFor: 'No posts found for "{q}"',
     deleteCommunity: "Delete community",
+    deleteCommunityConfirmTitle: "Delete this community?",
+    deleteCommunityConfirmDesc:
+      "Delete r/{slug}? Posts will move to General. This can't be undone.",
     joinConversation: "Join the conversation",
     commentAction: "Comment",
     commentCancel: "Cancel",
@@ -941,6 +952,9 @@ const zhCN: Dictionary = {
     manageTitle: "管理社区",
     manageFilterPlaceholder: "筛选你的社区",
     leaveCommunity: "退出社区",
+    leaveCommunityConfirmTitle: "退出该社区？",
+    leaveCommunityConfirmDesc: "之后仍可从发现页或社区页重新加入。",
+    leaveCommunityAsOwner: "这是你创建的社区 — 如需移除，请在社区页删除。",
     allCommunities: "全部社区",
     favoritesTab: "收藏",
     trendingIn: "{title} 中的热门",
@@ -948,6 +962,8 @@ const zhCN: Dictionary = {
     startFeed: "发一篇，开启讨论吧。",
     noPostsFor: "没有找到与「{q}」相关的帖子",
     deleteCommunity: "删除社区",
+    deleteCommunityConfirmTitle: "删除该社区？",
+    deleteCommunityConfirmDesc: "删除 r/{slug}？帖子将移至 General，此操作无法撤销。",
     joinConversation: "参与讨论",
     commentAction: "评论",
     commentCancel: "取消",

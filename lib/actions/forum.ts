@@ -177,6 +177,17 @@ export async function toggleJoinCommunityAction(communityId: string, currentlyJo
     resolvedId = row.id;
   }
 
+  if (currentlyJoined) {
+    const { data: community } = await supabase
+      .from("forum_communities")
+      .select("created_by")
+      .eq("id", resolvedId)
+      .maybeSingle();
+    if (community?.created_by === user.id) {
+      return { error: "You created this community — delete it from the community page if you want it gone." };
+    }
+  }
+
   const result = currentlyJoined
     ? await leaveCommunity(supabase, resolvedId, user.id)
     : await joinCommunity(supabase, resolvedId, user.id);
