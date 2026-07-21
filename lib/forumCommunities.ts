@@ -543,6 +543,16 @@ export async function updateCommunityAccent(
 }
 
 export async function leaveCommunity(supabase: SupabaseClient, communityId: string, userId: string) {
+  const { data: community } = await supabase
+    .from("forum_communities")
+    .select("created_by")
+    .eq("id", communityId)
+    .maybeSingle();
+
+  if (community?.created_by === userId) {
+    return { data: null, error: { message: "Community creators cannot leave — delete the community instead." } };
+  }
+
   return supabase
     .from("forum_community_members")
     .delete()
@@ -587,7 +597,7 @@ export async function deleteCommunity(
   return { data: { id: existing.id, slug: existing.slug }, error: null };
 }
 
-/** Communities for the left nav: owned first, then joined. */
+/** Communities for the left nav: only communities the user created. */
 export type SidebarCommunity = {
   id: string;
   slug: string;
@@ -635,75 +645,23 @@ export async function listUserSidebarCommunities(
     ownedError = ownedLegacy.error;
   }
 
-  const { data: memberships, error: memberError } = await supabase
-    .from("forum_community_members")
-    .select("community_id")
-    .eq("user_id", userId);
-
-  if (ownedError && memberError) {
-    console.error("listUserSidebarCommunities:", ownedError.message, memberError?.message);
+  if (ownedError) {
+    console.error("listUserSidebarCommunities:", ownedError.message);
     return [];
   }
 
-  const byId = new Map<string, SidebarCommunity>();
-
-  for (const row of owned ?? []) {
+  return (owned ?? []).map((row) => {
     const decoded = decodeCommunityImageField(row.image_url);
     const accent = isCommunityAccentColor(row.accent_color) ? row.accent_color : decoded.accent;
-    byId.set(row.id, {
+    return {
       id: row.id,
       slug: row.slug,
       title: row.title,
       image_url: decoded.imageUrl,
       accent_color: accent,
       isOwner: true,
-    });
-  }
-
-  const joinedIds = (memberships ?? [])
-    .map((m) => m.community_id)
-    .filter((id) => id && !byId.has(id));
-
-  if (joinedIds.length > 0) {
-    let joined: SidebarRow[] | null = null;
-
-    const joinedPrimary = await supabase
-      .from("forum_communities")
-      .select(selectWithAccent)
-      .in("id", joinedIds)
-      .order("title", { ascending: true });
-
-    joined = (joinedPrimary.data as SidebarRow[] | null) ?? null;
-
-    if (joinedPrimary.error?.message?.toLowerCase().includes("accent_color")) {
-      const joinedLegacy = await supabase
-        .from("forum_communities")
-        .select(selectLegacy)
-        .in("id", joinedIds)
-        .order("title", { ascending: true });
-      joined = (joinedLegacy.data as SidebarRow[] | null) ?? null;
-    }
-
-    for (const row of joined ?? []) {
-      const decoded = decodeCommunityImageField(row.image_url);
-      const accent = isCommunityAccentColor(row.accent_color) ? row.accent_color : decoded.accent;
-      byId.set(row.id, {
-        id: row.id,
-        slug: row.slug,
-        title: row.title,
-        image_url: decoded.imageUrl,
-        accent_color: accent,
-        isOwner: row.created_by === userId,
-      });
-    }
-  }
-
-  const list = [...byId.values()];
-  list.sort((a, b) => {
-    if (a.isOwner !== b.isOwner) return a.isOwner ? -1 : 1;
-    return a.title.localeCompare(b.title);
+    };
   });
-  return list;
 }
 
 /** Slugs valid for posting: DB communities, else static catalog. */

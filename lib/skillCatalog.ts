@@ -1,10 +1,38 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Skill } from "@/lib/types/profile";
+import { DEFAULT_SKILLS } from "@/lib/defaultSkills";
+
+/** Insert any missing default skills so the profile picker stays well stocked. */
+async function ensureDefaultSkills(supabase: SupabaseClient, existing: Skill[]) {
+  const have = new Set(existing.map((s) => s.skill_name.trim().toLowerCase()));
+  const missing = DEFAULT_SKILLS.filter((s) => !have.has(s.skill_name.trim().toLowerCase()));
+  if (missing.length === 0) return;
+
+  // Insert in chunks to avoid oversized payloads / request timeouts.
+  const chunkSize = 40;
+  for (let i = 0; i < missing.length; i += chunkSize) {
+    const chunk = missing.slice(i, i + chunkSize);
+    const { error } = await supabase.from("skills").insert(chunk);
+    if (error) {
+      // Non-fatal: catalog still returns whatever exists (e.g. RLS / unique races).
+      console.error("ensureDefaultSkills:", error.message);
+      break;
+    }
+  }
+}
 
 /** Full catalog from the `skills` table, for the profile page's add-skill picker. */
 export async function getFullSkillCatalog(supabase: SupabaseClient): Promise<Skill[]> {
   const { data } = await supabase.from("skills").select("skill_id, skill_name, category").order("category");
-  return data ?? [];
+  const existing = data ?? [];
+  await ensureDefaultSkills(supabase, existing);
+
+  const { data: refreshed } = await supabase
+    .from("skills")
+    .select("skill_id, skill_name, category")
+    .order("category")
+    .order("skill_name");
+  return refreshed ?? existing;
 }
 
 /** Category -> skill names, for the onboarding modal's per-subject tag lists. */

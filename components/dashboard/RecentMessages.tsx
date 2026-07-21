@@ -58,14 +58,34 @@ export default function RecentMessages() {
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{t.partner.fullname}</p>
-              <p className="truncate text-xs font-medium" style={{ color: "var(--sb-muted)" }}>{t.lastMessage?.content ?? h.sayHello}</p>
+              <p className={`text-sm ${t.unreadCount > 0 ? "font-extrabold" : "font-bold"}`} style={{ color: "var(--sb-ink)" }}>
+                {t.partner.fullname}
+              </p>
+              <p
+                className={`truncate text-xs ${t.unreadCount > 0 ? "font-semibold" : "font-medium"}`}
+                style={{ color: t.unreadCount > 0 ? "var(--sb-ink)" : "var(--sb-muted)" }}
+              >
+                {t.lastMessage?.content ?? h.sayHello}
+              </p>
             </div>
-            {t.lastMessage && (
-              <span className="shrink-0 text-[11px] font-semibold" style={{ color: "var(--sb-muted)" }}>
-                {formatRelativeTimeLabel(t.lastMessage.sent_at, dictionary.common, locale)}
-              </span>
-            )}
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              {t.lastMessage && (
+                <span
+                  className="text-[11px] font-semibold"
+                  style={{ color: t.unreadCount > 0 ? "var(--sb-emerald-dark)" : "var(--sb-muted)" }}
+                >
+                  {formatRelativeTimeLabel(t.lastMessage.sent_at, dictionary.common, locale)}
+                </span>
+              )}
+              {t.unreadCount > 0 ? (
+                <span
+                  className="flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold text-white"
+                  style={{ background: "var(--sb-emerald)" }}
+                >
+                  {t.unreadCount > 9 ? "9+" : t.unreadCount}
+                </span>
+              ) : null}
+            </div>
           </Link>
         ))}
       </div>
