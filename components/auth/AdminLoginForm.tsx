@@ -62,6 +62,10 @@ export default function AdminLoginForm() {
       }
 
       if (!res.ok) {
+        if (res.status === 404) {
+          setError("Login service unavailable. Restart the dev server and try again.");
+          return;
+        }
         setError(GENERIC_ERROR);
         return;
       }
