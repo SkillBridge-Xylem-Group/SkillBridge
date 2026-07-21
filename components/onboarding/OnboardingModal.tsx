@@ -55,16 +55,46 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
   }
 
   function handleBack() {
+    setError("");
     if (step > 1) setStep((s) => s - 1);
   }
 
+  function validateStep(): string | null {
+    if (step === 1) {
+      if (!bio.trim()) return "Please write a short bio before continuing.";
+    }
+    if (step === 2) {
+      if (teachSubject === OTHER_SUBJECT && !teachCustomSubject.trim()) {
+        return "Please tell us your subject field.";
+      }
+      if (teachTags.length === 0) {
+        return "Please select at least one skill you can teach.";
+      }
+    }
+    if (step === 3) {
+      if (learnSubject === OTHER_SUBJECT && !learnCustomSubject.trim()) {
+        return "Please tell us your subject field.";
+      }
+      if (learnTags.length === 0) {
+        return "Please select at least one skill you want to learn.";
+      }
+    }
+    return null;
+  }
+
   async function handleContinue() {
+    const validationError = validateStep();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError("");
+
     if (step < totalSteps) {
       setStep((s) => s + 1);
       return;
     }
 
-    setError("");
     setIsSubmitting(true);
     try {
       const finalTeachSubject = teachSubject === OTHER_SUBJECT ? teachCustomSubject : teachSubject;
