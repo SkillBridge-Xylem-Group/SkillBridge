@@ -45,7 +45,7 @@ export default function Hero() {
               </span>
             </h1>
 
-            <p className="mx-auto mt-6 max-w-[640px] text-base font-medium sm:text-lg" style={{ color: "var(--neu-text-muted)" }}>
+            <p className="mx-auto mt-12 max-w-[640px] text-base font-medium sm:mt-14 sm:text-lg" style={{ color: "var(--neu-text-muted)" }}>
               SkillBridge connects you with{" "}
               <span className="landing-pill landing-pill-yellow">real people</span>{" "}
               to trade what you know for what you want to learn.{" "}

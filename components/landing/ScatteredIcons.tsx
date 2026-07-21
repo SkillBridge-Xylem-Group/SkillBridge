@@ -17,8 +17,8 @@ const SUBJECTS: Subject[] = [
   { icon: "👩🏻‍💻", bg: "var(--neu-yellow)", color: "var(--neu-ink)", scatterDx: 230, scatterDy: -60, dx: 90, dy: -30 },
   { icon: "🧑🏻‍🏫", bg: "var(--neu-teal)", color: "var(--neu-ink)", scatterDx: -260, scatterDy: 40, dx: -60, dy: 20 },
   { icon: "👨🏿‍🎤", bg: "#fff", color: "var(--neu-ink)", scatterDx: 270, scatterDy: 50, dx: 60, dy: 20 },
-  { icon: "👩🏽‍🍳", bg: "var(--neu-orange)", color: "var(--neu-ink)", scatterDx: -160, scatterDy: 130, dx: -30, dy: -15 },
-  { icon: "🧑🏼‍🔬", bg: "var(--neu-purple)", color: "#fff", scatterDx: 170, scatterDy: 140, dx: 30, dy: -15 },
+  { icon: "👩🏽‍🍳", bg: "var(--neu-orange)", color: "var(--neu-ink)", scatterDx: -160, scatterDy: 160, dx: -30, dy: -15 },
+  { icon: "🧑🏼‍🔬", bg: "var(--neu-purple)", color: "#fff", scatterDx: 170, scatterDy: 170, dx: 30, dy: -15 },
   { icon: "👨🏻‍⚖️", bg: "#fff", color: "var(--neu-ink)", scatterDx: -100, scatterDy: -140, dx: -10, dy: 35 },
   { icon: "🧑🏾‍🚀", bg: "var(--neu-indigo)", color: "#fff", scatterDx: 110, scatterDy: -150, dx: 10, dy: 35 },
 ];
