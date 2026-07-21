@@ -374,7 +374,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+              <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="h-16 rounded-xl bg-slate-100" />
                 <div className="-mt-5 flex items-end gap-3 px-2">
                   {iconPreview ? (
@@ -393,12 +393,12 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                     </div>
                   )}
                 </div>
-                <div className="mt-2 min-h-[5.5rem] px-2 pb-2">
+                <div className="mt-2 min-h-[5.5rem] min-w-0 px-2 pb-2">
                   {title.trim() ? (
-                    <p className="text-base font-extrabold text-slate-900">{title.trim()}</p>
+                    <p className="break-words text-base font-extrabold text-slate-900">{title.trim()}</p>
                   ) : null}
                   {description.trim() ? (
-                    <p className="mt-3 text-sm leading-snug text-slate-600">{description.trim()}</p>
+                    <p className="mt-3 break-words text-sm leading-snug text-slate-600">{description.trim()}</p>
                   ) : null}
                 </div>
               </div>
@@ -490,14 +490,14 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                   ) : (
                     <div
                       style={{ backgroundColor: accentMeta.hex }}
-                      className="flex h-12 w-12 items-center justify-center rounded-full text-base font-bold text-white"
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
                     >
                       {title.trim() ? title.trim().charAt(0).toUpperCase() : ""}
                     </div>
                   )}
-                  <div>
+                  <div className="min-w-0">
                     {title.trim() ? (
-                      <p className="font-extrabold text-slate-900">{title.trim()}</p>
+                      <p className="break-words font-extrabold text-slate-900">{title.trim()}</p>
                     ) : null}
                     {topics[0] ? <p className="text-xs text-slate-500">{categoryLabel(locale, topics[0])}</p> : null}
                   </div>
