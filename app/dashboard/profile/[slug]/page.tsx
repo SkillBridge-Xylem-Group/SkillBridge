@@ -10,6 +10,8 @@ import ReviewsCard from "@/components/profile/ReviewsCard";
 import { getUserSkills } from "@/lib/skillCatalog";
 import { getUserReviews } from "@/lib/reviews";
 import { deriveNameFromEmail } from "@/lib/deriveName";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { isAppLocale, DEFAULT_LOCALE, dateLocaleTag } from "@/lib/i18n/locales";
 
 export const metadata: Metadata = {
   title: "Member Profile | SkillBridge",
@@ -22,13 +24,17 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
   const { data: viewerRow } = await supabase
     .from("users")
-    .select("fullname, slug")
+    .select("fullname, slug, language")
     .eq("id", viewer.id)
     .maybeSingle();
 
   if (viewerRow?.slug === slug) {
     redirect("/dashboard/profile");
   }
+
+  const locale = isAppLocale(viewerRow?.language) ? viewerRow!.language! : DEFAULT_LOCALE;
+  const dictionary = getDictionary(locale);
+  const p = dictionary.profile;
 
   const { data: profileRow } = await supabase
     .from("users")
@@ -39,19 +45,19 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   if (!profileRow) {
     return (
       <div className="nb-card mt-2 p-10 text-center">
-        <h1 className="text-xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>Member not found</h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--sb-muted)" }}>This profile doesn&apos;t exist or may have been removed.</p>
+        <h1 className="text-xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>{p.memberNotFound}</h1>
+        <p className="mt-2 text-sm" style={{ color: "var(--sb-muted)" }}>{p.profileNotFoundHint}</p>
       </div>
     );
   }
 
-  const memberSince = new Date(profileRow.created_at ?? Date.now()).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  const memberSince = new Date(profileRow.created_at ?? Date.now()).toLocaleDateString(
+    dateLocaleTag(locale),
+    { month: "long", year: "numeric" }
+  );
   const timezone = profileRow.timezone ?? "UTC";
   const timezoneDisplay =
-    new Intl.DateTimeFormat("en-US", {
+    new Intl.DateTimeFormat(dateLocaleTag(locale), {
       timeZone: timezone,
       timeZoneName: "shortOffset",
     })
@@ -70,22 +76,26 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         <PublicProfileHeader
           fullname={profileRow.fullname}
           memberSince={memberSince}
+          memberSinceLabel={p.memberSince}
           timezone={timezoneDisplay}
           bio={profileRow.bio}
+          noBioText={p.noBioYet}
           profileId={profileRow.id}
         />
 
         <SkillChipList
           icon={GraduationCap}
           iconColor="var(--sb-teal-dark)"
-          title="Skills Offered"
+          title={p.skillsOffered}
+          noneAddedText={p.noneAdded}
           skills={offered}
         />
 
         <SkillChipList
           icon={Target}
           iconColor="var(--sb-emerald-dark)"
-          title="Skills Wanted"
+          title={p.skillsWanted}
+          noneAddedText={p.noneAdded}
           skills={wanted}
         />
 

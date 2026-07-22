@@ -54,7 +54,7 @@ export default function SkillsPanel({
             <button
               type="button"
               onClick={() => onRemove(skill.skill_id)}
-              aria-label={`Remove ${skill.skill_name}`}
+              aria-label={`${dictionary.common.remove} ${skill.skill_name}`}
               className="opacity-60 hover:opacity-100"
             >
               <X size={13} />

@@ -1,4 +1,5 @@
 import { Check, ChevronDown } from "lucide-react";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 export const OTHER_SUBJECT = "Other";
 
@@ -32,6 +33,8 @@ export default function SkillsStep({
   onToggleTag,
   accent = "blue",
 }: SkillsStepProps) {
+  const { dictionary } = useLocale();
+  const o = dictionary.onboarding;
   const isOther = subject === OTHER_SUBJECT;
   const accentColor = accent === "green" ? "var(--sb-emerald-dark)" : "var(--sb-teal-dark)";
 
@@ -46,7 +49,7 @@ export default function SkillsStep({
 
       <div className="mt-8">
         <label htmlFor="subject" className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>
-          Primary Subject Field
+          {o.primarySubjectField}
         </label>
         <div className="relative mt-2">
           <select
@@ -57,7 +60,7 @@ export default function SkillsStep({
           >
             {subjectOptions.map((opt) => (
               <option key={opt} value={opt}>
-                {opt}
+                {opt === OTHER_SUBJECT ? o.otherSubject : opt}
               </option>
             ))}
           </select>
@@ -69,7 +72,7 @@ export default function SkillsStep({
             type="text"
             value={customSubject}
             onChange={(e) => onCustomSubjectChange(e.target.value)}
-            placeholder="Tell us your subject field"
+            placeholder={o.customSubjectPlaceholder}
             autoFocus
             className="nb-input mt-3 w-full px-4 py-3.5 text-sm"
           />
@@ -77,7 +80,7 @@ export default function SkillsStep({
       </div>
 
       <div className="mt-6">
-        <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>Select Tags to Feature on Your Profile</p>
+        <p className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>{o.selectTagsTitle}</p>
         <div className="mt-3 flex flex-wrap gap-2.5">
           {tags.map((tag) => {
             const isSelected = selectedTags.includes(tag);

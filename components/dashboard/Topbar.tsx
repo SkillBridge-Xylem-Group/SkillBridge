@@ -9,6 +9,7 @@ import UserMenu from "./UserMenu";
 import NotificationBell from "./NotificationBell";
 import { MobileNavDrawer } from "./MobileNav";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type TopbarProps = {
   userName: string;
@@ -17,6 +18,7 @@ type TopbarProps = {
 };
 
 export default function Topbar({ userName, avatarUrl = null, communities = [] }: TopbarProps) {
+  const { dictionary } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const { notifications, unreadCount, unreadMessageCount, reload } = useRealtimeNotifications();
 
@@ -26,7 +28,7 @@ export default function Topbar({ userName, avatarUrl = null, communities = [] }:
         <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"
-            aria-label="Open navigation menu"
+            aria-label={dictionary.nav.openNavigationMenu}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(true)}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
@@ -48,7 +50,7 @@ export default function Topbar({ userName, avatarUrl = null, communities = [] }:
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link
             href="/dashboard/messages"
-            aria-label="Messages"
+            aria-label={dictionary.messages.title}
             className="nb-icon-btn relative flex h-10 w-10 items-center justify-center"
           >
             <MessageSquare size={19} />

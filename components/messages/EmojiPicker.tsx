@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Smile } from "lucide-react";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 const EMOJIS = [
   "😀", "😂", "😍", "😊", "😉", "😎", "🤔", "😅", "😢", "😭",
@@ -10,6 +11,7 @@ const EMOJIS = [
 ];
 
 export default function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
+  const { dictionary } = useLocale();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -25,7 +27,7 @@ export default function EmojiPicker({ onSelect }: { onSelect: (emoji: string) =>
     <div className="relative" ref={ref}>
       <button
         type="button"
-        aria-label="Add emoji"
+        aria-label={dictionary.messages.addEmoji}
         onClick={() => setOpen((o) => !o)}
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-100"
         style={{ color: "var(--sb-muted)" }}

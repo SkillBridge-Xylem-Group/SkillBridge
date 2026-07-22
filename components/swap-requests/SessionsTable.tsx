@@ -49,6 +49,14 @@ function SessionRow({
 }) {
   const { locale, dictionary } = useLocale();
   const s = dictionary.swaps;
+  const statusLabels: Record<string, string> = {
+    pending: s.statusPending,
+    accepted: s.statusAccepted,
+    rescheduled: s.statusRescheduled,
+    completed: s.statusCompleted,
+    declined: s.statusDeclined,
+    cancelled: s.statusCancelled,
+  };
   const [isPending, startTransition] = useTransition();
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [newTime, setNewTime] = useState("");
@@ -154,10 +162,10 @@ function SessionRow({
       </td>
       <td className="py-4">
         <span
-          className="rounded-full px-3 py-1 text-xs font-bold capitalize"
+          className="rounded-full px-3 py-1 text-xs font-bold"
           style={{ background: status.bg, color: status.ink }}
         >
-          {session.status}
+          {statusLabels[session.status] ?? session.status}
         </span>
       </td>
       <td className="py-4">

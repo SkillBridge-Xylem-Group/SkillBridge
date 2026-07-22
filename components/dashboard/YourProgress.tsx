@@ -30,7 +30,7 @@ export default function YourProgress({
       <div className="mt-3 flex items-baseline justify-between">
         <span className="text-sm font-extrabold nb-heading">{interpolate(h.level, { n: level })}</span>
         <span className="text-xs font-semibold" style={{ color: "var(--neu-text-muted)" }}>
-          {xpIntoLevel} / {xpGoal} XP
+          {interpolate(dictionary.profile.xpProgress, { current: xpIntoLevel, next: xpGoal })}
         </span>
       </div>
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full" style={{ background: "#e9e4f7", border: "1.5px solid var(--neu-ink)" }}>

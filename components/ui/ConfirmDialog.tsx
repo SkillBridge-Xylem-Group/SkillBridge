@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -21,14 +22,18 @@ export default function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   danger = false,
   busy = false,
-  busyLabel = "Working…",
+  busyLabel,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { dictionary } = useLocale();
+  const resolvedConfirmLabel = confirmLabel ?? dictionary.common.confirm;
+  const resolvedCancelLabel = cancelLabel ?? dictionary.common.cancel;
+  const resolvedBusyLabel = busyLabel ?? dictionary.common.loading;
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -44,7 +49,7 @@ export default function ConfirmDialog({
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
       <button
         type="button"
-        aria-label="Close dialog"
+        aria-label={dictionary.settings.closeDialog}
         className="absolute inset-0 bg-slate-900/40"
         disabled={busy}
         onClick={() => {
@@ -82,7 +87,7 @@ export default function ConfirmDialog({
             onClick={onCancel}
             className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
           >
-            {cancelLabel}
+            {resolvedCancelLabel}
           </button>
           <button
             type="button"
@@ -95,10 +100,10 @@ export default function ConfirmDialog({
             {busy ? (
               <>
                 <Loader2 size={16} className="shrink-0 animate-spin" aria-hidden />
-                <span>{busyLabel}</span>
+                <span>{resolvedBusyLabel}</span>
               </>
             ) : (
-              confirmLabel
+              resolvedConfirmLabel
             )}
           </button>
         </div>

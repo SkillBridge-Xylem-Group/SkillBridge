@@ -365,7 +365,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
           <button
             type="submit"
             disabled={sending || !draft.trim()}
-            aria-label="Send"
+            aria-label={msg.send}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white transition hover:brightness-105 active:scale-95 disabled:opacity-45"
             style={{ background: "var(--sb-gradient)", boxShadow: "var(--sb-shadow-sm)" }}
           >

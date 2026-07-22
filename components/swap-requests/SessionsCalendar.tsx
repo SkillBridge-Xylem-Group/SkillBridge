@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { dateLocaleTag } from "@/lib/i18n/locales";
 
 type SessionsCalendarProps = {
   /** ISO date/datetime strings for every session that has a scheduled time. */
@@ -12,9 +14,13 @@ function dateKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-const DOW_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-
 export default function SessionsCalendar({ scheduledDates }: SessionsCalendarProps) {
+  const { locale, dictionary } = useLocale();
+  const s = dictionary.swapSession;
+  const localeTag = dateLocaleTag(locale);
+  const dowLabels = Array.from({ length: 7 }, (_, i) =>
+    new Date(2023, 0, i + 1).toLocaleDateString(localeTag, { weekday: "narrow" })
+  );
   const today = new Date();
   const [viewDate, setViewDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
 
@@ -27,7 +33,7 @@ export default function SessionsCalendar({ scheduledDates }: SessionsCalendarPro
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
-  const monthLabel = viewDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const monthLabel = viewDate.toLocaleDateString(localeTag, { month: "long", year: "numeric" });
 
   const startDow = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -62,7 +68,7 @@ export default function SessionsCalendar({ scheduledDates }: SessionsCalendarPro
           <button
             type="button"
             onClick={goPrevMonth}
-            aria-label="Previous month"
+            aria-label={s.prevMonth}
             className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200"
           >
             <ChevronLeft size={13} strokeWidth={2.5} />
@@ -70,7 +76,7 @@ export default function SessionsCalendar({ scheduledDates }: SessionsCalendarPro
           <button
             type="button"
             onClick={goNextMonth}
-            aria-label="Next month"
+            aria-label={s.nextMonth}
             className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200"
           >
             <ChevronRight size={13} strokeWidth={2.5} />
@@ -79,8 +85,8 @@ export default function SessionsCalendar({ scheduledDates }: SessionsCalendarPro
       </div>
 
       <div className="mt-4 grid grid-cols-7 gap-y-1 text-center">
-        {DOW_LABELS.map((d) => (
-          <div key={d} className="pb-1.5 text-[11px] font-bold" style={{ color: "var(--sb-muted)" }}>
+        {dowLabels.map((d, i) => (
+          <div key={i} className="pb-1.5 text-[11px] font-bold" style={{ color: "var(--sb-muted)" }}>
             {d}
           </div>
         ))}
@@ -106,7 +112,7 @@ export default function SessionsCalendar({ scheduledDates }: SessionsCalendarPro
 
       <div className="mt-4 flex items-center gap-2 text-xs font-medium" style={{ color: "var(--sb-muted)" }}>
         <span className="h-2.5 w-2.5 shrink-0 rounded" style={{ background: "#fff6d9", border: "1.5px solid #b45309" }} />
-        Skill swap session scheduled
+        {s.scheduledLegend}
       </div>
     </div>
   );

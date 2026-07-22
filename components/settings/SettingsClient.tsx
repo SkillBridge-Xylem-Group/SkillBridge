@@ -85,6 +85,7 @@ function SettingsModal({
   children: React.ReactNode;
   footer?: React.ReactNode;
 }) {
+  const { dictionary } = useLocale();
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -95,7 +96,7 @@ function SettingsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button type="button" aria-label="Close dialog" className="absolute inset-0 bg-slate-900/40" onClick={onClose} />
+      <button type="button" aria-label={dictionary.settings.closeDialog} className="absolute inset-0 bg-slate-900/40" onClick={onClose} />
       <div
         role="dialog"
         aria-modal="true"
@@ -108,7 +109,7 @@ function SettingsModal({
             type="button"
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-brand-light hover:text-brand"
-            aria-label="Close"
+            aria-label={dictionary.common.close}
           >
             <X size={18} />
           </button>
@@ -251,12 +252,12 @@ export default function SettingsClient({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setModalError(data?.error ?? "Failed to update email.");
+        setModalError(data?.error ?? s.updateEmailFailed);
         return;
       }
-      setModalMessage(data?.message ?? "Check your inbox to confirm the new email address.");
+      setModalMessage(data?.message ?? s.checkInboxToConfirm);
     } catch {
-      setModalError("Failed to update email.");
+      setModalError(s.updateEmailFailed);
     } finally {
       setSaving(false);
     }
@@ -269,12 +270,12 @@ export default function SettingsClient({
     setPasswordError("");
 
     if (!isPasswordValid(password)) {
-      setPasswordError("New password does not meet the requirements.");
+      setPasswordError(s.passwordRequirementsNotMet);
       setPasswordSaving(false);
       return;
     }
     if (password !== confirmPassword) {
-      setPasswordError("Passwords do not match.");
+      setPasswordError(s.passwordsDoNotMatch);
       setPasswordSaving(false);
       return;
     }
@@ -291,17 +292,17 @@ export default function SettingsClient({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setPasswordError(data?.error ?? "Failed to update password.");
+        setPasswordError(data?.error ?? s.updatePasswordFailed);
         return;
       }
-      setPasswordMessage("Password updated.");
+      setPasswordMessage(s.passwordUpdated);
       setCurrentPassword("");
       setPassword("");
       setConfirmPassword("");
       setPasswordFocus(false);
       setPasswordOpen(false);
     } catch {
-      setPasswordError("Failed to update password.");
+      setPasswordError(s.updatePasswordFailed);
     } finally {
       setPasswordSaving(false);
     }
@@ -330,7 +331,7 @@ export default function SettingsClient({
     <div className="flex w-full min-w-0 flex-1 flex-col">
       <h1 className="text-[28px] font-bold leading-none tracking-tight text-slate-900">{s.title}</h1>
 
-      <nav className="mt-5 w-full border-b border-slate-100" aria-label="Settings sections">
+      <nav className="mt-5 w-full border-b border-slate-100" aria-label={s.settingsSections}>
         <div className="flex gap-5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((item) => {
             const active = tab === item.id;

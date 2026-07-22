@@ -4,12 +4,22 @@ import PublicProfileActions from "./PublicProfileActions";
 type PublicProfileHeaderProps = {
   fullname: string;
   memberSince: string;
+  memberSinceLabel: string;
   timezone: string;
   bio: string | null;
+  noBioText: string;
   profileId: string;
 };
 
-export default function PublicProfileHeader({ fullname, memberSince, timezone, bio, profileId }: PublicProfileHeaderProps) {
+export default function PublicProfileHeader({
+  fullname,
+  memberSince,
+  memberSinceLabel,
+  timezone,
+  bio,
+  noBioText,
+  profileId,
+}: PublicProfileHeaderProps) {
   const initials = fullname
     .split(" ")
     .filter(Boolean)
@@ -30,7 +40,7 @@ export default function PublicProfileHeader({ fullname, memberSince, timezone, b
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ color: "var(--sb-muted)" }}>
               <span className="flex items-center gap-1.5">
                 <Calendar size={14} />
-                Member since {memberSince}
+                {memberSinceLabel} {memberSince}
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock size={14} />
@@ -46,7 +56,7 @@ export default function PublicProfileHeader({ fullname, memberSince, timezone, b
       </div>
 
       <div className="mt-5 pt-5" style={{ borderTop: "1px solid #eef7f0" }}>
-        <p className="text-sm leading-relaxed" style={{ color: "var(--sb-muted)" }}>{bio || "This user hasn't added a bio yet."}</p>
+        <p className="text-sm leading-relaxed" style={{ color: "var(--sb-muted)" }}>{bio || noBioText}</p>
       </div>
     </div>
   );

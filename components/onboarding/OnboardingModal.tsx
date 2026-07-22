@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import OnboardingStepper from "./OnboardingStepper";
 import ProfileStep from "./ProfileStep";
 import SkillsStep, { OTHER_SUBJECT } from "./SkillsStep";
@@ -18,6 +19,8 @@ type OnboardingModalProps = {
 
 export default function OnboardingModal({ onComplete, skillsByCategory }: OnboardingModalProps) {
   const router = useRouter();
+  const { dictionary } = useLocale();
+  const o = dictionary.onboarding;
   const totalSteps = 3;
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,22 +64,22 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
 
   function validateStep(): string | null {
     if (step === 1) {
-      if (!bio.trim()) return "Please write a short bio before continuing.";
+      if (!bio.trim()) return o.errorBioRequired;
     }
     if (step === 2) {
       if (teachSubject === OTHER_SUBJECT && !teachCustomSubject.trim()) {
-        return "Please tell us your subject field.";
+        return o.errorSubjectRequired;
       }
       if (teachTags.length === 0) {
-        return "Please select at least one skill you can teach.";
+        return o.errorTeachTagsRequired;
       }
     }
     if (step === 3) {
       if (learnSubject === OTHER_SUBJECT && !learnCustomSubject.trim()) {
-        return "Please tell us your subject field.";
+        return o.errorSubjectRequired;
       }
       if (learnTags.length === 0) {
-        return "Please select at least one skill you want to learn.";
+        return o.errorLearnTagsRequired;
       }
     }
     return null;
@@ -115,7 +118,7 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setError(data?.error ?? "Failed to save onboarding. Please try again.");
+        setError(data?.error ?? o.errorSaveFailed);
         return;
       }
 
@@ -126,7 +129,7 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
         router.refresh();
       }
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(o.errorGeneric);
     } finally {
       setIsSubmitting(false);
     }
@@ -140,7 +143,7 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
             SkillBridge
           </span>
           <span className="text-sm font-semibold" style={{ color: "var(--sb-muted)" }}>
-            Step <span className="font-bold" style={{ color: "var(--sb-teal-dark)" }}>{step}</span> of {totalSteps}
+            {o.stepLabel} <span className="font-bold" style={{ color: "var(--sb-teal-dark)" }}>{step}</span> {o.ofLabel} {totalSteps}
           </span>
         </div>
 
@@ -155,8 +158,8 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
 
           {step === 2 && (
             <SkillsStep
-              title="What skills can you share?"
-              description="Select subjects you feel comfortable teaching to other community peers."
+              title={o.teachTitle}
+              description={o.teachDescription}
               subjectOptions={subjectOptions}
               subject={teachSubject}
               onSubjectChange={handleTeachSubjectChange}
@@ -171,8 +174,8 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
 
           {step === 3 && (
             <SkillsStep
-              title="What skills do you want to learn?"
-              description="Choose the skills you're looking to learn from the community."
+              title={o.learnTitle}
+              description={o.learnDescription}
               subjectOptions={subjectOptions}
               subject={learnSubject}
               onSubjectChange={handleLearnSubjectChange}
@@ -197,7 +200,7 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
             >
               <span className="flex items-center gap-2">
                 <ArrowLeft size={16} />
-                Back
+                {o.back}
               </span>
             </button>
 
@@ -210,11 +213,11 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
                 style={{ background: "var(--sb-gradient)" }}
               >
                 <span className="flex items-center gap-2">
-                  {step === totalSteps ? (isSubmitting ? "Finishing..." : "Finish Setup") : "Save & Continue"}
+                  {step === totalSteps ? (isSubmitting ? o.finishing : o.finishSetup) : o.saveContinue}
                   <ArrowRight size={16} />
                 </span>
               </button>
-              <p className="mt-2 text-xs" style={{ color: "var(--sb-muted)" }}>You can always update this later.</p>
+              <p className="mt-2 text-xs" style={{ color: "var(--sb-muted)" }}>{o.updateLaterHint}</p>
             </div>
           </div>
         </div>
