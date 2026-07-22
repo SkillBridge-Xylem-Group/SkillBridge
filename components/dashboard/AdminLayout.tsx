@@ -20,11 +20,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F7F7FB]">
+    <div className="flex min-h-screen gap-4 bg-[#F7F7FB] p-4 lg:gap-6 lg:p-6">
       <AdminSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar userName={displayName} />
-        <main className="flex-1 px-4 pb-16 sm:px-8 lg:px-10 lg:pb-10">{children}</main>
+        <main className="flex-1 pb-16 lg:pb-10">{children}</main>
       </div>
     </div>
   );
