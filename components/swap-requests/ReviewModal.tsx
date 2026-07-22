@@ -3,6 +3,8 @@
 import { useState, useTransition, type FormEvent } from "react";
 import { Star, X } from "lucide-react";
 import { submitSessionReviewAction } from "@/lib/actions/reviews";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 type ReviewModalProps = {
   open: boolean;
@@ -19,6 +21,8 @@ export default function ReviewModal({
   onClose,
   onSubmitted,
 }: ReviewModalProps) {
+  const { dictionary } = useLocale();
+  const s = dictionary.swapSession;
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState("");
@@ -31,7 +35,7 @@ export default function ReviewModal({
     e.preventDefault();
     setError("");
     if (rating < 1) {
-      setError("Please choose a star rating.");
+      setError(s.reviewChooseRating);
       return;
     }
 
@@ -64,16 +68,16 @@ export default function ReviewModal({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 id="review-modal-title" className="text-lg font-extrabold nb-heading">
-              Rate your session
+              {s.rateSession}
             </h2>
             <p className="mt-1 text-sm" style={{ color: "var(--sb-muted)" }}>
-              How was your skill swap with <span className="font-semibold" style={{ color: "var(--sb-ink)" }}>{partner.fullname}</span>?
+              {interpolate(s.howWasSwap, { name: partner.fullname })}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={s.close}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
           >
             <X size={16} />
@@ -82,7 +86,7 @@ export default function ReviewModal({
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sb-muted)" }}>Rating</p>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sb-muted)" }}>{s.rating}</p>
             <div className="mt-2 flex items-center gap-1">
               {Array.from({ length: 5 }, (_, i) => {
                 const value = i + 1;
@@ -95,7 +99,7 @@ export default function ReviewModal({
                     onMouseLeave={() => setHovered(0)}
                     onClick={() => setRating(value)}
                     className="rounded p-0.5"
-                    aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                    aria-label={interpolate(value === 1 ? s.star : s.stars, { n: value })}
                   >
                     <Star
                       size={28}
@@ -109,7 +113,7 @@ export default function ReviewModal({
 
           <div>
             <label htmlFor="review-comment" className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sb-muted)" }}>
-              Review
+              {s.review}
             </label>
             <textarea
               id="review-comment"
@@ -117,7 +121,7 @@ export default function ReviewModal({
               onChange={(e) => setComment(e.target.value)}
               maxLength={500}
               rows={4}
-              placeholder="Share what went well or what could improve…"
+              placeholder={s.reviewPlaceholder}
               className="nb-input mt-2 resize-none px-3 py-2.5 text-sm"
             />
           </div>
@@ -131,7 +135,7 @@ export default function ReviewModal({
               className="rounded-full px-4 py-2 text-sm font-semibold"
               style={{ color: "var(--sb-muted)" }}
             >
-              Later
+              {s.later}
             </button>
             <button
               type="submit"
@@ -139,7 +143,7 @@ export default function ReviewModal({
               className="nb-btn px-5 py-2 text-sm text-white disabled:opacity-60"
               style={{ background: "var(--sb-gradient)" }}
             >
-              {isPending ? "Submitting…" : "Submit review"}
+              {isPending ? s.submitting : s.submitReview}
             </button>
           </div>
         </form>

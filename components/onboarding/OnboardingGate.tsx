@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import OnboardingModal from "./OnboardingModal";
 
 type OnboardingGateProps = {
@@ -13,6 +14,7 @@ type OnboardingGateProps = {
 
 export default function OnboardingGate({ initialShow, skillsByCategory }: OnboardingGateProps) {
   const router = useRouter();
+  const { dictionary } = useLocale();
   const [show, setShow] = useState(initialShow);
   const [showSavedToast, setShowSavedToast] = useState(false);
 
@@ -31,7 +33,7 @@ export default function OnboardingGate({ initialShow, skillsByCategory }: Onboar
       {show && <OnboardingModal onComplete={handleComplete} skillsByCategory={skillsByCategory} />}
       {showSavedToast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
-          Skill saved
+          {dictionary.onboarding.skillSaved}
         </div>
       )}
     </>

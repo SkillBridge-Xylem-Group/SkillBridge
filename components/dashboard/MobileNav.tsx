@@ -50,7 +50,7 @@ export function MobileNavDrawer({ open, onClose, communities = [] }: MobileNavDr
     <div className="fixed inset-0 z-50 lg:hidden">
       <button
         type="button"
-        aria-label="Close menu"
+        aria-label={dictionary.nav.closeMenu}
         className="absolute inset-0 bg-slate-900/40"
         onClick={onClose}
       />
@@ -58,7 +58,7 @@ export function MobileNavDrawer({ open, onClose, communities = [] }: MobileNavDr
         className="absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col bg-white shadow-xl"
         role="dialog"
         aria-modal="true"
-        aria-label="Navigation"
+        aria-label={dictionary.nav.navigationLabel}
       >
         <div className="flex items-center justify-between px-5 py-5">
           <Link href="/dashboard" onClick={onClose} className="inline-flex items-center gap-2">
@@ -74,7 +74,7 @@ export function MobileNavDrawer({ open, onClose, communities = [] }: MobileNavDr
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={dictionary.common.close}
             className="rounded-full p-2 text-slate-500 hover:bg-slate-100"
           >
             <X size={20} />
@@ -112,7 +112,7 @@ export function MobileNavDrawer({ open, onClose, communities = [] }: MobileNavDr
             }`}
           >
             <MessageSquare size={18} />
-            Messages
+            {dictionary.messages.title}
           </Link>
           <SidebarCommunities communities={communities} onNavigate={onClose} />
         </nav>
@@ -137,7 +137,7 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={dictionary.nav.primaryNav}
       className="fixed inset-x-0 bottom-0 z-40 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       style={{ boxShadow: "0 -2px 10px rgba(20,24,20,.05)" }}
     >

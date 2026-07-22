@@ -13,19 +13,27 @@ type Subject = {
 };
 
 const SUBJECTS: Subject[] = [
-  { icon: "🧑🏽‍🎨", bg: "var(--neu-coral)", color: "#fff", scatterDx: -220, scatterDy: -70, dx: -90, dy: -30 },
-  { icon: "👩🏻‍💻", bg: "var(--neu-yellow)", color: "var(--neu-ink)", scatterDx: 230, scatterDy: -60, dx: 90, dy: -30 },
-  { icon: "🧑🏻‍🏫", bg: "var(--neu-teal)", color: "var(--neu-ink)", scatterDx: -260, scatterDy: 40, dx: -60, dy: 20 },
-  { icon: "👨🏿‍🎤", bg: "#fff", color: "var(--neu-ink)", scatterDx: 270, scatterDy: 50, dx: 60, dy: 20 },
-  { icon: "👩🏽‍🍳", bg: "var(--neu-orange)", color: "var(--neu-ink)", scatterDx: -160, scatterDy: 160, dx: -30, dy: -15 },
-  { icon: "🧑🏼‍🔬", bg: "var(--neu-purple)", color: "#fff", scatterDx: 170, scatterDy: 170, dx: 30, dy: -15 },
-  { icon: "👨🏻‍⚖️", bg: "#fff", color: "var(--neu-ink)", scatterDx: -100, scatterDy: -140, dx: -10, dy: 35 },
-  { icon: "🧑🏾‍🚀", bg: "var(--neu-indigo)", color: "#fff", scatterDx: 110, scatterDy: -150, dx: 10, dy: 35 },
+  { icon: "🧑🏽‍🎨", bg: "var(--neu-coral)", color: "#fff", scatterDx: -540, scatterDy: -20, dx: -90, dy: -30 },
+  { icon: "👩🏻‍💻", bg: "var(--neu-yellow)", color: "var(--neu-ink)", scatterDx: 540, scatterDy: -20, dx: 90, dy: -30 },
+  { icon: "🧑🏻‍🏫", bg: "var(--neu-teal)", color: "var(--neu-ink)", scatterDx: -580, scatterDy: 70, dx: -60, dy: 20 },
+  { icon: "👨🏿‍🎤", bg: "#fff", color: "var(--neu-ink)", scatterDx: 580, scatterDy: 70, dx: 60, dy: 20 },
+  { icon: "👩🏽‍🍳", bg: "var(--neu-orange)", color: "var(--neu-ink)", scatterDx: -460, scatterDy: 150, dx: -30, dy: -15 },
+  { icon: "🧑🏼‍🔬", bg: "var(--neu-purple)", color: "#fff", scatterDx: 460, scatterDy: 150, dx: 30, dy: -15 },
+  { icon: "👨🏻‍⚖️", bg: "#fff", color: "var(--neu-ink)", scatterDx: -400, scatterDy: -90, dx: -10, dy: 35 },
+  { icon: "🧑🏾‍🚀", bg: "var(--neu-indigo)", color: "#fff", scatterDx: 400, scatterDy: -90, dx: 10, dy: 35 },
 ];
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
+
+// Icons must never render above this line (px from top of viewport) —
+// otherwise on shorter viewports they scatter up into/behind the sticky
+// navbar. ~88px clears the navbar's height plus a small safety margin.
+const MIN_ICON_TOP = 88;
+// Keep icons at least this far from the left/right viewport edges.
+const EDGE_MARGIN = 24;
+const ICON_HALF_SIZE = 28;
 
 /**
  * Decorative profile-avatar icons scattered around the hero headline on
@@ -123,8 +131,8 @@ export default function ScatteredIcons() {
         if (progress <= 0.02) {
           el.style.transition = "transform .7s cubic-bezier(.3,1.4,.4,1), opacity .45s ease";
           if (hovering) {
-            x = homeX;
-            y = homeY;
+            x = Math.min(Math.max(homeX, EDGE_MARGIN + ICON_HALF_SIZE), window.innerWidth - EDGE_MARGIN - ICON_HALF_SIZE);
+            y = Math.max(homeY, MIN_ICON_TOP);
             scale = 1;
             opacity = 1;
           } else {
@@ -137,7 +145,7 @@ export default function ScatteredIcons() {
           el.style.transition = "opacity .2s ease";
           opacity = Math.min(1, progress / 0.55);
           x = lerp(homeX, targetX, progress);
-          y = lerp(homeY, targetY, progress);
+          y = Math.max(lerp(homeY, targetY, progress), MIN_ICON_TOP);
           scale = lerp(1, 0.5, progress);
         }
         el.style.opacity = String(opacity);

@@ -17,6 +17,8 @@ import {
 import { useSwapWebRtc } from "@/hooks/useSwapWebRtc";
 import { completeSessionAction } from "@/lib/actions/sessionRequests";
 import type { SwapSessionRoomData } from "@/lib/swapSession";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import SessionChat from "./SessionChat";
 
 type Props = {
@@ -27,23 +29,22 @@ type Props = {
 
 function statusLabel(
   connectionState: ReturnType<typeof useSwapWebRtc>["connectionState"],
-  partnerPresent: boolean
+  partnerPresent: boolean,
+  s: Dictionary["swapSession"]
 ) {
   switch (connectionState) {
     case "connecting":
-      return "Joining session room…";
+      return s.statusJoining;
     case "waiting":
-      return partnerPresent
-        ? "Partner joined — connecting…"
-        : "Waiting for your partner to join…";
+      return partnerPresent ? s.statusPartnerJoinedConnecting : s.statusWaitingPartner;
     case "connecting-peer":
-      return "Connecting to your partner…";
+      return s.statusConnectingPeer;
     case "connected":
-      return "Connected — you are live";
+      return s.statusConnected;
     case "failed":
-      return "Connection failed. Ask your partner to rejoin, or try again.";
+      return s.statusFailed;
     case "ended":
-      return "Call ended";
+      return s.statusEnded;
     default:
       return "";
   }
@@ -51,6 +52,8 @@ function statusLabel(
 
 export default function SwapSessionRoom({ session, userId, viewerName }: Props) {
   const router = useRouter();
+  const { dictionary } = useLocale();
+  const s = dictionary.swapSession;
   const [isCompleting, startComplete] = useTransition();
   const {
     bindLocalVideo,
@@ -74,8 +77,8 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
     hangUp,
   } = useSwapWebRtc({ requestId: session.requestId, userId, userName: viewerName });
 
-  const topic = session.topic?.skill_name ?? "Skill swap";
-  const label = statusLabel(connectionState, partnerPresent);
+  const topic = session.topic?.skill_name ?? s.defaultTopic;
+  const label = statusLabel(connectionState, partnerPresent, s);
   const roomOpen = connectionState !== "ended";
 
   async function leave() {
@@ -101,12 +104,12 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
             className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800"
           >
             <ArrowLeft size={16} />
-            Back to requests
+            {s.backToRequests}
           </Link>
-          <h1 className="text-2xl font-extrabold text-slate-900">Skill Swap Session</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900">{s.roomTitle}</h1>
           <p className="mt-1 text-sm text-slate-600">
             {topic}
-            {session.topic?.category ? ` · ${session.topic.category}` : ""} with{" "}
+            {session.topic?.category ? ` · ${session.topic.category}` : ""} {s.withLabel}{" "}
             <span className="font-semibold text-slate-800">{session.partner.fullname}</span>
           </p>
         </div>
@@ -118,14 +121,14 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
             {connectionState === "connected" ? (
               <span className="inline-flex items-center gap-2 text-emerald-700">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                Live
+                {s.live}
               </span>
             ) : (
               <span className="inline-flex items-center gap-2">
                 {(connectionState === "connecting" || connectionState === "connecting-peer") && (
                   <Loader2 size={14} className="animate-spin" />
                 )}
-                {partnerPresent ? "Partner in room" : null}
+                {partnerPresent ? s.partnerInRoom : null}
               </span>
             )}
           </div>
@@ -144,7 +147,7 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
             className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-amber-900 ring-1 ring-amber-200 hover:bg-amber-100 disabled:opacity-50"
           >
             {mediaBusy ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-            Enable devices
+            {s.enableDevices}
           </button>
         </div>
       )}
@@ -171,9 +174,7 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
                   </div>
                   <p className="text-xs font-semibold text-white">{session.partner.fullname}</p>
                   <p className="text-[11px] text-slate-300">
-                    {partnerPresent
-                      ? "Connecting…"
-                      : "Waiting for them to join."}
+                    {partnerPresent ? s.connecting : s.waitingForThemToJoin}
                   </p>
                 </div>
               )}
@@ -207,15 +208,15 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
                       onClick={() => void enableDevices()}
                       className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-white/25 disabled:opacity-50"
                     >
-                      {mediaBusy ? "Requesting…" : "Enable camera & mic"}
+                      {mediaBusy ? s.requesting : s.enableCameraMic}
                     </button>
                   )}
                 </div>
               )}
               <span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white">
-                You
-                {hasMic && !micEnabled ? " · Mic off" : ""}
-                {hasCamera && !cameraEnabled ? " · Cam off" : ""}
+                {s.you}
+                {hasMic && !micEnabled ? ` · ${s.micOff}` : ""}
+                {hasCamera && !cameraEnabled ? ` · ${s.camOff}` : ""}
               </span>
             </div>
           </div>
@@ -232,8 +233,8 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
                     ? "bg-slate-100 text-slate-800 hover:bg-slate-200"
                     : "bg-red-500 text-white hover:bg-red-600"
               }`}
-              aria-label={!hasMic ? "Enable microphone" : micEnabled ? "Mute microphone" : "Unmute microphone"}
-              title={!hasMic ? "Enable microphone" : micEnabled ? "Mute" : "Unmute"}
+              aria-label={!hasMic ? s.enableMic : micEnabled ? s.muteMic : s.unmuteMic}
+              title={!hasMic ? s.enableMic : micEnabled ? s.mute : s.unmute}
             >
               {hasMic && micEnabled ? <Mic size={20} /> : <MicOff size={20} />}
             </button>
@@ -249,9 +250,9 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
                     : "bg-red-500 text-white hover:bg-red-600"
               }`}
               aria-label={
-                !hasCamera ? "Enable camera" : cameraEnabled ? "Turn camera off" : "Turn camera on"
+                !hasCamera ? s.enableCamera : cameraEnabled ? s.turnCameraOff : s.turnCameraOn
               }
-              title={!hasCamera ? "Enable camera" : cameraEnabled ? "Camera off" : "Camera on"}
+              title={!hasCamera ? s.enableCamera : cameraEnabled ? s.cameraOff : s.cameraOn}
             >
               {hasCamera && cameraEnabled ? <Video size={20} /> : <VideoOff size={20} />}
             </button>
@@ -263,7 +264,7 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
                 className="inline-flex h-12 items-center gap-2 rounded-full bg-slate-900 px-4 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50"
               >
                 {mediaBusy ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-                Enable devices
+                {s.enableDevices}
               </button>
             )}
             <button
@@ -272,7 +273,7 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
               className="inline-flex h-12 items-center gap-2 rounded-full bg-red-600 px-5 text-sm font-bold text-white hover:bg-red-700"
             >
               <PhoneOff size={18} />
-              Leave
+              {s.leave}
             </button>
             <button
               type="button"
@@ -281,7 +282,7 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
               className="inline-flex h-12 items-center gap-2 rounded-full bg-brand px-5 text-sm font-bold text-white hover:bg-brand-dark disabled:opacity-50"
             >
               <CheckCircle2 size={18} />
-              {isCompleting ? "Finishing…" : "Mark Complete"}
+              {isCompleting ? s.finishingUp : s.markComplete}
             </button>
           </div>
         </div>

@@ -10,7 +10,7 @@ export async function GET() {
   const primary = await supabase
     .from("forum_questions")
     .select(
-      "question_id, title, created_at, user_id, image_url, subforum_slug, users(fullname), forum_answers(count)"
+      "question_id, title, created_at, user_id, image_url, subforum_slug, users(fullname, avatar_url), forum_answers(count)"
     )
     .order("created_at", { ascending: false })
     .limit(5);
@@ -21,7 +21,7 @@ export async function GET() {
   if (error?.message?.toLowerCase().includes("subforum_slug")) {
     const legacy = await supabase
       .from("forum_questions")
-      .select("question_id, title, created_at, user_id, image_url, users(fullname), forum_answers(count)")
+      .select("question_id, title, created_at, user_id, image_url, users(fullname, avatar_url), forum_answers(count)")
       .order("created_at", { ascending: false })
       .limit(5);
     questions = (legacy.data ?? []).map((q) => ({ ...q, subforum_slug: "general" }));
@@ -42,6 +42,7 @@ export async function GET() {
       created_at: q.created_at,
       author_id: q.user_id,
       author_name: (Array.isArray(q.users) ? q.users[0] : q.users)?.fullname ?? "Unknown",
+      author_avatar_url: (Array.isArray(q.users) ? q.users[0] : q.users)?.avatar_url ?? null,
       reply_count: q.forum_answers?.[0]?.count ?? 0,
       image_url: getSafeForumImageUrl(q.image_url),
       subforum_slug: sub.slug,

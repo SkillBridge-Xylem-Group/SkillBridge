@@ -5,11 +5,12 @@ type SkillChipListProps = {
   icon: LucideIcon;
   iconColor: string;
   title: string;
+  noneAddedText: string;
   skills: Skill[];
 };
 
 /** Read-only skill chips — used on public profiles where nothing is editable. */
-export default function SkillChipList({ icon: Icon, iconColor, title, skills }: SkillChipListProps) {
+export default function SkillChipList({ icon: Icon, iconColor, title, noneAddedText, skills }: SkillChipListProps) {
   return (
     <div className="nb-card p-6">
       <div className="flex items-center gap-3">
@@ -23,7 +24,7 @@ export default function SkillChipList({ icon: Icon, iconColor, title, skills }: 
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {skills.length === 0 && <p className="text-sm" style={{ color: "var(--sb-muted)" }}>None added yet.</p>}
+        {skills.length === 0 && <p className="text-sm" style={{ color: "var(--sb-muted)" }}>{noneAddedText}</p>}
         {skills.map((skill) => (
           <span key={skill.skill_id} className="nb-tag">
             {skill.skill_name}

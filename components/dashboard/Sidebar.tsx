@@ -67,7 +67,7 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
             <button
               type="button"
               onClick={toggleCollapsed}
-              aria-label="Collapse sidebar"
+              aria-label={dictionary.nav.collapseSidebar}
               className="nb-icon-btn flex h-8 w-8 shrink-0 items-center justify-center"
             >
               <ChevronLeft size={16} />
@@ -79,7 +79,7 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
           <button
             type="button"
             onClick={toggleCollapsed}
-            aria-label="Expand sidebar"
+            aria-label={dictionary.nav.expandSidebar}
             className="nb-icon-btn mx-auto mt-4 flex h-8 w-8 items-center justify-center"
           >
             <ChevronRight size={16} />

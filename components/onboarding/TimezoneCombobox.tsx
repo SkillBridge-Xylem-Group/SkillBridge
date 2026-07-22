@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Globe, Search } from "lucide-react";
 import type { TimezoneOption } from "@/lib/timezones";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 type TimezoneComboboxProps = {
   value: string;
@@ -12,6 +13,8 @@ type TimezoneComboboxProps = {
 
 /** Searchable "pick your city" combobox — replaces a long native scroll list. */
 export default function TimezoneCombobox({ value, options, onChange }: TimezoneComboboxProps) {
+  const { dictionary } = useLocale();
+  const o = dictionary.onboarding;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -59,7 +62,7 @@ export default function TimezoneCombobox({ value, options, onChange }: TimezoneC
         aria-expanded={open}
         className="nb-input flex w-full items-center py-3.5 pl-11 pr-4 text-left text-sm"
       >
-        <span className="truncate">{selected?.label ?? "Search your city..."}</span>
+        <span className="truncate">{selected?.label ?? o.searchCity}</span>
       </button>
 
       {open && (
@@ -74,14 +77,14 @@ export default function TimezoneCombobox({ value, options, onChange }: TimezoneC
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Type a city name..."
+              placeholder={o.typeCityName}
               className="w-full bg-transparent text-sm outline-none"
               style={{ color: "var(--sb-ink)" }}
             />
           </div>
           <div className="max-h-64 overflow-y-auto py-1" role="listbox">
             {filtered.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm" style={{ color: "var(--sb-muted)" }}>No cities found.</p>
+              <p className="px-4 py-6 text-center text-sm" style={{ color: "var(--sb-muted)" }}>{o.noCitiesFound}</p>
             ) : (
               filtered.map((option) => {
                 const isSelected = option.value === value;

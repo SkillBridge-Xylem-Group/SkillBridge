@@ -51,7 +51,7 @@ export default function ProfileClient({
       setFullname(previousName);
       setBio(previousBio);
       const data = await res.json().catch(() => null);
-      setProfileError(data?.error ?? "Failed to save profile. Please try again.");
+      setProfileError(data?.error ?? dictionary.profile.saveProfileFailed);
       return;
     }
 
@@ -74,7 +74,7 @@ export default function ProfileClient({
     if (!res.ok) {
       setAvatarUrl(previous);
       const data = await res.json().catch(() => null);
-      setProfileError(data?.error ?? "Failed to save photo. Please try again.");
+      setProfileError(data?.error ?? dictionary.profile.savePhotoFailed);
       return;
     }
 

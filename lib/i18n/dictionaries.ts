@@ -12,6 +12,12 @@ export type Dictionary = {
     forumShort: string;
     profile: string;
     profileShort: string;
+    collapseSidebar: string;
+    expandSidebar: string;
+    closeMenu: string;
+    navigationLabel: string;
+    primaryNav: string;
+    openNavigationMenu: string;
   };
   menu: {
     myProfile: string;
@@ -55,6 +61,14 @@ export type Dictionary = {
     genderNonBinary: string;
     genderPreferNot: string;
     saveFailed: string;
+    updateEmailFailed: string;
+    checkInboxToConfirm: string;
+    passwordRequirementsNotMet: string;
+    passwordsDoNotMatch: string;
+    updatePasswordFailed: string;
+    passwordUpdated: string;
+    closeDialog: string;
+    settingsSections: string;
   };
   common: {
     viewAll: string;
@@ -82,6 +96,7 @@ export type Dictionary = {
     joined: string;
     leave: string;
     manage: string;
+    remove: string;
   };
   home: {
     welcomeBack: string;
@@ -125,6 +140,8 @@ export type Dictionary = {
     selectConversationHint: string;
     today: string;
     yesterday: string;
+    addEmoji: string;
+    send: string;
   };
   browse: {
     searchPlaceholder: string;
@@ -328,6 +345,13 @@ export type Dictionary = {
     sending: string;
     opening: string;
     swapRequestSentNotice: string;
+    memberNotFound: string;
+    profileNotFoundHint: string;
+    skillsOffered: string;
+    skillsWanted: string;
+    noBioYet: string;
+    saveProfileFailed: string;
+    savePhotoFailed: string;
   };
   swaps: {
     pendingRequests: string;
@@ -356,6 +380,102 @@ export type Dictionary = {
     reviewed: string;
     removeFromHistory: string;
     removeFromHistoryConfirm: string;
+    statusPending: string;
+    statusAccepted: string;
+    statusRescheduled: string;
+    statusCompleted: string;
+    statusDeclined: string;
+    statusCancelled: string;
+  };
+  onboarding: {
+    skillSaved: string;
+    errorBioRequired: string;
+    errorSubjectRequired: string;
+    errorTeachTagsRequired: string;
+    errorLearnTagsRequired: string;
+    errorSaveFailed: string;
+    errorGeneric: string;
+    stepLabel: string;
+    ofLabel: string;
+    teachTitle: string;
+    teachDescription: string;
+    learnTitle: string;
+    learnDescription: string;
+    back: string;
+    finishing: string;
+    finishSetup: string;
+    saveContinue: string;
+    updateLaterHint: string;
+    profileTitle: string;
+    profileSubtitle: string;
+    profileEditHint: string;
+    shortBio: string;
+    bioPlaceholder: string;
+    timezone: string;
+    primarySubjectField: string;
+    customSubjectPlaceholder: string;
+    selectTagsTitle: string;
+    otherSubject: string;
+    searchCity: string;
+    typeCityName: string;
+    noCitiesFound: string;
+  };
+  swapSession: {
+    reviewChooseRating: string;
+    rateSession: string;
+    howWasSwap: string;
+    close: string;
+    rating: string;
+    review: string;
+    reviewPlaceholder: string;
+    later: string;
+    submitting: string;
+    submitReview: string;
+    star: string;
+    stars: string;
+    prevMonth: string;
+    nextMonth: string;
+    scheduledLegend: string;
+    statusJoining: string;
+    statusPartnerJoinedConnecting: string;
+    statusWaitingPartner: string;
+    statusConnectingPeer: string;
+    statusConnected: string;
+    statusFailed: string;
+    statusEnded: string;
+    backToRequests: string;
+    roomTitle: string;
+    withLabel: string;
+    live: string;
+    partnerInRoom: string;
+    enableDevices: string;
+    connecting: string;
+    waitingForThemToJoin: string;
+    requesting: string;
+    enableCameraMic: string;
+    you: string;
+    micOff: string;
+    camOff: string;
+    enableMic: string;
+    muteMic: string;
+    unmuteMic: string;
+    mute: string;
+    unmute: string;
+    enableCamera: string;
+    turnCameraOff: string;
+    turnCameraOn: string;
+    cameraOff: string;
+    cameraOn: string;
+    leave: string;
+    finishingUp: string;
+    markComplete: string;
+    defaultTopic: string;
+    sessionChatTitle: string;
+    messageWhileSwap: string;
+    noMessagesYet: string;
+    download: string;
+    typeMessage: string;
+    attachFile: string;
   };
 };
 
@@ -370,6 +490,12 @@ const en: Dictionary = {
     forumShort: "Forum",
     profile: "My Profile",
     profileShort: "Profile",
+    collapseSidebar: "Collapse sidebar",
+    expandSidebar: "Expand sidebar",
+    closeMenu: "Close menu",
+    navigationLabel: "Navigation",
+    primaryNav: "Primary",
+    openNavigationMenu: "Open navigation menu",
   },
   menu: {
     myProfile: "My Profile",
@@ -414,6 +540,14 @@ const en: Dictionary = {
     genderNonBinary: "Non-binary",
     genderPreferNot: "Prefer not to say",
     saveFailed: "Failed to save settings.",
+    updateEmailFailed: "Failed to update email.",
+    checkInboxToConfirm: "Check your inbox to confirm the new email address.",
+    passwordRequirementsNotMet: "New password does not meet the requirements.",
+    passwordsDoNotMatch: "Passwords do not match.",
+    updatePasswordFailed: "Failed to update password.",
+    passwordUpdated: "Password updated.",
+    closeDialog: "Close dialog",
+    settingsSections: "Settings sections",
   },
   common: {
     viewAll: "View all",
@@ -441,6 +575,7 @@ const en: Dictionary = {
     joined: "Joined",
     leave: "Leave",
     manage: "Manage",
+    remove: "Remove",
   },
   home: {
     welcomeBack: "Welcome back, {name}",
@@ -486,6 +621,8 @@ const en: Dictionary = {
     selectConversationHint: "Pick someone from the left to keep chatting, or find a new partner to message.",
     today: "Today",
     yesterday: "Yesterday",
+    addEmoji: "Add emoji",
+    send: "Send message",
   },
   browse: {
     searchPlaceholder: "Search by name or skill...",
@@ -691,6 +828,13 @@ const en: Dictionary = {
     sending: "Sending...",
     opening: "Opening...",
     swapRequestSentNotice: "Swap request sent — check My Swap Requests to track it.",
+    memberNotFound: "Member not found",
+    profileNotFoundHint: "This profile doesn't exist or may have been removed.",
+    skillsOffered: "Skills Offered",
+    skillsWanted: "Skills Wanted",
+    noBioYet: "This user hasn't added a bio yet.",
+    saveProfileFailed: "Failed to save profile. Please try again.",
+    savePhotoFailed: "Failed to save photo. Please try again.",
   },
   swaps: {
     pendingRequests: "Pending Requests",
@@ -720,6 +864,102 @@ const en: Dictionary = {
     removeFromHistory: "Remove from history",
     removeFromHistoryConfirm:
       "Remove this session from your list? Your partner will still see it in their history.",
+    statusPending: "Pending",
+    statusAccepted: "Accepted",
+    statusRescheduled: "Rescheduled",
+    statusCompleted: "Completed",
+    statusDeclined: "Declined",
+    statusCancelled: "Cancelled",
+  },
+  onboarding: {
+    skillSaved: "Skill saved",
+    errorBioRequired: "Please write a short bio before continuing.",
+    errorSubjectRequired: "Please tell us your subject field.",
+    errorTeachTagsRequired: "Please select at least one skill you can teach.",
+    errorLearnTagsRequired: "Please select at least one skill you want to learn.",
+    errorSaveFailed: "Failed to save onboarding. Please try again.",
+    errorGeneric: "Something went wrong. Please try again.",
+    stepLabel: "Step",
+    ofLabel: "of",
+    teachTitle: "What skills can you share?",
+    teachDescription: "Select subjects you feel comfortable teaching to other community peers.",
+    learnTitle: "What skills do you want to learn?",
+    learnDescription: "Choose the skills you're looking to learn from the community.",
+    back: "Back",
+    finishing: "Finishing...",
+    finishSetup: "Finish Setup",
+    saveContinue: "Save & Continue",
+    updateLaterHint: "You can always update this later.",
+    profileTitle: "Let's build your profile",
+    profileSubtitle: "Tell the community a little about yourself.",
+    profileEditHint: "You can always edit this later.",
+    shortBio: "Short Bio",
+    bioPlaceholder: "Share a bit about yourself, your background, and what you enjoy...",
+    timezone: "Timezone",
+    primarySubjectField: "Primary Subject Field",
+    customSubjectPlaceholder: "Tell us your subject field",
+    selectTagsTitle: "Select Tags to Feature on Your Profile",
+    otherSubject: "Other",
+    searchCity: "Search your city...",
+    typeCityName: "Type a city name...",
+    noCitiesFound: "No cities found.",
+  },
+  swapSession: {
+    reviewChooseRating: "Please choose a star rating.",
+    rateSession: "Rate your session",
+    howWasSwap: "How was your skill swap with {name}?",
+    close: "Close",
+    rating: "Rating",
+    review: "Review",
+    reviewPlaceholder: "Share what went well or what could improve…",
+    later: "Later",
+    submitting: "Submitting…",
+    submitReview: "Submit review",
+    star: "{n} star",
+    stars: "{n} stars",
+    prevMonth: "Previous month",
+    nextMonth: "Next month",
+    scheduledLegend: "Skill swap session scheduled",
+    statusJoining: "Joining session room…",
+    statusPartnerJoinedConnecting: "Partner joined — connecting…",
+    statusWaitingPartner: "Waiting for your partner to join…",
+    statusConnectingPeer: "Connecting to your partner…",
+    statusConnected: "Connected — you are live",
+    statusFailed: "Connection failed. Ask your partner to rejoin, or try again.",
+    statusEnded: "Call ended",
+    backToRequests: "Back to requests",
+    roomTitle: "Skill Swap Session",
+    withLabel: "with",
+    live: "Live",
+    partnerInRoom: "Partner in room",
+    enableDevices: "Enable devices",
+    connecting: "Connecting…",
+    waitingForThemToJoin: "Waiting for them to join.",
+    requesting: "Requesting…",
+    enableCameraMic: "Enable camera & mic",
+    you: "You",
+    micOff: "Mic off",
+    camOff: "Cam off",
+    enableMic: "Enable microphone",
+    muteMic: "Mute microphone",
+    unmuteMic: "Unmute microphone",
+    mute: "Mute",
+    unmute: "Unmute",
+    enableCamera: "Enable camera",
+    turnCameraOff: "Turn camera off",
+    turnCameraOn: "Turn camera on",
+    cameraOff: "Camera off",
+    cameraOn: "Camera on",
+    leave: "Leave",
+    finishingUp: "Finishing…",
+    markComplete: "Mark Complete",
+    defaultTopic: "Skill swap",
+    sessionChatTitle: "Session chat",
+    messageWhileSwap: "Message {name} while you swap",
+    noMessagesYet: "No messages yet. Say hi, send a file, or drop an emoji.",
+    download: "Download",
+    typeMessage: "Type a message…",
+    attachFile: "Attach file",
   },
 };
 
@@ -734,6 +974,12 @@ const zhCN: Dictionary = {
     forumShort: "论坛",
     profile: "我的资料",
     profileShort: "资料",
+    collapseSidebar: "收起侧边栏",
+    expandSidebar: "展开侧边栏",
+    closeMenu: "关闭菜单",
+    navigationLabel: "导航",
+    primaryNav: "主导航",
+    openNavigationMenu: "打开导航菜单",
   },
   menu: {
     myProfile: "我的资料",
@@ -777,6 +1023,14 @@ const zhCN: Dictionary = {
     genderNonBinary: "非二元",
     genderPreferNot: "不愿透露",
     saveFailed: "保存设置失败。",
+    updateEmailFailed: "更新邮箱失败。",
+    checkInboxToConfirm: "请查收邮箱以确认新邮箱地址。",
+    passwordRequirementsNotMet: "新密码不符合要求。",
+    passwordsDoNotMatch: "两次输入的密码不一致。",
+    updatePasswordFailed: "更新密码失败。",
+    passwordUpdated: "密码已更新。",
+    closeDialog: "关闭对话框",
+    settingsSections: "设置分区",
   },
   common: {
     viewAll: "查看全部",
@@ -804,6 +1058,7 @@ const zhCN: Dictionary = {
     joined: "已加入",
     leave: "退出",
     manage: "管理",
+    remove: "移除",
   },
   home: {
     welcomeBack: "欢迎回来，{name}",
@@ -847,6 +1102,8 @@ const zhCN: Dictionary = {
     selectConversationHint: "从左侧选择联系人继续聊天，或去浏览用户开始新对话。",
     today: "今天",
     yesterday: "昨天",
+    addEmoji: "添加表情",
+    send: "发送消息",
   },
   browse: {
     searchPlaceholder: "按姓名或技能搜索…",
@@ -1050,6 +1307,13 @@ const zhCN: Dictionary = {
     sending: "发送中…",
     opening: "打开中…",
     swapRequestSentNotice: "交换请求已发送 — 可在「技能交换请求」中查看进度。",
+    memberNotFound: "未找到该成员",
+    profileNotFoundHint: "该资料不存在，或可能已被删除。",
+    skillsOffered: "可提供的技能",
+    skillsWanted: "想学习的技能",
+    noBioYet: "该用户还没有添加简介。",
+    saveProfileFailed: "保存资料失败，请重试。",
+    savePhotoFailed: "保存头像失败，请重试。",
   },
   swaps: {
     pendingRequests: "待处理请求",
@@ -1078,6 +1342,102 @@ const zhCN: Dictionary = {
     reviewed: "已评价",
     removeFromHistory: "从历史记录中删除",
     removeFromHistoryConfirm: "从你的列表中移除这条会话？对方仍会在自己的历史记录中看到。",
+    statusPending: "待处理",
+    statusAccepted: "已接受",
+    statusRescheduled: "已改期",
+    statusCompleted: "已完成",
+    statusDeclined: "已拒绝",
+    statusCancelled: "已取消",
+  },
+  onboarding: {
+    skillSaved: "技能已保存",
+    errorBioRequired: "请先填写一段简短的个人简介再继续。",
+    errorSubjectRequired: "请告诉我们你的专业领域。",
+    errorTeachTagsRequired: "请至少选择一项你能教的技能。",
+    errorLearnTagsRequired: "请至少选择一项你想学的技能。",
+    errorSaveFailed: "保存新手引导信息失败，请重试。",
+    errorGeneric: "出了点问题，请重试。",
+    stepLabel: "步骤",
+    ofLabel: "之",
+    teachTitle: "你能分享哪些技能？",
+    teachDescription: "选择你觉得可以教给其他社区成员的主题。",
+    learnTitle: "你想学习哪些技能？",
+    learnDescription: "选择你希望从社区中学习的技能。",
+    back: "上一步",
+    finishing: "正在完成...",
+    finishSetup: "完成设置",
+    saveContinue: "保存并继续",
+    updateLaterHint: "你之后随时可以更新这些信息。",
+    profileTitle: "让我们来完善你的资料",
+    profileSubtitle: "向社区简单介绍一下自己。",
+    profileEditHint: "你之后随时可以编辑这些信息。",
+    shortBio: "简短简介",
+    bioPlaceholder: "分享一些关于你自己、你的背景，以及你喜欢做的事情...",
+    timezone: "时区",
+    primarySubjectField: "主要专业领域",
+    customSubjectPlaceholder: "告诉我们你的专业领域",
+    selectTagsTitle: "选择要展示在你资料页上的标签",
+    otherSubject: "其他",
+    searchCity: "搜索你所在的城市...",
+    typeCityName: "输入城市名称...",
+    noCitiesFound: "未找到城市。",
+  },
+  swapSession: {
+    reviewChooseRating: "请选择星级评分。",
+    rateSession: "为本次交流评分",
+    howWasSwap: "你与 {name} 的技能交换体验如何？",
+    close: "关闭",
+    rating: "评分",
+    review: "评价",
+    reviewPlaceholder: "分享一下哪些地方做得好，哪些可以改进…",
+    later: "稍后再说",
+    submitting: "提交中…",
+    submitReview: "提交评价",
+    star: "{n} 星",
+    stars: "{n} 星",
+    prevMonth: "上个月",
+    nextMonth: "下个月",
+    scheduledLegend: "已安排的技能交换会话",
+    statusJoining: "正在加入会话房间…",
+    statusPartnerJoinedConnecting: "对方已加入 — 正在连接…",
+    statusWaitingPartner: "等待对方加入…",
+    statusConnectingPeer: "正在连接对方…",
+    statusConnected: "已连接 — 你正在实时通话中",
+    statusFailed: "连接失败。请让对方重新加入，或再试一次。",
+    statusEnded: "通话已结束",
+    backToRequests: "返回请求列表",
+    roomTitle: "技能交换会话",
+    withLabel: "与",
+    live: "直播中",
+    partnerInRoom: "对方已在房间中",
+    enableDevices: "启用设备",
+    connecting: "连接中…",
+    waitingForThemToJoin: "等待对方加入。",
+    requesting: "请求中…",
+    enableCameraMic: "启用摄像头和麦克风",
+    you: "你",
+    micOff: "麦克风已关闭",
+    camOff: "摄像头已关闭",
+    enableMic: "启用麦克风",
+    muteMic: "静音麦克风",
+    unmuteMic: "取消静音麦克风",
+    mute: "静音",
+    unmute: "取消静音",
+    enableCamera: "启用摄像头",
+    turnCameraOff: "关闭摄像头",
+    turnCameraOn: "打开摄像头",
+    cameraOff: "摄像头已关闭",
+    cameraOn: "摄像头已开启",
+    leave: "离开",
+    finishingUp: "正在完成…",
+    markComplete: "标记完成",
+    defaultTopic: "技能交换",
+    sessionChatTitle: "会话聊天",
+    messageWhileSwap: "在交流过程中给 {name} 发消息",
+    noMessagesYet: "暂无消息。打个招呼、发个文件，或者发个表情吧。",
+    download: "下载",
+    typeMessage: "输入消息…",
+    attachFile: "添加附件",
   },
 };
 

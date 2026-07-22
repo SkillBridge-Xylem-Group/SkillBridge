@@ -5,23 +5,18 @@ import Link from "next/link";
 import { MessageSquareText, MessageCircle } from "lucide-react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
+import ForumAuthorAvatar from "@/components/forum/ForumAuthorAvatar";
 
 type RecentQuestion = {
   id: string;
   title: string;
   authorName: string;
+  authorAvatarUrl: string | null;
   createdAt: string;
   replyCount: number;
   imageUrl: string | null;
   subforumTitle: string | null;
 };
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 export default function RecentForumDiscussions() {
   const { locale, dictionary } = useLocale();
@@ -45,6 +40,7 @@ export default function RecentForumDiscussions() {
             id: question.id,
             title: question.title,
             authorName: question.author_name ?? "",
+            authorAvatarUrl: question.author_avatar_url ?? null,
             createdAt: question.created_at,
             replyCount: question.reply_count ?? 0,
             imageUrl: question.image_url ?? null,
@@ -100,12 +96,12 @@ export default function RecentForumDiscussions() {
               style={index > 0 ? { borderTop: "2px solid #f0ecfa" } : undefined}
             >
               <div className="flex items-center gap-2">
-                <span
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                  style={{ background: "var(--sb-gradient)" }}
-                >
-                  {initials(question.authorName)}
-                </span>
+                <ForumAuthorAvatar
+                  name={question.authorName || "?"}
+                  avatarUrl={question.authorAvatarUrl}
+                  className="h-5 w-5 shrink-0"
+                  textClassName="text-[9px]"
+                />
                 <p className="min-w-0 truncate text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>
                   {question.subforumTitle ? (
                     <>

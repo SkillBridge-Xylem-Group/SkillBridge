@@ -26,7 +26,10 @@ export async function setUserSuspensionAction(params: {
     return { error: "Can't suspend another admin account." };
   }
 
-  const { error } = await supabase
+  const admin = tryCreateSupabaseAdminClient();
+  const db = admin ?? supabase;
+
+  const { error } = await db
     .from("users")
     .update({
       is_suspended: params.suspend,

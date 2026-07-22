@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FileText, Paperclip, Send } from "lucide-react";
 import EmojiPicker from "@/components/messages/EmojiPicker";
 import type { ChatMessage } from "@/hooks/useSwapWebRtc";
+import { useLocale } from "@/components/i18n/LocaleProvider";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 type Props = {
   messages: ChatMessage[];
@@ -28,6 +30,8 @@ export default function SessionChat({
   onSendFile,
   disabled,
 }: Props) {
+  const { dictionary } = useLocale();
+  const s = dictionary.swapSession;
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -74,14 +78,14 @@ export default function SessionChat({
   return (
     <div className="flex h-full min-h-[420px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:min-h-0">
       <div className="border-b border-slate-100 px-4 py-3">
-        <h2 className="text-base font-extrabold text-slate-900">Session chat</h2>
-        <p className="text-xs text-slate-500">Message {partnerName} while you swap</p>
+        <h2 className="text-base font-extrabold text-slate-900">{s.sessionChatTitle}</h2>
+        <p className="text-xs text-slate-500">{interpolate(s.messageWhileSwap, { name: partnerName })}</p>
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
           <p className="px-1 py-8 text-center text-sm text-slate-400">
-            No messages yet. Say hi, send a file, or drop an emoji.
+            {s.noMessagesYet}
           </p>
         ) : (
           messages.map((m) => {
@@ -133,7 +137,7 @@ export default function SessionChat({
                       <span className="min-w-0">
                         <span className="block truncate">{attachment.name}</span>
                         <span className={mine ? "text-white/70" : "text-slate-400"}>
-                          {formatBytes(attachment.size)} · Download
+                          {formatBytes(attachment.size)} · {s.download}
                         </span>
                       </span>
                     </a>
@@ -170,8 +174,8 @@ export default function SessionChat({
             disabled={disabled || sending}
             onClick={() => fileInputRef.current?.click()}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
-            aria-label="Attach file"
-            title="Attach file"
+            aria-label={s.attachFile}
+            title={s.attachFile}
           >
             <Paperclip size={18} />
           </button>
@@ -182,7 +186,7 @@ export default function SessionChat({
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Type a message…"
+            placeholder={s.typeMessage}
             disabled={disabled || sending}
             className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-brand focus:outline-none disabled:opacity-50"
             maxLength={2000}
@@ -191,7 +195,7 @@ export default function SessionChat({
             type="submit"
             disabled={disabled || sending || !draft.trim()}
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand text-white hover:bg-brand-dark disabled:opacity-50"
-            aria-label="Send message"
+            aria-label={dictionary.messages.send}
           >
             <Send size={16} />
           </button>
