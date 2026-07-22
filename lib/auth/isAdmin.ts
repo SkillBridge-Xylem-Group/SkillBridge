@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { tryCreateSupabaseAdminClient } from "@/lib/supabase/admin";
 
 /**
  * Admin status is determined by membership in the `admins` table — the same
@@ -10,9 +11,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * let it silently drift out of sync with what the database actually
  * enforces (e.g. a `role = 'admin'` account that isn't in `admins` would
  * pass a page-level check but get blocked/empty results on real queries).
+ *
+ * On the server, prefer the service-role client so admin login still works
+ * when `admins` has no SELECT policy for authenticated users.
  */
 export async function isAdminUser(supabase: SupabaseClient, userId: string): Promise<boolean> {
-  const { data, error } = await supabase
+  const privileged = tryCreateSupabaseAdminClient();
+  const client = privileged ?? supabase;
+
+  const { data, error } = await client
     .from("admins")
     .select("admin_id")
     .eq("user_id", userId)
