@@ -40,6 +40,7 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
   if (!community) notFound();
 
   const isOwner = community.created_by === user.id;
+  const canParticipate = isOwner || community.joined;
 
   const viewer = await getViewerProfile(supabase, user.id);
 
@@ -56,13 +57,15 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
     <div className="min-w-0 space-y-4">
       <CommunityPageHeader community={community} isOwner={isOwner} />
 
-      <QuestionComposer
-        userName={viewer.fullname}
-        userAvatarUrl={viewer.avatarUrl}
-        subforumSlug={slug}
-        communityOptions={[{ slug: community.slug, title: community.title }]}
-        defaultOpen={compose === "1"}
-      />
+      {canParticipate ? (
+        <QuestionComposer
+          userName={viewer.fullname}
+          userAvatarUrl={viewer.avatarUrl}
+          subforumSlug={slug}
+          communityOptions={[{ slug: community.slug, title: community.title }]}
+          defaultOpen={compose === "1"}
+        />
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-6">
         <div className="min-w-0 space-y-3">
@@ -70,7 +73,7 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
             <ForumTabs active={activeTab} search={q} basePath={`/dashboard/forum/c/${slug}`} />
             <div className="px-4 sm:px-6">
               {questions.length === 0 ? (
-                <CommunityEmptyState slug={slug} search={q} />
+                <CommunityEmptyState slug={slug} search={q} canPost={canParticipate} />
               ) : (
                 questions.map((question) => (
                   <QuestionFeedCard key={question.question_id} question={question} showSubforum={false} />
