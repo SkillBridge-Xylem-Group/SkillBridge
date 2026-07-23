@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, User, Settings } from "lucide-react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 type UserMenuProps = {
   name: string;
@@ -34,14 +35,7 @@ export default function UserMenu({ name, avatarUrl = null }: UserMenuProps) {
         aria-expanded={open}
         className="nb-chip flex items-center gap-2 py-1 pl-1 pr-2.5 transition hover:-translate-y-0.5 sm:gap-2.5 sm:pr-3.5"
       >
-        <div className="nb-avatar h-8 w-8 overflow-hidden text-xs" style={{ background: avatarUrl ? "#fff" : "var(--sb-gradient)" }}>
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
-          ) : (
-            name.charAt(0).toUpperCase()
-          )}
-        </div>
+        <UserAvatar name={name} avatarUrl={avatarUrl} className="h-8 w-8 text-xs" />
         <div className="hidden min-w-0 text-left lg:block">
           <p className="truncate text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{name}</p>
         </div>

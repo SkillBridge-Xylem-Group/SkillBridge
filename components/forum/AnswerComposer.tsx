@@ -8,10 +8,12 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
 import GifPicker from "./GifPicker";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 type AnswerComposerProps = {
   questionId: string;
-  userInitials: string;
+  userName: string;
+  userAvatarUrl?: string | null;
   parentAnswerId?: string | null;
   compact?: boolean;
   defaultExpanded?: boolean;
@@ -38,7 +40,8 @@ function revokeBlobPreview(url: string | null) {
 
 export default function AnswerComposer({
   questionId,
-  userInitials,
+  userName,
+  userAvatarUrl = null,
   parentAnswerId = null,
   compact = false,
   defaultExpanded = false,
@@ -196,12 +199,7 @@ export default function AnswerComposer({
     return (
       <div className={`flex items-start gap-3 ${compact ? "pl-0" : ""}`}>
         {!compact ? (
-          <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-            style={{ background: "var(--sb-gradient)" }}
-          >
-            {userInitials}
-          </div>
+          <UserAvatar name={userName} avatarUrl={userAvatarUrl} className="h-9 w-9 text-xs" />
         ) : null}
         <button
           type="button"
@@ -218,12 +216,7 @@ export default function AnswerComposer({
   return (
     <div className="flex items-start gap-3">
       {!compact ? (
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-          style={{ background: "var(--sb-gradient)" }}
-        >
-          {userInitials}
-        </div>
+        <UserAvatar name={userName} avatarUrl={userAvatarUrl} className="h-9 w-9 text-xs" />
       ) : null}
 
       <div

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
+import { normalizeAvatarUrl } from "@/lib/avatar";
 
 type NestedSkill = { skill_name?: string | null };
 type OfferedSkillRow = { skills?: NestedSkill | NestedSkill[] | null };
@@ -84,7 +85,7 @@ export async function GET() {
       id: c.id,
       slug: c.slug,
       name: c.fullname,
-      avatarUrl: c.avatar_url ?? null,
+      avatarUrl: normalizeAvatarUrl(c.avatar_url ?? null),
       rating: c.trust_score ?? 0,
       reviewCount: reviewsAgg?.count ?? 0,
       tags: offered

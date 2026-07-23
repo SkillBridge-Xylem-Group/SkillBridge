@@ -11,6 +11,7 @@ import { getFullSkillCatalog, getUserSkills } from "@/lib/skillCatalog";
 import { getUserReviews } from "@/lib/reviews";
 import { syncUserBadges } from "@/lib/badges";
 import { deriveNameFromEmail } from "@/lib/deriveName";
+import { normalizeAvatarUrl } from "@/lib/avatar";
 
 export const metadata: Metadata = {
   title: "My Profile | SkillBridge",
@@ -34,7 +35,7 @@ export default async function ProfilePage() {
       user.user_metadata?.name ||
       (user.email ? deriveNameFromEmail(user.email) : "there"),
     bio: row?.bio ?? null,
-    avatar_url: row?.avatar_url ?? null,
+    avatar_url: normalizeAvatarUrl(row?.avatar_url ?? null),
     timezone: row?.timezone ?? "UTC",
     experience_points: row?.experience_points ?? 0,
     level: row?.level ?? 0,

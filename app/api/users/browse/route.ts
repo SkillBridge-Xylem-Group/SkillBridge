@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
+import { normalizeAvatarUrl } from "@/lib/avatar";
 
 export async function GET() {
   const { user, supabase, error: authError } = await requireActiveUser();
@@ -39,7 +40,7 @@ export async function GET() {
       id: c.id,
       slug: c.slug,
       name: c.fullname,
-      avatarUrl: c.avatar_url ?? null,
+      avatarUrl: normalizeAvatarUrl(c.avatar_url ?? null),
       rating: c.trust_score ?? 0,
       reviewCount: reviewsAgg?.count ?? 0,
       tags: [...new Set(skillEntries.map((s) => s.skill_name))],

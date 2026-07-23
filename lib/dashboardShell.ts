@@ -2,6 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isAppLocale, type AppLocale } from "@/lib/i18n/locales";
+import { normalizeAvatarUrl } from "@/lib/avatar";
 
 export type DashboardShellData = {
   userId: string | null;
@@ -96,7 +97,7 @@ export const getDashboardShellData = cache(async (): Promise<DashboardShellData>
     level: row?.level ?? 0,
     xp: row?.experience_points ?? 0,
     trustScore: row?.trust_score ? row.trust_score : null,
-    avatarUrl: row?.avatar_url ?? null,
+    avatarUrl: normalizeAvatarUrl(row?.avatar_url ?? null),
     initialLocale: isAppLocale(row?.language) ? row!.language! : null,
   };
 });
