@@ -13,6 +13,7 @@ import {
   joinCommunity,
   leaveCommunity,
   updateCommunityAccent,
+  updateCommunityBanner,
   updateCommunityImage,
 } from "@/lib/forumCommunities";
 import { composeReportReason, isReportReasonKey } from "@/lib/forumReportReasons";
@@ -65,6 +66,7 @@ export async function createCommunityAction(input: {
   visibility?: "public" | "restricted" | "private";
   accentColor?: string;
   imageUrl?: string | null;
+  bannerUrl?: string | null;
 }) {
   const supabase = await createSupabaseServerClient();
   const {
@@ -77,6 +79,11 @@ export async function createCommunityAction(input: {
     return { error: "Invalid community icon image." };
   }
 
+  const safeBannerUrl = getSafeForumImageUrl(input.bannerUrl);
+  if (input.bannerUrl?.trim() && !safeBannerUrl) {
+    return { error: "Invalid community banner image." };
+  }
+
   const { data, error } = await createCommunity(supabase, {
     userId: user.id,
     title: input.title,
@@ -86,6 +93,7 @@ export async function createCommunityAction(input: {
     visibility: input.visibility,
     accentColor: input.accentColor,
     imageUrl: safeImageUrl,
+    bannerUrl: safeBannerUrl,
   });
 
   if (error) {
@@ -124,6 +132,36 @@ export async function updateCommunityImageAction(communityId: string, imageUrl: 
 
   if (error) return { error: error.message };
   if (!data) return { error: "Only the community creator can change the icon." };
+
+  revalidatePath("/dashboard/forum");
+  revalidatePath("/dashboard", "layout");
+  if (data.slug) revalidatePath(forumSubforumPath(data.slug));
+  return { success: true };
+}
+
+export async function updateCommunityBannerAction(communityId: string, bannerUrl: string | null) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+  if (communityId.startsWith("static-")) {
+    return { error: "This community can’t be edited." };
+  }
+
+  const safeBannerUrl = bannerUrl === null ? null : getSafeForumImageUrl(bannerUrl);
+  if (bannerUrl?.trim() && !safeBannerUrl) {
+    return { error: "Invalid community banner image." };
+  }
+
+  const { data, error } = await updateCommunityBanner(supabase, {
+    communityId,
+    userId: user.id,
+    bannerUrl: safeBannerUrl,
+  });
+
+  if (error) return { error: error.message };
+  if (!data) return { error: "Only the community creator can change the banner." };
 
   revalidatePath("/dashboard/forum");
   revalidatePath("/dashboard", "layout");

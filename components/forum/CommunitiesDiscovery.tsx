@@ -6,10 +6,15 @@ import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { COMMUNITY_CATEGORIES, COMMUNITY_TOPICS } from "@/lib/forumCommunities";
+import {
+  hasSkillBasedRecommendations,
+  rankCommunitiesByWantedSkills,
+  type WantedSkillRef,
+} from "@/lib/forumCommunityRecommendations";
 import { toggleJoinCommunityAction } from "@/lib/actions/forum";
 import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import CreateCommunityModal from "@/components/forum/CreateCommunityModal";
-import CommunityAvatar from "@/components/forum/CommunityAvatar";
+import CommunityDiscoveryCard from "@/components/forum/CommunityDiscoveryCard";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
@@ -18,6 +23,7 @@ import { categoryLabel } from "@/lib/i18n/communityCategoryLabels";
 type CommunitiesDiscoveryProps = {
   communities: ForumCommunity[];
   viewerId: string;
+  wantedSkills?: WantedSkillRef[];
   initialCategory?: string;
   initialCreateOpen?: boolean;
 };
@@ -117,8 +123,9 @@ function JoinButton({
         className={`inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition disabled:opacity-60 ${
           joined
             ? "border border-red-200 bg-white text-red-600 hover:bg-red-50"
-            : "bg-slate-100 text-slate-900 hover:bg-slate-200"
+            : "text-white hover:opacity-90"
         }`}
+        style={joined ? undefined : { background: "var(--sb-gradient)" }}
       >
         {busy ? <Loader2 size={12} className="animate-spin" aria-hidden /> : null}
         {joined ? c.leave : c.join}
@@ -152,53 +159,26 @@ function CommunityCard({
   viewerId: string;
   onJoinedChange: (communityId: string, joined: boolean) => void;
 }) {
-  const { dictionary } = useLocale();
-  const c = dictionary.common;
-  const f = dictionary.forum;
-
   return (
-    <div className="flex flex-col rounded-xl border border-slate-200 bg-white p-3.5 transition hover:border-slate-300 hover:bg-slate-50/50">
-      <div className="flex items-start gap-3">
-        <Link href={`/dashboard/forum/c/${community.slug}`} className="shrink-0">
-          <CommunityAvatar
-            title={community.title}
-            imageUrl={community.image_url}
-            accentColor={community.accent_color}
-            size="md"
-          />
-        </Link>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <Link href={`/dashboard/forum/c/${community.slug}`} className="min-w-0">
-              <p className="truncate text-sm font-bold text-slate-900 hover:underline">{community.title}</p>
-              <p className="mt-0.5 text-xs text-slate-500">
-                {community.member_count.toLocaleString()}{" "}
-                {community.member_count === 1 ? c.member : c.members}
-                {" · "}
-                {community.post_count} {community.post_count === 1 ? f.post : f.posts}
-              </p>
-            </Link>
-            <JoinButton community={community} viewerId={viewerId} onJoinedChange={onJoinedChange} />
-          </div>
-        </div>
-      </div>
-      {community.description ? (
-        <Link href={`/dashboard/forum/c/${community.slug}`} className="mt-2.5 block">
-          <p className="line-clamp-2 text-sm leading-snug text-slate-600">{community.description}</p>
-        </Link>
-      ) : null}
-    </div>
+    <CommunityDiscoveryCard
+      community={community}
+      joinControl={
+        <JoinButton community={community} viewerId={viewerId} onJoinedChange={onJoinedChange} />
+      }
+    />
   );
 }
 
 function CommunitySection({
   title,
+  subtitle,
   communities,
   viewerId,
   initialCount = INITIAL_VISIBLE,
   onJoinedChange,
 }: {
   title: string;
+  subtitle?: string;
   communities: ForumCommunity[];
   viewerId: string;
   initialCount?: number;
@@ -214,8 +194,9 @@ function CommunitySection({
 
   return (
     <section>
-      <h2 className="mb-3 text-lg font-extrabold text-slate-900">{title}</h2>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <h2 className="text-lg font-extrabold text-slate-900">{title}</h2>
+      {subtitle ? <p className="mt-1 text-sm text-slate-500">{subtitle}</p> : null}
+      <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 ${subtitle ? "mt-3" : "mt-3"}`}>
         {visible.map((community) => (
           <CommunityCard key={community.id} community={community} viewerId={viewerId} onJoinedChange={onJoinedChange} />
         ))}
@@ -238,6 +219,7 @@ function CommunitySection({
 export default function CommunitiesDiscovery({
   communities: initialCommunities,
   viewerId,
+  wantedSkills = [],
   initialCategory = ALL,
   initialCreateOpen = false,
 }: CommunitiesDiscoveryProps) {
@@ -296,8 +278,19 @@ export default function CommunitiesDiscovery({
   const recommended = useMemo(() => {
     const pool =
       category === ALL ? communities : communities.filter((c) => c.category === category);
+    if (category === ALL) {
+      return rankCommunitiesByWantedSkills(pool, wantedSkills);
+    }
     return sortByActivity(pool);
-  }, [communities, category]);
+  }, [communities, category, wantedSkills]);
+
+  const recommendedSubtitle = useMemo(() => {
+    if (category !== ALL || wantedSkills.length === 0) return undefined;
+    if (!hasSkillBasedRecommendations(communities, wantedSkills)) {
+      return f.recommendedNoSkillMatch;
+    }
+    return undefined;
+  }, [category, wantedSkills, communities, f.recommendedNoSkillMatch]);
 
   const topicSections = useMemo(() => {
     if (category !== ALL) return [];
@@ -365,6 +358,7 @@ export default function CommunitiesDiscovery({
       {recommended.length > 0 ? (
         <CommunitySection
           title={category === ALL ? f.recommended : categoryDisplay}
+          subtitle={recommendedSubtitle}
           communities={recommended}
           viewerId={viewerId}
           onJoinedChange={onJoinedChange}

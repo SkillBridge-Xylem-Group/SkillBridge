@@ -194,6 +194,8 @@ export type Dictionary = {
     discoverTitle: string;
     discoverSubtitle: string;
     recommended: string;
+    recommendedBasedOnSkills: string;
+    recommendedNoSkillMatch: string;
     moreLike: string;
     showMore: string;
     showLess: string;
@@ -234,6 +236,13 @@ export type Dictionary = {
     needSignIn: string;
     changeImage: string;
     uploadImage: string;
+    communityBanner: string;
+    communityBannerSub: string;
+    communityIconSub: string;
+    changeBanner: string;
+    uploadBanner: string;
+    removeBanner: string;
+    officialCommunity: string;
     visibilityPublic: string;
     visibilityPublicDesc: string;
     visibilityRestricted: string;
@@ -675,6 +684,9 @@ const en: Dictionary = {
     discoverTitle: "Discover Communities",
     discoverSubtitle: "Find communities to join, or create your own and start posting.",
     recommended: "Recommended for you",
+    recommendedBasedOnSkills: "Based on skills you want to learn: {skills}",
+    recommendedNoSkillMatch:
+      "We couldn't find a close match yet — showing active communities. Try adding more skills on your profile.",
     moreLike: "More like {category}",
     showMore: "Show more",
     showLess: "Show less",
@@ -716,6 +728,13 @@ const en: Dictionary = {
     needSignIn: "You need to be signed in.",
     changeImage: "Change image",
     uploadImage: "Upload image",
+    communityBanner: "Community banner",
+    communityBannerSub: "Upload a wide banner image (16:9 recommended). Shown on discovery cards and your community page.",
+    communityIconSub: "Upload a square icon, or use a letter with an accent color.",
+    changeBanner: "Change banner",
+    uploadBanner: "Upload banner",
+    removeBanner: "Remove banner",
+    officialCommunity: "Official community",
     visibilityPublic: "Public",
     visibilityPublicDesc: "Anyone can view, post, and comment in this community.",
     visibilityRestricted: "Restricted",
@@ -1156,6 +1175,8 @@ const zhCN: Dictionary = {
     discoverTitle: "发现社区",
     discoverSubtitle: "加入感兴趣的社区，或创建属于你的社区并开始发帖。",
     recommended: "为你推荐",
+    recommendedBasedOnSkills: "根据你想学的技能推荐：{skills}",
+    recommendedNoSkillMatch: "暂未找到高度匹配的社区，以下为活跃社区。可在个人资料中添加更多技能。",
     moreLike: "更多类似「{category}」",
     showMore: "显示更多",
     showLess: "收起",
@@ -1196,6 +1217,13 @@ const zhCN: Dictionary = {
     needSignIn: "你需要先登录。",
     changeImage: "更换图片",
     uploadImage: "上传图片",
+    communityBanner: "社区横幅",
+    communityBannerSub: "上传宽幅横幅图片（建议 16:9），将显示在发现页卡片和社区主页。",
+    communityIconSub: "上传方形图标，或使用字母 + 主题色。",
+    changeBanner: "更换横幅",
+    uploadBanner: "上传横幅",
+    removeBanner: "移除横幅",
+    officialCommunity: "官方社区",
     visibilityPublic: "公开",
     visibilityPublicDesc: "任何人都可以查看、发帖和评论。",
     visibilityRestricted: "受限",

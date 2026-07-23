@@ -11,6 +11,7 @@ type CommunityAvatarProps = {
   /** Extra outline for banner headers (readable on any background). */
   contrast?: boolean;
   className?: string;
+  shape?: "circle" | "squircle";
 };
 
 const SIZE = {
@@ -28,9 +29,11 @@ export default function CommunityAvatar({
   size = "md",
   contrast = false,
   className = "",
+  shape = "circle",
 }: CommunityAvatarProps) {
   const letter = (title.trim().charAt(0) || "?").toUpperCase();
   const sizeClass = SIZE[size];
+  const radius = shape === "squircle" ? "rounded-2xl" : "rounded-full";
   const isDigit = /^\d$/.test(letter);
   const hex = communityAccentHex(accentColor);
 
@@ -44,7 +47,7 @@ export default function CommunityAvatar({
       <img
         src={imageUrl}
         alt=""
-        className={`${sizeClass} shrink-0 rounded-full object-cover ${outline} ${className}`.trim()}
+        className={`${sizeClass} shrink-0 object-cover ${radius} ${outline} ${className}`.trim()}
       />
     );
   }
@@ -53,7 +56,7 @@ export default function CommunityAvatar({
     <span
       aria-hidden
       style={{ backgroundColor: hex }}
-      className={`flex shrink-0 items-center justify-center rounded-full font-black text-white ${outline} ${sizeClass} ${
+      className={`flex shrink-0 items-center justify-center font-black text-white ${radius} ${outline} ${sizeClass} ${
         isDigit ? "tracking-tight" : ""
       } ${className}`.trim()}
     >
