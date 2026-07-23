@@ -90,35 +90,13 @@ export type ForumCommunity = {
 };
 
 export const COMMUNITY_TOPICS = [
-  "Anime & Cosplay",
   "Art",
-  "Business & Finance",
-  "Collectibles & Hobbies",
   "Education & Career",
-  "Fashion & Beauty",
   "Food & Drinks",
   "Games",
   "Health",
-  "Home & Garden",
-  "Humanities & Law",
-  "Identity & Relationships",
-  "Internet Culture",
-  "Movies & TV",
   "Music",
-  "Nature & Outdoors",
-  "News & Politics",
-  "Places & Travel",
-  "Pop Culture",
-  "Q&As & Stories",
-  "Reading & Writing",
-  "Sciences",
-  "Sports",
   "Technology",
-  "Vehicles",
-  "Wellness",
-  "Design",
-  "Marketing",
-  "Soft Skills",
   "General",
 ] as const;
 
@@ -387,6 +365,7 @@ export async function createCommunity(
     category: string;
     imageUrl?: string | null;
     bannerUrl?: string | null;
+    visibility?: "public" | "restricted" | "private";
     accentColor?: CommunityAccentColor | string;
   }
 ) {
@@ -406,6 +385,8 @@ export async function createCommunity(
 
   const category = normalizeCommunityCategory(params.category);
 
+  const visibility =
+    params.visibility === "restricted" || params.visibility === "private" ? params.visibility : "public";
   const accent_color = normalizeCommunityAccent(params.accentColor);
   // Always encode accent into image_url so color works even without accent_color column.
   const image_url = encodeCommunityImageField(accent_color, params.imageUrl ?? null, params.bannerUrl ?? null);
@@ -418,6 +399,7 @@ export async function createCommunity(
     image_url,
     created_by: params.userId,
     is_official: false,
+    visibility,
     accent_color,
   };
 
@@ -426,6 +408,15 @@ export async function createCommunity(
     .insert(insertPayload)
     .select("id, slug")
     .single();
+
+  if (error?.message?.toLowerCase().includes("visibility")) {
+    delete insertPayload.visibility;
+    ({ data, error } = await supabase
+      .from("forum_communities")
+      .insert(insertPayload)
+      .select("id, slug")
+      .single());
+  }
 
   if (error?.message?.toLowerCase().includes("accent_color")) {
     delete insertPayload.accent_color;
