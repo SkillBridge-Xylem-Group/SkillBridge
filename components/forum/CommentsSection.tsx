@@ -10,12 +10,14 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 
 export default function CommentsSection({
   questionId,
-  userInitials,
+  userName,
+  userAvatarUrl = null,
   currentUserId,
   initialRoots,
 }: {
   questionId: string;
-  userInitials: string;
+  userName: string;
+  userAvatarUrl?: string | null;
   currentUserId: string;
   initialRoots: ForumAnswer[];
 }) {
@@ -33,7 +35,7 @@ export default function CommentsSection({
 
   return (
     <div className="space-y-4">
-      <AnswerComposer questionId={questionId} userInitials={userInitials} />
+      <AnswerComposer questionId={questionId} userName={userName} userAvatarUrl={userAvatarUrl} />
 
       {totalCount > 0 ? (
         <CommentControls
@@ -53,7 +55,8 @@ export default function CommentsSection({
           key={sort}
           roots={visible}
           questionId={questionId}
-          userInitials={userInitials}
+          userName={userName}
+          userAvatarUrl={userAvatarUrl}
           currentUserId={currentUserId}
         />
       )}

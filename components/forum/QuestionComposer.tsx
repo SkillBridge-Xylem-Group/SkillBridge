@@ -9,11 +9,13 @@ import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload"
 import { FORUM_SUBFORUMS, getForumSubforum } from "@/lib/forumSubforums";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 type CommunityOption = { slug: string; title: string };
 
 type QuestionComposerProps = {
-  userInitials: string;
+  userName: string;
+  userAvatarUrl?: string | null;
   /** When set, posts are locked to this subforum (subforum page). */
   subforumSlug?: string;
   /** When true (hub page), user must pick a community before posting. */
@@ -39,7 +41,8 @@ export function openForumCompose(composeUrl?: string) {
 }
 
 export default function QuestionComposer({
-  userInitials,
+  userName,
+  userAvatarUrl = null,
   subforumSlug: lockedSlug,
   requireSubforumSelect = false,
   communityOptions,
@@ -237,9 +240,7 @@ export default function QuestionComposer({
 
         <div className="space-y-3.5 overflow-y-auto px-6 py-5">
           <div className="mb-1 flex items-center gap-3.5">
-            <div className="nb-avatar h-11 w-11 text-sm" style={{ background: "var(--sb-gradient)" }}>
-              {userInitials}
-            </div>
+            <UserAvatar name={userName} avatarUrl={userAvatarUrl} className="h-11 w-11 text-sm" />
             <p className="text-[15px] font-semibold" style={{ color: "var(--sb-ink)" }}>
               {lockedSubforum
                 ? interpolate(f.postingIn, { title: lockedSubforum.title })

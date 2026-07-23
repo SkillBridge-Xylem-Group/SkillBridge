@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { normalizeAvatarUrl } from "@/lib/avatar";
 import { getUserSkills } from "@/lib/skillCatalog";
 import { getReviewedSessionIds } from "@/lib/reviews";
 import type { Skill } from "@/lib/types/profile";
@@ -74,7 +75,9 @@ export async function getUserSessions(supabase: SupabaseClient, userId: string):
       u.id,
       {
         fullname: u.fullname as string,
-        avatar_url: ((u as { avatar_url?: string | null }).avatar_url ?? null) as string | null,
+        avatar_url: normalizeAvatarUrl(
+          ((u as { avatar_url?: string | null }).avatar_url ?? null) as string | null
+        ),
       },
     ])
   );
@@ -112,7 +115,7 @@ export async function getUserSessions(supabase: SupabaseClient, userId: string):
       partner: {
         id: partnerId,
         fullname: partnerUser?.fullname ?? "Unknown",
-        avatar_url: partnerUser?.avatar_url ?? null,
+        avatar_url: normalizeAvatarUrl(partnerUser?.avatar_url ?? null),
       },
       topic: topicSkill ? { skill_name: topicSkill.skill_name, category: topicSkill.category } : null,
     };

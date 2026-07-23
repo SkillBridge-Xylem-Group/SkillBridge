@@ -26,14 +26,16 @@ import { formatRelativeTimeLabel } from "@/lib/i18n/locales";
 function CommentNode({
   answer,
   questionId,
-  userInitials,
+  userName,
+  userAvatarUrl = null,
   currentUserId,
   collapsed,
   onToggleCollapse,
 }: {
   answer: ForumAnswer;
   questionId: string;
-  userInitials: string;
+  userName: string;
+  userAvatarUrl?: string | null;
   currentUserId: string;
   collapsed: Set<string>;
   onToggleCollapse: (id: string) => void;
@@ -274,7 +276,8 @@ function CommentNode({
                     <div className="mt-3">
                       <AnswerComposer
                         questionId={questionId}
-                        userInitials={userInitials}
+                        userName={userName}
+                        userAvatarUrl={userAvatarUrl}
                         parentAnswerId={answer.answer_id}
                         compact
                         defaultExpanded
@@ -295,7 +298,8 @@ function CommentNode({
                   key={child.answer_id}
                   answer={child}
                   questionId={questionId}
-                  userInitials={userInitials}
+                  userName={userName}
+                  userAvatarUrl={userAvatarUrl}
                   currentUserId={currentUserId}
                   collapsed={collapsed}
                   onToggleCollapse={onToggleCollapse}
@@ -319,12 +323,14 @@ function CommentNode({
 export default function CommentThread({
   roots,
   questionId,
-  userInitials,
+  userName,
+  userAvatarUrl = null,
   currentUserId,
 }: {
   roots: ForumAnswer[];
   questionId: string;
-  userInitials: string;
+  userName: string;
+  userAvatarUrl?: string | null;
   currentUserId: string;
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
@@ -361,7 +367,8 @@ export default function CommentThread({
           key={answer.answer_id}
           answer={answer}
           questionId={questionId}
-          userInitials={userInitials}
+          userName={userName}
+          userAvatarUrl={userAvatarUrl}
           currentUserId={currentUserId}
           collapsed={collapsed}
           onToggleCollapse={onToggleCollapse}

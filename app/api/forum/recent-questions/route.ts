@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { getSafeForumImageUrl } from "@/lib/forumImageUrl";
+import { normalizeAvatarUrl } from "@/lib/avatar";
 import { getForumSubforum } from "@/lib/forumSubforums";
 
 export async function GET() {
@@ -42,7 +43,9 @@ export async function GET() {
       created_at: q.created_at,
       author_id: q.user_id,
       author_name: (Array.isArray(q.users) ? q.users[0] : q.users)?.fullname ?? "Unknown",
-      author_avatar_url: (Array.isArray(q.users) ? q.users[0] : q.users)?.avatar_url ?? null,
+      author_avatar_url: normalizeAvatarUrl(
+        (Array.isArray(q.users) ? q.users[0] : q.users)?.avatar_url ?? null
+      ),
       reply_count: q.forum_answers?.[0]?.count ?? 0,
       image_url: getSafeForumImageUrl(q.image_url),
       subforum_slug: sub.slug,

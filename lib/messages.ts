@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { normalizeAvatarUrl } from "@/lib/avatar";
 import { getUnreadMessageCountsByThread } from "@/lib/notifications";
 
 export type MessageRow = {
@@ -163,7 +164,7 @@ export async function getUserThreads(supabase: SupabaseClient, userId: string): 
           id: partnerId,
           fullname: partnerUser?.fullname ?? "Unknown",
           slug: partnerUser?.slug ?? "",
-          avatar_url: partnerUser?.avatar_url ?? null,
+          avatar_url: normalizeAvatarUrl(partnerUser?.avatar_url ?? null),
         },
         lastMessage: lastByThread.get(threadId) ?? null,
         unreadCount: unreadByThread.get(threadId) ?? 0,
