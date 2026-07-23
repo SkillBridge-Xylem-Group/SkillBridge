@@ -38,6 +38,8 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
   const accentHex = communityAccentHex(accent);
   const canDelete = isOwner && !community.is_official && !community.id.startsWith("static-");
   const canLeave = !isOwner && joined;
+  const canParticipate = isOwner || joined;
+  const showOptionsMenu = isOwner;
 
   useEffect(() => {
     setAccent(normalizeCommunityAccent(community.accent_color));
@@ -217,16 +219,18 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
             </div>
 
             <div className="flex shrink-0 flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  openForumCompose(`/dashboard/forum/c/${community.slug}?compose=1`);
-                }}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50"
-              >
-                <Plus size={16} strokeWidth={2.5} />
-                {f.createPost}
-              </button>
+              {canParticipate ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    openForumCompose(`/dashboard/forum/c/${community.slug}?compose=1`);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50"
+                >
+                  <Plus size={16} strokeWidth={2.5} />
+                  {f.createPost}
+                </button>
+              ) : null}
               {isOwner ? (
                 <span className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-bold text-slate-600">
                   {c.joined}
@@ -255,6 +259,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                   {c.join}
                 </button>
               )}
+              {showOptionsMenu ? (
               <div className="relative z-30" ref={menuRef}>
                 <button
                   type="button"
@@ -315,6 +320,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
                   </div>
                 ) : null}
               </div>
+              ) : null}
             </div>
           </div>
           {error ? <p className="mt-2 text-xs font-medium text-red-600">{error}</p> : null}

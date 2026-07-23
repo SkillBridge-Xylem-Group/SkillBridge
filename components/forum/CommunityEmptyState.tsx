@@ -7,9 +7,11 @@ import { openForumCompose } from "@/components/forum/QuestionComposer";
 export default function CommunityEmptyState({
   slug,
   search,
+  canPost = true,
 }: {
   slug: string;
   search?: string;
+  canPost?: boolean;
 }) {
   const { dictionary } = useLocale();
   const f = dictionary.forum;
@@ -21,7 +23,7 @@ export default function CommunityEmptyState({
           ? interpolate(f.noPostsFor, { q: search })
           : f.noPostsYet}
       </p>
-      {!search ? (
+      {!search && canPost ? (
         <>
           <p className="mt-2 max-w-sm text-sm text-brand">{f.startFeed}</p>
           <button
