@@ -1,5 +1,12 @@
 import type { ReactNode } from "react";
 
+/**
+ * Lightweight renderer for forum text: supports the exact syntax the
+ * AnswerComposer toolbar inserts (**bold**, *italic*, ~~strike~~, `code`,
+ * [label](url)), turns bare URLs into links, and embeds YouTube/Vimeo
+ * links that stand alone on their own line.
+ */
+
 const YOUTUBE_RE =
   /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/shorts\/)([\w-]{6,20})\S*$/i;
 const VIMEO_RE = /^(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d{6,12})\S*$/i;

@@ -192,14 +192,13 @@ export type Dictionary = {
     posts: string;
     post: string;
     discoverTitle: string;
-    trending: string;
+    discoverSubtitle: string;
     recommended: string;
     recommendedBasedOnSkills: string;
     recommendedNoSkillMatch: string;
     moreLike: string;
     showMore: string;
     showLess: string;
-    moreCommunities: string;
     noCommunities: string;
     noCommunitiesIn: string;
     beFirst: string;
@@ -690,11 +689,7 @@ const en: Dictionary = {
     posts: "posts",
     post: "post",
     discoverTitle: "Discover Communities",
-<<<<<<< HEAD
-    trending: "Trending",
-=======
     discoverSubtitle: "Find communities to join, or create your own and start posting.",
->>>>>>> origin/develop
     recommended: "Recommended for you",
     recommendedBasedOnSkills: "Based on skills you want to learn: {skills}",
     recommendedNoSkillMatch:
@@ -702,7 +697,6 @@ const en: Dictionary = {
     moreLike: "More like {category}",
     showMore: "Show more",
     showLess: "Show less",
-    moreCommunities: "More Communities",
     noCommunities: "No communities yet",
     noCommunitiesIn: "No communities in {category} yet",
     beFirst: "Be the first to start one.",
@@ -1193,14 +1187,13 @@ const zhCN: Dictionary = {
     posts: "篇帖子",
     post: "篇帖子",
     discoverTitle: "发现社区",
-    trending: "热门",
+    discoverSubtitle: "加入感兴趣的社区，或创建属于你的社区并开始发帖。",
     recommended: "为你推荐",
     recommendedBasedOnSkills: "根据你想学的技能推荐：{skills}",
     recommendedNoSkillMatch: "暂未找到高度匹配的社区，以下为活跃社区。可在个人资料中添加更多技能。",
     moreLike: "更多类似「{category}」",
     showMore: "显示更多",
     showLess: "收起",
-    moreCommunities: "更多社区",
     noCommunities: "暂无社区",
     noCommunitiesIn: "「{category}」下暂无社区",
     beFirst: "成为第一个创建的人吧。",
