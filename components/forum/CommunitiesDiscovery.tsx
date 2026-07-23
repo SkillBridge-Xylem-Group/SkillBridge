@@ -41,24 +41,6 @@ function sortByActivity(list: ForumCommunity[]) {
   });
 }
 
-/** Trending = most discussion activity (posts) first. */
-function sortByTrending(list: ForumCommunity[]) {
-  return list.slice().sort((a, b) => {
-    if (b.post_count !== a.post_count) return b.post_count - a.post_count;
-    if (b.member_count !== a.member_count) return b.member_count - a.member_count;
-    return a.title.localeCompare(b.title);
-  });
-}
-
-/** Popular = biggest membership first. */
-function sortByPopular(list: ForumCommunity[]) {
-  return list.slice().sort((a, b) => {
-    if (b.member_count !== a.member_count) return b.member_count - a.member_count;
-    if (b.post_count !== a.post_count) return b.post_count - a.post_count;
-    return a.title.localeCompare(b.title);
-  });
-}
-
 function JoinButton({
   community,
   viewerId,
@@ -293,40 +275,44 @@ export default function CommunitiesDiscovery({
     return [ALL, ...withCommunities, ...without, ...extras];
   }, [communities, countsByCategory]);
 
-  // When a specific category is selected, keep it simple: one section, sorted by activity.
-  const categoryFiltered = useMemo(() => {
-    if (category === ALL) return [];
-    return sortByActivity(communities.filter((c) => c.category === category));
-  }, [communities, category]);
-
-  // On "All": Recommended (if we have skill matches) → Trending → Popular → The rest.
   const recommended = useMemo(() => {
-    if (category !== ALL || wantedSkills.length === 0) return [];
-    if (!hasSkillBasedRecommendations(communities, wantedSkills)) return [];
-    return rankCommunitiesByWantedSkills(communities, wantedSkills).slice(0, INITIAL_VISIBLE);
+    const pool =
+      category === ALL ? communities : communities.filter((c) => c.category === category);
+    if (category === ALL) {
+      return rankCommunitiesByWantedSkills(pool, wantedSkills);
+    }
+    return sortByActivity(pool);
   }, [communities, category, wantedSkills]);
 
-  const trending = useMemo(() => {
-    if (category !== ALL) return [];
-    const shown = new Set(recommended.map((c) => c.id));
-    return sortByTrending(communities.filter((c) => !shown.has(c.id)));
-  }, [communities, category, recommended]);
+  const recommendedSubtitle = useMemo(() => {
+    if (category !== ALL || wantedSkills.length === 0) return undefined;
+    if (!hasSkillBasedRecommendations(communities, wantedSkills)) {
+      return f.recommendedNoSkillMatch;
+    }
+    return undefined;
+  }, [category, wantedSkills, communities, f.recommendedNoSkillMatch]);
 
-  const popular = useMemo(() => {
+  const topicSections = useMemo(() => {
     if (category !== ALL) return [];
-    const shown = new Set([...recommended, ...trending.slice(0, INITIAL_VISIBLE)].map((c) => c.id));
-    return sortByPopular(communities.filter((c) => !shown.has(c.id)));
-  }, [communities, category, recommended, trending]);
-
-  const rest = useMemo(() => {
-    if (category !== ALL) return [];
-    const shown = new Set(
-      [...recommended, ...trending.slice(0, INITIAL_VISIBLE), ...popular.slice(0, INITIAL_VISIBLE)].map(
-        (c) => c.id
-      )
-    );
-    return sortByActivity(communities.filter((c) => !shown.has(c.id)));
-  }, [communities, category, recommended, trending, popular]);
+    const recommendedIds = new Set(recommended.slice(0, INITIAL_VISIBLE).map((c) => c.id));
+    const byCat = new Map<string, ForumCommunity[]>();
+    for (const c of communities) {
+      if (!c.category || c.category === "General") continue;
+      if (recommendedIds.has(c.id)) continue;
+      const list = byCat.get(c.category) ?? [];
+      list.push(c);
+      byCat.set(c.category, list);
+    }
+    return [...byCat.entries()]
+      .map(([cat, list]) => ({
+        category: cat,
+        title: interpolate(f.moreLike, { category: categoryLabel(locale, cat) }),
+        communities: sortByActivity(list),
+      }))
+      .filter((s) => s.communities.length > 0)
+      .sort((a, b) => b.communities.length - a.communities.length)
+      .slice(0, 4);
+  }, [communities, category, recommended, f.moreLike, locale]);
 
   const categoryDisplay = categoryLabel(locale, category);
 
@@ -369,77 +355,45 @@ export default function CommunitiesDiscovery({
         </button>
       </div>
 
-      {category !== ALL ? (
-        categoryFiltered.length > 0 ? (
-          <CommunitySection
-            title={categoryDisplay}
-            communities={categoryFiltered}
-            viewerId={viewerId}
-            onJoinedChange={onJoinedChange}
-          />
-        ) : (
-          <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
-            <p className="text-sm font-semibold text-slate-700">
-              {interpolate(f.noCommunitiesIn, { category: categoryDisplay })}
-            </p>
-            <p className="mt-1 text-sm text-slate-500">{f.beFirst}</p>
-            <button
-              type="button"
-              onClick={() => openCreate(category)}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              <Plus size={16} strokeWidth={2.5} />
-              {interpolate(f.createCommunityIn, { category: categoryDisplay })}
-            </button>
-          </div>
-        )
-      ) : communities.length === 0 ? (
+      {recommended.length > 0 ? (
+        <CommunitySection
+          title={category === ALL ? f.recommended : categoryDisplay}
+          subtitle={recommendedSubtitle}
+          communities={recommended}
+          viewerId={viewerId}
+          onJoinedChange={onJoinedChange}
+        />
+      ) : (
         <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
-          <p className="text-sm font-semibold text-slate-700">{f.noCommunities}</p>
+          <p className="text-sm font-semibold text-slate-700">
+            {category === ALL
+              ? f.noCommunities
+              : interpolate(f.noCommunitiesIn, { category: categoryDisplay })}
+          </p>
           <p className="mt-1 text-sm text-slate-500">{f.beFirst}</p>
           <button
             type="button"
-            onClick={() => openCreate()}
+            onClick={() => openCreate(category !== ALL ? category : undefined)}
             className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
           >
             <Plus size={16} strokeWidth={2.5} />
-            {f.createCommunity}
+            {category === ALL
+              ? f.createCommunity
+              : interpolate(f.createCommunityIn, { category: categoryDisplay })}
           </button>
         </div>
-      ) : (
-        <>
-          {recommended.length > 0 ? (
-            <CommunitySection
-              title={f.recommended}
-              communities={recommended}
-              viewerId={viewerId}
-              onJoinedChange={onJoinedChange}
-            />
-          ) : null}
-
-          <CommunitySection
-            title="Trending"
-            communities={trending}
-            viewerId={viewerId}
-            onJoinedChange={onJoinedChange}
-          />
-
-          <CommunitySection
-            title={f.popular}
-            communities={popular}
-            viewerId={viewerId}
-            onJoinedChange={onJoinedChange}
-          />
-
-          <CommunitySection
-            title="More communities"
-            communities={rest}
-            viewerId={viewerId}
-            initialCount={3}
-            onJoinedChange={onJoinedChange}
-          />
-        </>
       )}
+
+      {topicSections.map((section) => (
+        <CommunitySection
+          key={section.category}
+          title={section.title}
+          communities={section.communities}
+          viewerId={viewerId}
+          initialCount={3}
+          onJoinedChange={onJoinedChange}
+        />
+      ))}
 
       {createOpen ? (
         <CreateCommunityModal
