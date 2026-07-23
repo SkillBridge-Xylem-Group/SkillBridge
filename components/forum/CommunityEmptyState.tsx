@@ -31,7 +31,7 @@ export default function CommunityEmptyState({
             onClick={() => {
               openForumCompose(`/dashboard/forum/c/${slug}?compose=1`);
             }}
-            className="btn-pill mt-6 inline-flex bg-brand px-6 py-2.5 text-sm font-bold text-white hover:bg-brand-dark"
+            className="mt-6 inline-flex items-center rounded-full border border-slate-300 bg-white px-6 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50"
           >
             {f.createPost}
           </button>
