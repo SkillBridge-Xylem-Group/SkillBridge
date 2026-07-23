@@ -1,16 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { COMMUNITY_CATEGORIES, COMMUNITY_TOPICS } from "@/lib/forumCommunities";
-import {
-  hasSkillBasedRecommendations,
-  rankCommunitiesByWantedSkills,
-  type WantedSkillRef,
-} from "@/lib/forumCommunityRecommendations";
+import type { WantedSkillRef } from "@/lib/forumCommunityRecommendations";
 import { toggleJoinCommunityAction } from "@/lib/actions/forum";
 import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import CreateCommunityModal from "@/components/forum/CreateCommunityModal";
@@ -37,6 +32,32 @@ function sortByActivity(list: ForumCommunity[]) {
     const activity = b.post_count + b.member_count - (a.post_count + a.member_count);
     if (activity !== 0) return activity;
     if (a.is_official !== b.is_official) return a.is_official ? -1 : 1;
+    return a.title.localeCompare(b.title);
+  });
+}
+
+/** Trending = most discussion activity (posts) first. */
+function sortByTrending(list: ForumCommunity[]) {
+  return list.slice().sort((a, b) => {
+    if (b.member_count !== a.member_count) {
+      return b.member_count - a.member_count;
+    }
+    if (b.post_count !== a.post_count) {
+      return b.post_count - a.post_count;
+    }
+    return a.title.localeCompare(b.title);
+  });
+}
+
+/** Popular = biggest membership first. */
+function sortByPopular(list: ForumCommunity[]) {
+  return list.slice().sort((a, b) => {
+    if (b.post_count !== a.post_count) {
+      return b.post_count - a.post_count;
+    }
+    if (b.member_count !== a.member_count) {
+      return b.member_count - a.member_count;
+    }
     return a.title.localeCompare(b.title);
   });
 }
@@ -219,7 +240,6 @@ function CommunitySection({
 export default function CommunitiesDiscovery({
   communities: initialCommunities,
   viewerId,
-  wantedSkills = [],
   initialCategory = ALL,
   initialCreateOpen = false,
 }: CommunitiesDiscoveryProps) {
@@ -275,44 +295,33 @@ export default function CommunitiesDiscovery({
     return [ALL, ...withCommunities, ...without, ...extras];
   }, [communities, countsByCategory]);
 
-  const recommended = useMemo(() => {
-    const pool =
-      category === ALL ? communities : communities.filter((c) => c.category === category);
-    if (category === ALL) {
-      return rankCommunitiesByWantedSkills(pool, wantedSkills);
-    }
-    return sortByActivity(pool);
-  }, [communities, category, wantedSkills]);
+  // When a specific category is selected, keep it simple: one section, sorted by activity.
+  const categoryFiltered = useMemo(() => {
+    if (category === ALL) return [];
+    return sortByActivity(communities.filter((c) => c.category === category));
+  }, [communities, category]);
 
-  const recommendedSubtitle = useMemo(() => {
-    if (category !== ALL || wantedSkills.length === 0) return undefined;
-    if (!hasSkillBasedRecommendations(communities, wantedSkills)) {
-      return f.recommendedNoSkillMatch;
-    }
-    return undefined;
-  }, [category, wantedSkills, communities, f.recommendedNoSkillMatch]);
-
-  const topicSections = useMemo(() => {
+  // On "All": Trending → Popular → The rest.
+  const trending = useMemo(() => {
     if (category !== ALL) return [];
-    const recommendedIds = new Set(recommended.slice(0, INITIAL_VISIBLE).map((c) => c.id));
-    const byCat = new Map<string, ForumCommunity[]>();
-    for (const c of communities) {
-      if (!c.category || c.category === "General") continue;
-      if (recommendedIds.has(c.id)) continue;
-      const list = byCat.get(c.category) ?? [];
-      list.push(c);
-      byCat.set(c.category, list);
-    }
-    return [...byCat.entries()]
-      .map(([cat, list]) => ({
-        category: cat,
-        title: interpolate(f.moreLike, { category: categoryLabel(locale, cat) }),
-        communities: sortByActivity(list),
-      }))
-      .filter((s) => s.communities.length > 0)
-      .sort((a, b) => b.communities.length - a.communities.length)
-      .slice(0, 4);
-  }, [communities, category, recommended, f.moreLike, locale]);
+    return sortByTrending(communities).slice(0, 6);
+  }, [communities, category]);
+
+  const popular = useMemo(() => {
+    if (category !== ALL) return [];
+
+    const trendingIds = new Set(trending.map((c) => c.id));
+
+    return sortByPopular(communities.filter((c) => !trendingIds.has(c.id))).slice(0, 6);
+  }, [communities, category, trending]);
+
+  const rest = useMemo(() => {
+    if (category !== ALL) return [];
+
+    const shown = new Set([...trending.map((c) => c.id), ...popular.map((c) => c.id)]);
+
+    return sortByActivity(communities.filter((c) => !shown.has(c.id)));
+  }, [communities, category, trending, popular]);
 
   const categoryDisplay = categoryLabel(locale, category);
 
@@ -355,45 +364,68 @@ export default function CommunitiesDiscovery({
         </button>
       </div>
 
-      {recommended.length > 0 ? (
-        <CommunitySection
-          title={category === ALL ? f.recommended : categoryDisplay}
-          subtitle={recommendedSubtitle}
-          communities={recommended}
-          viewerId={viewerId}
-          onJoinedChange={onJoinedChange}
-        />
-      ) : (
+      {category !== ALL ? (
+        categoryFiltered.length > 0 ? (
+          <CommunitySection
+            title={categoryDisplay}
+            communities={categoryFiltered}
+            viewerId={viewerId}
+            onJoinedChange={onJoinedChange}
+          />
+        ) : (
+          <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
+            <p className="text-sm font-semibold text-slate-700">
+              {interpolate(f.noCommunitiesIn, { category: categoryDisplay })}
+            </p>
+            <p className="mt-1 text-sm text-slate-500">{f.beFirst}</p>
+            <button
+              type="button"
+              onClick={() => openCreate(category)}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              {interpolate(f.createCommunityIn, { category: categoryDisplay })}
+            </button>
+          </div>
+        )
+      ) : communities.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
-          <p className="text-sm font-semibold text-slate-700">
-            {category === ALL
-              ? f.noCommunities
-              : interpolate(f.noCommunitiesIn, { category: categoryDisplay })}
-          </p>
+          <p className="text-sm font-semibold text-slate-700">{f.noCommunities}</p>
           <p className="mt-1 text-sm text-slate-500">{f.beFirst}</p>
           <button
             type="button"
-            onClick={() => openCreate(category !== ALL ? category : undefined)}
+            onClick={() => openCreate()}
             className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
           >
             <Plus size={16} strokeWidth={2.5} />
-            {category === ALL
-              ? f.createCommunity
-              : interpolate(f.createCommunityIn, { category: categoryDisplay })}
+            {f.createCommunity}
           </button>
         </div>
-      )}
+      ) : (
+        <>
+          <CommunitySection
+            title={f.trending}
+            communities={trending}
+            viewerId={viewerId}
+            onJoinedChange={onJoinedChange}
+          />
 
-      {topicSections.map((section) => (
-        <CommunitySection
-          key={section.category}
-          title={section.title}
-          communities={section.communities}
-          viewerId={viewerId}
-          initialCount={3}
-          onJoinedChange={onJoinedChange}
-        />
-      ))}
+          <CommunitySection
+            title={f.popular}
+            communities={popular}
+            viewerId={viewerId}
+            onJoinedChange={onJoinedChange}
+          />
+
+          <CommunitySection
+            title={f.moreCommunities}
+            communities={rest}
+            viewerId={viewerId}
+            initialCount={3}
+            onJoinedChange={onJoinedChange}
+          />
+        </>
+      )}
 
       {createOpen ? (
         <CreateCommunityModal
