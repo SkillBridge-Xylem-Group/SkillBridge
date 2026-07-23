@@ -557,6 +557,38 @@ export async function updateCommunityAccent(
   return result;
 }
 
+export async function updateCommunityDetails(
+  supabase: SupabaseClient,
+  params: {
+    communityId: string;
+    userId: string;
+    title: string;
+    description: string;
+  }
+) {
+  const title = params.title.trim();
+  if (title.length < 3) {
+    return { data: null, error: { message: "Community name must be at least 3 characters." } };
+  }
+  if (title.length > 21) {
+    return { data: null, error: { message: "Community name must be 21 characters or fewer." } };
+  }
+  if (!params.description.trim()) {
+    return { data: null, error: { message: "Description is required." } };
+  }
+
+  return supabase
+    .from("forum_communities")
+    .update({
+      title,
+      description: params.description.trim().slice(0, 300),
+    })
+    .eq("id", params.communityId)
+    .eq("created_by", params.userId)
+    .select("id, slug")
+    .maybeSingle();
+}
+
 export async function updateCommunityBanner(
   supabase: SupabaseClient,
   params: {

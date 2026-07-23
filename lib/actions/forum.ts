@@ -14,6 +14,7 @@ import {
   leaveCommunity,
   updateCommunityAccent,
   updateCommunityBanner,
+  updateCommunityDetails,
   updateCommunityImage,
 } from "@/lib/forumCommunities";
 import { composeReportReason, isReportReasonKey } from "@/lib/forumReportReasons";
@@ -137,6 +138,35 @@ export async function updateCommunityImageAction(communityId: string, imageUrl: 
   revalidatePath("/dashboard", "layout");
   if (data.slug) revalidatePath(forumSubforumPath(data.slug));
   return { success: true };
+}
+
+export async function updateCommunityDetailsAction(
+  communityId: string,
+  input: { title: string; description: string }
+) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+  if (communityId.startsWith("static-")) {
+    return { error: "This community can’t be edited." };
+  }
+
+  const { data, error } = await updateCommunityDetails(supabase, {
+    communityId,
+    userId: user.id,
+    title: input.title,
+    description: input.description,
+  });
+
+  if (error) return { error: error.message };
+  if (!data) return { error: "Only the community creator can edit it." };
+
+  revalidatePath("/dashboard/forum");
+  revalidatePath("/dashboard", "layout");
+  if (data.slug) revalidatePath(forumSubforumPath(data.slug));
+  return { success: true, slug: data.slug };
 }
 
 export async function updateCommunityBannerAction(communityId: string, bannerUrl: string | null) {
