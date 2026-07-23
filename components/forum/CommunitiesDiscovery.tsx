@@ -36,6 +36,7 @@ function sortByActivity(list: ForumCommunity[]) {
   });
 }
 
+<<<<<<< HEAD
 /** Trending = most discussion activity (posts) first. */
 function sortByTrending(list: ForumCommunity[]) {
   return list.slice().sort((a, b) => {
@@ -62,6 +63,8 @@ function sortByPopular(list: ForumCommunity[]) {
   });
 }
 
+=======
+>>>>>>> origin/develop
 function JoinButton({
   community,
   viewerId,
@@ -295,6 +298,7 @@ export default function CommunitiesDiscovery({
     return [ALL, ...withCommunities, ...without, ...extras];
   }, [communities, countsByCategory]);
 
+<<<<<<< HEAD
   // When a specific category is selected, keep it simple: one section, sorted by activity.
   const categoryFiltered = useMemo(() => {
     if (category === ALL) return [];
@@ -306,9 +310,28 @@ export default function CommunitiesDiscovery({
     if (category !== ALL) return [];
     return sortByTrending(communities).slice(0, 6);
   }, [communities, category]);
+=======
+  const recommended = useMemo(() => {
+    const pool =
+      category === ALL ? communities : communities.filter((c) => c.category === category);
+    if (category === ALL) {
+      return rankCommunitiesByWantedSkills(pool, wantedSkills);
+    }
+    return sortByActivity(pool);
+  }, [communities, category, wantedSkills]);
 
-  const popular = useMemo(() => {
+  const recommendedSubtitle = useMemo(() => {
+    if (category !== ALL || wantedSkills.length === 0) return undefined;
+    if (!hasSkillBasedRecommendations(communities, wantedSkills)) {
+      return f.recommendedNoSkillMatch;
+    }
+    return undefined;
+  }, [category, wantedSkills, communities, f.recommendedNoSkillMatch]);
+>>>>>>> origin/develop
+
+  const topicSections = useMemo(() => {
     if (category !== ALL) return [];
+<<<<<<< HEAD
 
     const trendingIds = new Set(trending.map((c) => c.id));
 
@@ -322,6 +345,27 @@ export default function CommunitiesDiscovery({
 
     return sortByActivity(communities.filter((c) => !shown.has(c.id)));
   }, [communities, category, trending, popular]);
+=======
+    const recommendedIds = new Set(recommended.slice(0, INITIAL_VISIBLE).map((c) => c.id));
+    const byCat = new Map<string, ForumCommunity[]>();
+    for (const c of communities) {
+      if (!c.category || c.category === "General") continue;
+      if (recommendedIds.has(c.id)) continue;
+      const list = byCat.get(c.category) ?? [];
+      list.push(c);
+      byCat.set(c.category, list);
+    }
+    return [...byCat.entries()]
+      .map(([cat, list]) => ({
+        category: cat,
+        title: interpolate(f.moreLike, { category: categoryLabel(locale, cat) }),
+        communities: sortByActivity(list),
+      }))
+      .filter((s) => s.communities.length > 0)
+      .sort((a, b) => b.communities.length - a.communities.length)
+      .slice(0, 4);
+  }, [communities, category, recommended, f.moreLike, locale]);
+>>>>>>> origin/develop
 
   const categoryDisplay = categoryLabel(locale, category);
 
@@ -364,43 +408,34 @@ export default function CommunitiesDiscovery({
         </button>
       </div>
 
-      {category !== ALL ? (
-        categoryFiltered.length > 0 ? (
-          <CommunitySection
-            title={categoryDisplay}
-            communities={categoryFiltered}
-            viewerId={viewerId}
-            onJoinedChange={onJoinedChange}
-          />
-        ) : (
-          <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
-            <p className="text-sm font-semibold text-slate-700">
-              {interpolate(f.noCommunitiesIn, { category: categoryDisplay })}
-            </p>
-            <p className="mt-1 text-sm text-slate-500">{f.beFirst}</p>
-            <button
-              type="button"
-              onClick={() => openCreate(category)}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              <Plus size={16} strokeWidth={2.5} />
-              {interpolate(f.createCommunityIn, { category: categoryDisplay })}
-            </button>
-          </div>
-        )
-      ) : communities.length === 0 ? (
+      {recommended.length > 0 ? (
+        <CommunitySection
+          title={category === ALL ? f.recommended : categoryDisplay}
+          subtitle={recommendedSubtitle}
+          communities={recommended}
+          viewerId={viewerId}
+          onJoinedChange={onJoinedChange}
+        />
+      ) : (
         <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
-          <p className="text-sm font-semibold text-slate-700">{f.noCommunities}</p>
+          <p className="text-sm font-semibold text-slate-700">
+            {category === ALL
+              ? f.noCommunities
+              : interpolate(f.noCommunitiesIn, { category: categoryDisplay })}
+          </p>
           <p className="mt-1 text-sm text-slate-500">{f.beFirst}</p>
           <button
             type="button"
-            onClick={() => openCreate()}
+            onClick={() => openCreate(category !== ALL ? category : undefined)}
             className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
           >
             <Plus size={16} strokeWidth={2.5} />
-            {f.createCommunity}
+            {category === ALL
+              ? f.createCommunity
+              : interpolate(f.createCommunityIn, { category: categoryDisplay })}
           </button>
         </div>
+<<<<<<< HEAD
       ) : (
         <>
           <CommunitySection
@@ -425,7 +460,20 @@ export default function CommunitiesDiscovery({
             onJoinedChange={onJoinedChange}
           />
         </>
+=======
+>>>>>>> origin/develop
       )}
+
+      {topicSections.map((section) => (
+        <CommunitySection
+          key={section.category}
+          title={section.title}
+          communities={section.communities}
+          viewerId={viewerId}
+          initialCount={3}
+          onJoinedChange={onJoinedChange}
+        />
+      ))}
 
       {createOpen ? (
         <CreateCommunityModal

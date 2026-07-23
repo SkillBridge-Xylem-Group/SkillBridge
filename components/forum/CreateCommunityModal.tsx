@@ -296,7 +296,11 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
         title: title.trim(),
         slug: previewSlug,
         description: description.trim(),
+<<<<<<< HEAD
         category: finalTopics[0] ?? "General",
+=======
+        category: topics[0] ?? "General",
+>>>>>>> origin/develop
         visibility,
         accentColor: accent,
         imageUrl,
