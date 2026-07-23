@@ -33,7 +33,7 @@ export default function CommunityDiscoveryCard({ community, joinControl }: Commu
           <img
             src={community.banner_url}
             alt=""
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+            className="h-full w-full object-cover object-center transition duration-300 group-hover:brightness-[0.98]"
           />
         ) : (
           <div
@@ -43,7 +43,7 @@ export default function CommunityDiscoveryCard({ community, joinControl }: Commu
             }}
           />
         )}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
       </Link>
 
       <div className="relative flex flex-1 flex-col px-4 pb-4 pt-0">
