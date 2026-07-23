@@ -289,9 +289,8 @@ export default function CommunitiesDiscovery({
     if (!hasSkillBasedRecommendations(communities, wantedSkills)) {
       return f.recommendedNoSkillMatch;
     }
-    const names = wantedSkills.map((s) => s.skill_name).join(", ");
-    return interpolate(f.recommendedBasedOnSkills, { skills: names });
-  }, [category, wantedSkills, communities, f.recommendedBasedOnSkills, f.recommendedNoSkillMatch]);
+    return undefined;
+  }, [category, wantedSkills, communities, f.recommendedNoSkillMatch]);
 
   const topicSections = useMemo(() => {
     if (category !== ALL) return [];
