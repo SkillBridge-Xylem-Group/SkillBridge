@@ -12,11 +12,13 @@ import {
   MoreHorizontal,
   Plus,
   Share2,
+  Trash2,
 } from "lucide-react";
 import type { ForumAnswer } from "@/lib/forum";
 import type { ReportReasonKey } from "@/lib/forumReportReasons";
-import { createReportAction, setVoteAction } from "@/lib/actions/forum";
+import { createReportAction, deleteAnswerAction, setVoteAction } from "@/lib/actions/forum";
 import ReportContentDialog from "./ReportContentDialog";
+import ConfirmDialog from "./ConfirmDialog";
 import FormattedContent from "./FormattedContent";
 import ForumAuthorAvatar from "./ForumAuthorAvatar";
 import AnswerComposer from "./AnswerComposer";
@@ -44,6 +46,7 @@ function CommentNode({
   const [replyOpen, setReplyOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [toast, setToast] = useState("");
   const router = useRouter();
   const { locale, dictionary } = useLocale();
@@ -70,6 +73,25 @@ function CommentNode({
     } catch {
       /* ignore */
     }
+  }
+
+  function deleteComment() {
+    setMenuOpen(false);
+    setConfirmOpen(true);
+  }
+
+  function confirmDeleteComment() {
+    startTransition(async () => {
+      const result = await deleteAnswerAction(answer.answer_id, questionId);
+      if (result?.error) {
+        setConfirmOpen(false);
+        setToast(result.error);
+        window.setTimeout(() => setToast(""), 2500);
+        return;
+      }
+      setConfirmOpen(false);
+      router.refresh();
+    });
   }
 
   function submitReport(payload: { reasonKey: ReportReasonKey; details: string }) {
@@ -259,7 +281,17 @@ function CommentNode({
                                 <Flag size={14} />
                                 {f.reportAction}
                               </button>
-                            ) : null}
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={deleteComment}
+                                disabled={isPending}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                              >
+                                <Trash2 size={14} />
+                                Delete
+                              </button>
+                            )}
                           </div>
                         </>
                       ) : null}
@@ -315,6 +347,16 @@ function CommentNode({
         busy={isPending}
         onClose={() => setReportOpen(false)}
         onSubmit={submitReport}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Delete this comment?"
+        description="This can't be undone."
+        confirmLabel="Delete comment"
+        busy={isPending}
+        onConfirm={confirmDeleteComment}
+        onClose={() => setConfirmOpen(false)}
       />
     </div>
   );
