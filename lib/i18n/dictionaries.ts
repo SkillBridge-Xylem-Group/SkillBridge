@@ -242,6 +242,13 @@ export type Dictionary = {
     changeBanner: string;
     uploadBanner: string;
     removeBanner: string;
+    editCommunity: string;
+    editCommunityTitle: string;
+    editCommunitySub: string;
+    communityNameLabel: string;
+    communityDescLabel: string;
+    changeCommunityIcon: string;
+    removeCommunityIcon: string;
     officialCommunity: string;
     visibilityPublic: string;
     visibilityPublicDesc: string;
@@ -729,11 +736,18 @@ const en: Dictionary = {
     changeImage: "Change image",
     uploadImage: "Upload image",
     communityBanner: "Community banner",
-    communityBannerSub: "Upload a wide banner image (16:9 recommended). Shown on discovery cards and your community page.",
+    communityBannerSub: "Upload a wide banner (5:1 recommended, e.g. 1920×384). Shown on discovery cards and your community page.",
     communityIconSub: "Upload a square icon, or use a letter with an accent color.",
     changeBanner: "Change banner",
     uploadBanner: "Upload banner",
     removeBanner: "Remove banner",
+    editCommunity: "Edit community",
+    editCommunityTitle: "Edit community",
+    editCommunitySub: "Update your community name, description, banner, and icon.",
+    communityNameLabel: "Community name",
+    communityDescLabel: "Description",
+    changeCommunityIcon: "Change community icon",
+    removeCommunityIcon: "Remove icon",
     officialCommunity: "Official community",
     visibilityPublic: "Public",
     visibilityPublicDesc: "Anyone can view, post, and comment in this community.",
@@ -1218,11 +1232,18 @@ const zhCN: Dictionary = {
     changeImage: "更换图片",
     uploadImage: "上传图片",
     communityBanner: "社区横幅",
-    communityBannerSub: "上传宽幅横幅图片（建议 16:9），将显示在发现页卡片和社区主页。",
+    communityBannerSub: "上传宽幅横幅（建议 5:1，如 1920×384），将显示在发现页卡片和社区主页。",
     communityIconSub: "上传方形图标，或使用字母 + 主题色。",
     changeBanner: "更换横幅",
     uploadBanner: "上传横幅",
     removeBanner: "移除横幅",
+    editCommunity: "编辑社区",
+    editCommunityTitle: "编辑社区",
+    editCommunitySub: "修改社区名称、简介、横幅和图标。",
+    communityNameLabel: "社区名称",
+    communityDescLabel: "简介",
+    changeCommunityIcon: "更换社区图标",
+    removeCommunityIcon: "移除图标",
     officialCommunity: "官方社区",
     visibilityPublic: "公开",
     visibilityPublicDesc: "任何人都可以查看、发帖和评论。",
