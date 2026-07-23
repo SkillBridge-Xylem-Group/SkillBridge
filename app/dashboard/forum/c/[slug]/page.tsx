@@ -9,6 +9,7 @@ import ForumTabs from "@/components/forum/ForumTabs";
 import CommunityPageHeader from "@/components/forum/CommunityPageHeader";
 import CommunityTrendingCard from "@/components/forum/CommunityTrendingCard";
 import CommunityEmptyState from "@/components/forum/CommunityEmptyState";
+import { getViewerProfile } from "@/lib/viewerProfile";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -40,18 +41,7 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
 
   const isOwner = community.created_by === user.id;
 
-  const { data: viewerRow } = await supabase
-    .from("users")
-    .select("fullname")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const userInitials = (viewerRow?.fullname ?? "?")
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p: string) => p.charAt(0).toUpperCase())
-    .join("");
+  const viewer = await getViewerProfile(supabase, user.id);
 
   const [allInSubforum, questions] = await Promise.all([
     getForumQuestions(supabase, { subforumSlug: slug }),
@@ -67,7 +57,8 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
       <CommunityPageHeader community={community} isOwner={isOwner} />
 
       <QuestionComposer
-        userInitials={userInitials}
+        userName={viewer.fullname}
+        userAvatarUrl={viewer.avatarUrl}
         subforumSlug={slug}
         communityOptions={[{ slug: community.slug, title: community.title }]}
         defaultOpen={compose === "1"}

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { normalizeAvatarUrl } from "@/lib/avatar";
 import { getForumSubforum } from "@/lib/forumSubforums";
 import { escapePostgrestFilter } from "@/lib/security";
 
@@ -55,7 +56,7 @@ function unwrapUser(u: unknown): { fullname: string; avatar_url: string | null }
     | undefined;
   return {
     fullname: row?.fullname ?? "Unknown",
-    avatar_url: row?.avatar_url ?? null,
+    avatar_url: normalizeAvatarUrl(row?.avatar_url ?? null),
   };
 }
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LogOut } from "lucide-react";
 import { signOutEverywhere } from "@/lib/auth/sign-out";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 type AdminUserMenuProps = {
   name: string;
@@ -42,9 +43,7 @@ export default function AdminUserMenu({ name }: AdminUserMenuProps) {
         aria-expanded={open}
         className="nb-chip flex items-center gap-2.5 py-1 pl-1 pr-2.5 transition hover:-translate-y-0.5"
       >
-        <div className="nb-avatar h-9 w-9 text-sm" style={{ background: "var(--sb-gradient)" }}>
-          {name.charAt(0).toUpperCase()}
-        </div>
+        <UserAvatar name={name} className="h-9 w-9 text-sm" />
         <div className="hidden text-left sm:block">
           <p className="text-sm font-bold" style={{ color: "var(--sb-ink)" }}>{name}</p>
           <p className="text-xs font-semibold" style={{ color: "var(--sb-teal-dark)" }}>Admin</p>

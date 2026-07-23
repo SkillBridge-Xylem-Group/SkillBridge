@@ -8,6 +8,7 @@ import { forumSubforumPath } from "@/lib/forumSubforums";
 import ForumAuthorAvatar from "@/components/forum/ForumAuthorAvatar";
 import PostActionBar from "@/components/forum/PostActionBar";
 import CommentsSection from "@/components/forum/CommentsSection";
+import { getViewerProfile } from "@/lib/viewerProfile";
 
 export const metadata: Metadata = {
   title: "Question | SkillBridge",
@@ -18,18 +19,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
   const { supabase, user } = await getRequestUser();
   if (!user) redirect("/login");
 
-  const { data: viewerRow } = await supabase
-    .from("users")
-    .select("fullname")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const userInitials = (viewerRow?.fullname ?? "?")
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p: string) => p.charAt(0).toUpperCase())
-    .join("");
+  const viewer = await getViewerProfile(supabase, user.id);
 
   const question = await getQuestionDetail(supabase, questionId);
   if (!question) notFound();
@@ -91,7 +81,8 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
 
       <CommentsSection
         questionId={questionId}
-        userInitials={userInitials}
+        userName={viewer.fullname}
+        userAvatarUrl={viewer.avatarUrl}
         currentUserId={user.id}
         initialRoots={answers}
       />

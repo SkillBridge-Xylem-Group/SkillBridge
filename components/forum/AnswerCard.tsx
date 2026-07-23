@@ -10,19 +10,22 @@ import CommentThread from "./CommentThread";
 export default function AnswerCard({
   answer,
   questionId,
-  userInitials = "?",
+  userName = "there",
+  userAvatarUrl = null,
   currentUserId = "",
 }: {
   answer: ForumAnswer;
   questionId: string;
-  userInitials?: string;
+  userName?: string;
+  userAvatarUrl?: string | null;
   currentUserId?: string;
 }) {
   return (
     <CommentThread
       roots={[answer]}
       questionId={questionId}
-      userInitials={userInitials}
+      userName={userName}
+      userAvatarUrl={userAvatarUrl}
       currentUserId={currentUserId}
     />
   );
