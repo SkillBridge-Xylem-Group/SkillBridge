@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Cake, Globe2, Loader2, LogOut, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { Cake, Globe2, Loader2, LogOut, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { communityAccentHex, normalizeCommunityAccent } from "@/lib/forumCommunities";
 import { formatAppDate } from "@/lib/i18n/locales";
@@ -147,7 +146,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white">
-      <div className="relative aspect-[3/1] w-full overflow-hidden rounded-t-2xl bg-slate-100 sm:aspect-[7/2]">
+      <div className="relative aspect-[5/1] w-full overflow-hidden rounded-t-2xl bg-slate-100">
         {community.banner_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -172,17 +171,6 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
             />
           </div>
         )}
-
-        {/* Fade so the banner reads clearly and blends into the card below instead of hard-cutting */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-black/0 to-black/10" />
-
-        <Link
-          href="/dashboard/forum"
-          className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-black/55"
-        >
-          <ArrowLeft size={14} strokeWidth={2.5} aria-hidden />
-          {f.allCommunities}
-        </Link>
       </div>
 
       <div className="flex flex-wrap items-start gap-3 px-4 pb-4 pt-0 sm:gap-4 sm:px-5">

@@ -689,6 +689,7 @@ const en: Dictionary = {
     posts: "posts",
     post: "post",
     discoverTitle: "Discover Communities",
+    discoverSubtitle: "Find communities to join, or create your own and start posting.",
     recommended: "Recommended for you",
     recommendedBasedOnSkills: "Based on skills you want to learn: {skills}",
     recommendedNoSkillMatch:

@@ -64,6 +64,7 @@ export async function createCommunityAction(input: {
   slug: string;
   description: string;
   category: string;
+  visibility?: "public" | "restricted" | "private";
   accentColor?: string;
   imageUrl?: string | null;
   bannerUrl?: string | null;
@@ -90,6 +91,7 @@ export async function createCommunityAction(input: {
     slug: input.slug,
     description: input.description,
     category: input.category,
+    visibility: input.visibility,
     accentColor: input.accentColor,
     imageUrl: safeImageUrl,
     bannerUrl: safeBannerUrl,
