@@ -119,10 +119,13 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
   const [accent, setAccent] = useState<CommunityAccentColor>("brand");
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<Visibility>("public");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const iconInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const current = steps[step];
   const accentMeta = COMMUNITY_ACCENT_COLORS.find((c) => c.id === accent) ?? COMMUNITY_ACCENT_COLORS[0];
@@ -148,8 +151,9 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
   useEffect(() => {
     return () => {
       if (iconPreview) URL.revokeObjectURL(iconPreview);
+      if (bannerPreview) URL.revokeObjectURL(bannerPreview);
     };
-  }, [iconPreview]);
+  }, [iconPreview, bannerPreview]);
 
   function onTitleChange(value: string) {
     const next = value.slice(0, NAME_MAX);
@@ -215,12 +219,36 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
     if (iconInputRef.current) iconInputRef.current.value = "";
   }
 
+  function clearBanner() {
+    if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    setBannerPreview(null);
+    setBannerFile(null);
+    if (bannerInputRef.current) bannerInputRef.current.value = "";
+  }
+
+  function onPickBanner(file: File | undefined) {
+    setError("");
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError(f.chooseImageError);
+      return;
+    }
+    if (file.size > MAX_FORUM_IMAGE_BYTES) {
+      setError(f.imageTooLarge);
+      return;
+    }
+    if (bannerPreview) URL.revokeObjectURL(bannerPreview);
+    setBannerFile(file);
+    setBannerPreview(URL.createObjectURL(file));
+  }
+
   function submit() {
     startTransition(async () => {
       setError("");
 
       let imageUrl: string | null = null;
-      if (iconFile) {
+      let bannerUrl: string | null = null;
+      if (iconFile || bannerFile) {
         const supabase = createSupabaseBrowserClient();
         const {
           data: { user },
@@ -229,12 +257,22 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
           setError(f.needSignIn);
           return;
         }
-        const uploaded = await uploadForumImage({ userId: user.id, file: iconFile });
-        if (!uploaded.ok) {
-          setError(uploaded.error);
-          return;
+        if (iconFile) {
+          const uploaded = await uploadForumImage({ userId: user.id, file: iconFile });
+          if (!uploaded.ok) {
+            setError(uploaded.error);
+            return;
+          }
+          imageUrl = uploaded.url;
         }
-        imageUrl = uploaded.url;
+        if (bannerFile) {
+          const uploaded = await uploadForumImage({ userId: user.id, file: bannerFile });
+          if (!uploaded.ok) {
+            setError(uploaded.error);
+            return;
+          }
+          bannerUrl = uploaded.url;
+        }
       }
 
       const res = await createCommunityAction({
@@ -245,6 +283,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
         visibility,
         accentColor: accent,
         imageUrl,
+        bannerUrl,
       });
       if (res?.error) {
         setError(res.error);
@@ -408,6 +447,52 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
           {step === 2 ? (
             <div className="space-y-5">
               <div>
+                <p className="text-sm font-semibold text-slate-700">{f.communityBanner}</p>
+                <p className="mt-0.5 text-xs text-slate-500">{f.communityBannerSub}</p>
+                <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  <div className="relative aspect-[16/7] w-full overflow-hidden bg-slate-100">
+                    {bannerPreview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={bannerPreview} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div
+                        className="h-full w-full"
+                        style={{
+                          background: `linear-gradient(135deg, color-mix(in srgb, ${accentMeta.hex} 85%, white), color-mix(in srgb, ${accentMeta.hex} 40%, #14b8a6))`,
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2 border-t border-slate-100 px-4 py-3">
+                    <input
+                      ref={bannerInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="hidden"
+                      onChange={(e) => onPickBanner(e.target.files?.[0])}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => bannerInputRef.current?.click()}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      <ImagePlus size={16} />
+                      {bannerPreview ? f.changeBanner : f.uploadBanner}
+                    </button>
+                    {bannerPreview ? (
+                      <button
+                        type="button"
+                        onClick={clearBanner}
+                        className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                      >
+                        {f.removeBanner}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div>
                 <p className="text-sm font-semibold text-slate-700">Community icon</p>
                 <p className="mt-0.5 text-xs text-slate-500">Upload a square image, or use a letter + color.</p>
                 <div className="mt-3 flex flex-wrap items-center gap-4">
@@ -458,7 +543,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
               <div>
                 <p className="text-sm font-semibold text-slate-700">Icon color</p>
                 <p className="mt-0.5 text-xs text-slate-500">
-                  Used when no custom image is set (and for the banner).
+                  {f.communityIconSub}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-3">
                   {COMMUNITY_ACCENT_COLORS.map((color) => {
@@ -482,25 +567,49 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                 </div>
               </div>
 
-              <div className="max-w-sm rounded-2xl border border-slate-200 p-4">
-                <div className="flex items-center gap-3">
-                  {iconPreview ? (
+              <div
+                className="max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white"
+                style={{ boxShadow: "var(--sb-shadow-sm)" }}
+              >
+                <div className="relative aspect-[16/7] w-full overflow-hidden">
+                  {bannerPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={iconPreview} alt="" className="h-12 w-12 rounded-full object-cover" />
+                    <img src={bannerPreview} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <div
-                      style={{ backgroundColor: accentMeta.hex }}
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
-                    >
-                      {title.trim() ? title.trim().charAt(0).toUpperCase() : ""}
-                    </div>
+                      className="h-full w-full"
+                      style={{
+                        background: `linear-gradient(135deg, color-mix(in srgb, ${accentMeta.hex} 85%, white), color-mix(in srgb, ${accentMeta.hex} 40%, #14b8a6))`,
+                      }}
+                    />
                   )}
-                  <div className="min-w-0">
-                    {title.trim() ? (
-                      <p className="break-words font-extrabold text-slate-900">{title.trim()}</p>
-                    ) : null}
-                    {topics[0] ? <p className="text-xs text-slate-500">{categoryLabel(locale, topics[0])}</p> : null}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white via-white/25 to-transparent" />
+                </div>
+                <div className="px-4 pb-4">
+                  <div className="-mt-7 mb-2 flex items-end gap-3">
+                    {iconPreview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={iconPreview} alt="" className="h-12 w-12 rounded-full object-cover ring-4 ring-white" />
+                    ) : (
+                      <div
+                        style={{ backgroundColor: accentMeta.hex }}
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-bold text-white ring-4 ring-white"
+                      >
+                        {title.trim() ? title.trim().charAt(0).toUpperCase() : ""}
+                      </div>
+                    )}
+                    <div className="min-w-0 pb-1">
+                      {title.trim() ? (
+                        <p className="truncate font-extrabold text-slate-900">{title.trim()}</p>
+                      ) : null}
+                      {topics[0] ? (
+                        <p className="text-xs text-slate-500">{categoryLabel(locale, topics[0])}</p>
+                      ) : null}
+                    </div>
                   </div>
+                  {description.trim() ? (
+                    <p className="line-clamp-2 text-sm text-slate-600">{description.trim()}</p>
+                  ) : null}
                 </div>
               </div>
             </div>

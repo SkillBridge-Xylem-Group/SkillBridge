@@ -10,6 +10,7 @@ import { formatAppDate } from "@/lib/i18n/locales";
 import {
   deleteCommunityAction,
   toggleJoinCommunityAction,
+  updateCommunityBannerAction,
   updateCommunityImageAction,
 } from "@/lib/actions/forum";
 import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
@@ -33,6 +34,7 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
   const c = dictionary.common;
   const f = dictionary.forum;
   const fileRef = useRef<HTMLInputElement>(null);
+  const bannerRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [joined, setJoined] = useState(community.joined || isOwner);
   const [busy, setBusy] = useState(false);
@@ -187,22 +189,122 @@ export default function CommunityPageHeader({ community, isOwner = false }: Comm
     })();
   }
 
+  function onPickBanner(file: File | undefined) {
+    if (!file || !isOwner || busy) return;
+    void (async () => {
+      setBusy(true);
+      setError("");
+      try {
+        if (!file.type.startsWith("image/")) {
+          setError("Please choose an image file.");
+          return;
+        }
+        if (file.size > MAX_FORUM_IMAGE_BYTES) {
+          setError("Image is too large (max 10MB).");
+          return;
+        }
+        const supabase = createSupabaseBrowserClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setError("You need to be signed in.");
+          return;
+        }
+        const uploaded = await uploadForumImage({ userId: user.id, file });
+        if (!uploaded.ok) {
+          setError(uploaded.error);
+          return;
+        }
+        const res = await updateCommunityBannerAction(community.id, uploaded.url);
+        if (res?.error) {
+          setError(res.error);
+          return;
+        }
+        router.refresh();
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }
+
+  function onRemoveBanner() {
+    if (!isOwner || busy) return;
+    void (async () => {
+      setBusy(true);
+      setError("");
+      try {
+        const res = await updateCommunityBannerAction(community.id, null);
+        if (res?.error) {
+          setError(res.error);
+          return;
+        }
+        router.refresh();
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white">
-      <div
-        className="relative h-20 overflow-hidden rounded-t-2xl sm:h-24"
-        style={{
-          background: `linear-gradient(90deg, ${accentHex}, color-mix(in srgb, ${accentHex} 70%, #0f172a))`,
-        }}
-      >
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `radial-gradient(circle at 20% 40%, white 0 2px, transparent 3px),
+      <div className="relative h-28 overflow-hidden rounded-t-2xl sm:h-36">
+        {community.banner_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={community.banner_url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div
+            className="h-full w-full"
+            style={{
+              background: `linear-gradient(135deg, color-mix(in srgb, ${accentHex} 88%, white) 0%, color-mix(in srgb, ${accentHex} 45%, #14b8a6) 100%)`,
+            }}
+          >
+            <div
+              className="absolute inset-0 opacity-30"
+              style={{
+                backgroundImage: `radial-gradient(circle at 20% 40%, white 0 2px, transparent 3px),
               radial-gradient(circle at 70% 60%, white 0 1.5px, transparent 2.5px)`,
-            backgroundSize: "48px 48px, 36px 36px",
-          }}
-        />
+                backgroundSize: "48px 48px, 36px 36px",
+              }}
+            />
+          </div>
+        )}
+        {isOwner ? (
+          <div className="absolute right-3 top-3 flex gap-2">
+            <input
+              ref={bannerRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="hidden"
+              onChange={(e) => {
+                onPickBanner(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => bannerRef.current?.click()}
+              disabled={busy}
+              aria-busy={busy}
+              aria-label={f.changeBanner}
+              title={f.changeBanner}
+              className="flex h-8 items-center gap-1.5 rounded-full border border-white/50 bg-white/90 px-3 text-xs font-bold text-slate-800 shadow-sm backdrop-blur-sm hover:bg-white disabled:opacity-60"
+            >
+              {busy ? <Loader2 size={12} className="animate-spin" /> : <Camera size={12} />}
+              {f.changeBanner}
+            </button>
+            {community.banner_url ? (
+              <button
+                type="button"
+                onClick={onRemoveBanner}
+                disabled={busy}
+                className="flex h-8 items-center rounded-full border border-white/50 bg-white/90 px-3 text-xs font-bold text-red-600 shadow-sm backdrop-blur-sm hover:bg-white disabled:opacity-60"
+              >
+                {f.removeBanner}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-start gap-3 px-4 pb-4 pt-0 sm:gap-4 sm:px-5">

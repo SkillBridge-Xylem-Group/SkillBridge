@@ -33,34 +33,43 @@ export function communityAccentAvatarClass(accent?: string | null): string {
 /** Persist accent even when DB has no accent_color column (encoded in image_url). */
 const ACCENT_IMAGE_PREFIX = "sbicon:";
 
-export function encodeCommunityImageField(
-  accent: CommunityAccentColor | string | null | undefined,
-  imageUrl: string | null | undefined
-): string | null {
-  const color = normalizeCommunityAccent(accent);
-  const url = imageUrl?.trim() || null;
-  if (url) return `${ACCENT_IMAGE_PREFIX}${color}|${url}`;
-  if (color === "brand") return null;
-  return `${ACCENT_IMAGE_PREFIX}${color}`;
-}
-
 export function decodeCommunityImageField(raw: string | null | undefined): {
   accent: CommunityAccentColor;
   imageUrl: string | null;
+  bannerUrl: string | null;
 } {
-  if (!raw) return { accent: "brand", imageUrl: null };
+  if (!raw) return { accent: "brand", imageUrl: null, bannerUrl: null };
   if (raw.startsWith(ACCENT_IMAGE_PREFIX)) {
     const rest = raw.slice(ACCENT_IMAGE_PREFIX.length);
     const pipe = rest.indexOf("|");
     if (pipe === -1) {
-      return { accent: normalizeCommunityAccent(rest), imageUrl: null };
+      return { accent: normalizeCommunityAccent(rest), imageUrl: null, bannerUrl: null };
     }
+    const accentPart = rest.slice(0, pipe);
+    const payload = rest.slice(pipe + 1);
+    const segments = payload.split("|");
     return {
-      accent: normalizeCommunityAccent(rest.slice(0, pipe)),
-      imageUrl: rest.slice(pipe + 1) || null,
+      accent: normalizeCommunityAccent(accentPart),
+      imageUrl: segments[0]?.trim() || null,
+      bannerUrl: segments[1]?.trim() || null,
     };
   }
-  return { accent: "brand", imageUrl: raw };
+  return { accent: "brand", imageUrl: raw, bannerUrl: null };
+}
+
+export function encodeCommunityImageField(
+  accent: CommunityAccentColor | string | null | undefined,
+  imageUrl: string | null | undefined,
+  bannerUrl?: string | null
+): string | null {
+  const color = normalizeCommunityAccent(accent);
+  const icon = imageUrl?.trim() || "";
+  const banner = bannerUrl?.trim() || "";
+  if (!icon && !banner && color === "brand") return null;
+  if (!icon && !banner) return `${ACCENT_IMAGE_PREFIX}${color}`;
+  if (icon && !banner) return `${ACCENT_IMAGE_PREFIX}${color}|${icon}`;
+  if (!icon && banner) return `${ACCENT_IMAGE_PREFIX}${color}||${banner}`;
+  return `${ACCENT_IMAGE_PREFIX}${color}|${icon}|${banner}`;
 }
 
 export type ForumCommunity = {
@@ -70,6 +79,7 @@ export type ForumCommunity = {
   description: string;
   category: string;
   image_url: string | null;
+  banner_url: string | null;
   accent_color: CommunityAccentColor;
   created_by: string | null;
   is_official: boolean;
@@ -161,6 +171,7 @@ function fallbackCommunities(): ForumCommunity[] {
     description: s.description,
     category: categoryBySlug[s.slug] ?? "General",
     image_url: s.image,
+    banner_url: null,
     accent_color: "brand" as const,
     created_by: null,
     is_official: true,
@@ -213,6 +224,7 @@ function toForumCommunity(
     description: row.description,
     category: row.category,
     image_url: decoded.imageUrl,
+    banner_url: decoded.bannerUrl,
     accent_color,
     created_by: row.created_by,
     is_official: row.is_official,
@@ -312,6 +324,7 @@ export async function getCommunityBySlug(
       description: fallback.description,
       category: "General",
       image_url: fallback.image,
+      banner_url: null,
       accent_color: "brand",
       created_by: null,
       is_official: true,
@@ -353,6 +366,7 @@ export async function getCommunityBySlug(
     description: row.description,
     category: row.category,
     image_url: decoded.imageUrl,
+    banner_url: decoded.bannerUrl,
     accent_color,
     created_by: row.created_by,
     is_official: row.is_official,
@@ -372,6 +386,7 @@ export async function createCommunity(
     description: string;
     category: string;
     imageUrl?: string | null;
+    bannerUrl?: string | null;
     visibility?: "public" | "restricted" | "private";
     accentColor?: CommunityAccentColor | string;
   }
@@ -396,7 +411,7 @@ export async function createCommunity(
     params.visibility === "restricted" || params.visibility === "private" ? params.visibility : "public";
   const accent_color = normalizeCommunityAccent(params.accentColor);
   // Always encode accent into image_url so color works even without accent_color column.
-  const image_url = encodeCommunityImageField(accent_color, params.imageUrl ?? null);
+  const image_url = encodeCommunityImageField(accent_color, params.imageUrl ?? null, params.bannerUrl ?? null);
 
   const insertPayload: Record<string, unknown> = {
     slug,
@@ -474,7 +489,7 @@ export async function updateCommunityImage(
     params.accentColor ??
       (isCommunityAccentColor(existing.accent_color) ? existing.accent_color : decoded.accent)
   );
-  const image_url = encodeCommunityImageField(accent, params.imageUrl);
+  const image_url = encodeCommunityImageField(accent, params.imageUrl, decoded.bannerUrl);
 
   const updatePayload: Record<string, unknown> = { image_url, accent_color: accent };
 
@@ -517,7 +532,56 @@ export async function updateCommunityAccent(
 
   const decoded = decodeCommunityImageField(existing.image_url);
   const accent = normalizeCommunityAccent(params.accentColor);
-  const image_url = encodeCommunityImageField(accent, decoded.imageUrl);
+  const image_url = encodeCommunityImageField(accent, decoded.imageUrl, decoded.bannerUrl);
+  const updatePayload: Record<string, unknown> = { image_url, accent_color: accent };
+
+  let result = await supabase
+    .from("forum_communities")
+    .update(updatePayload)
+    .eq("id", params.communityId)
+    .eq("created_by", params.userId)
+    .select("id, slug")
+    .maybeSingle();
+
+  if (result.error?.message?.toLowerCase().includes("accent_color")) {
+    delete updatePayload.accent_color;
+    result = await supabase
+      .from("forum_communities")
+      .update(updatePayload)
+      .eq("id", params.communityId)
+      .eq("created_by", params.userId)
+      .select("id, slug")
+      .maybeSingle();
+  }
+
+  return result;
+}
+
+export async function updateCommunityBanner(
+  supabase: SupabaseClient,
+  params: {
+    communityId: string;
+    userId: string;
+    bannerUrl: string | null;
+  }
+) {
+  const { data: existing } = await supabase
+    .from("forum_communities")
+    .select("image_url, accent_color")
+    .eq("id", params.communityId)
+    .eq("created_by", params.userId)
+    .maybeSingle();
+
+  if (!existing) {
+    return { data: null, error: { message: "Only the community creator can change the banner." } };
+  }
+
+  const decoded = decodeCommunityImageField(existing.image_url);
+  const accent = normalizeCommunityAccent(
+    isCommunityAccentColor(existing.accent_color) ? existing.accent_color : decoded.accent
+  );
+  const image_url = encodeCommunityImageField(accent, decoded.imageUrl, params.bannerUrl);
+
   const updatePayload: Record<string, unknown> = { image_url, accent_color: accent };
 
   let result = await supabase

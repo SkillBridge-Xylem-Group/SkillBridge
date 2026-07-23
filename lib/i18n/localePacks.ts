@@ -203,6 +203,9 @@ export const idPack: Dictionary = {
     discoverSubtitle:
       "Temukan komunitas untuk diikuti, atau buat sendiri dan mulai posting.",
     recommended: "Direkomendasikan untuk Anda",
+    recommendedBasedOnSkills: "Berdasarkan skill yang ingin Anda pelajari: {skills}",
+    recommendedNoSkillMatch:
+      "Belum ada kecocokan yang dekat — menampilkan komunitas aktif. Tambahkan lebih banyak skill di profil Anda.",
     moreLike: "Lainnya seperti {category}",
     showMore: "Tampilkan lebih banyak",
     showLess: "Tampilkan lebih sedikit",
@@ -249,6 +252,13 @@ export const idPack: Dictionary = {
     needSignIn: "Anda perlu masuk terlebih dahulu.",
     changeImage: "Ganti gambar",
     uploadImage: "Unggah gambar",
+    communityBanner: "Banner komunitas",
+    communityBannerSub: "Unggah gambar banner lebar (disarankan 16:9). Ditampilkan di kartu penemuan dan halaman komunitas.",
+    communityIconSub: "Unggah ikon persegi, atau gunakan huruf dengan warna aksen.",
+    changeBanner: "Ubah banner",
+    uploadBanner: "Unggah banner",
+    removeBanner: "Hapus banner",
+    officialCommunity: "Komunitas resmi",
     visibilityPublic: "Publik",
     visibilityPublicDesc:
       "Siapa pun dapat melihat, memposting, dan berkomentar di komunitas ini.",
@@ -706,6 +716,9 @@ export const jaPack: Dictionary = {
     discoverSubtitle:
       "参加するコミュニティを見つけるか、自分で作って投稿を始めましょう。",
     recommended: "あなたへのおすすめ",
+    recommendedBasedOnSkills: "学びたいスキルに基づくおすすめ：{skills}",
+    recommendedNoSkillMatch:
+      "まだ近いコミュニティが見つかりませんでした。アクティブなコミュニティを表示しています。プロフィールでスキルを追加してみてください。",
     moreLike: "「{category}」に似たコミュニティ",
     showMore: "もっと見る",
     showLess: "閉じる",
@@ -752,6 +765,13 @@ export const jaPack: Dictionary = {
     needSignIn: "ログインが必要です。",
     changeImage: "画像を変更",
     uploadImage: "画像をアップロード",
+    communityBanner: "コミュニティバナー",
+    communityBannerSub: "横長のバナー画像をアップロード（16:9推奨）。発見カードとコミュニティページに表示されます。",
+    communityIconSub: "正方形のアイコンをアップロードするか、文字とアクセントカラーを使用します。",
+    changeBanner: "バナーを変更",
+    uploadBanner: "バナーをアップロード",
+    removeBanner: "バナーを削除",
+    officialCommunity: "公式コミュニティ",
     visibilityPublic: "公開",
     visibilityPublicDesc:
       "誰でもこのコミュニティを閲覧・投稿・コメントできます。",
@@ -1207,6 +1227,9 @@ export const koPack: Dictionary = {
     discoverSubtitle:
       "가입할 커뮤니티를 찾거나 직접 만들고 게시물을 작성하세요.",
     recommended: "맞춤 추천",
+    recommendedBasedOnSkills: "배우고 싶은 스킬 기반 추천: {skills}",
+    recommendedNoSkillMatch:
+      "아직 잘 맞는 커뮤니티를 찾지 못했습니다. 활발한 커뮤니티를 표시합니다. 프로필에 스킬을 더 추가해 보세요.",
     moreLike: "{category}와(과) 비슷한 커뮤니티",
     showMore: "더 보기",
     showLess: "접기",
@@ -1253,6 +1276,13 @@ export const koPack: Dictionary = {
     needSignIn: "로그인이 필요합니다.",
     changeImage: "이미지 변경",
     uploadImage: "이미지 업로드",
+    communityBanner: "커뮤니티 배너",
+    communityBannerSub: "넓은 배너 이미지를 업로드하세요(16:9 권장). 탐색 카드와 커뮤니티 페이지에 표시됩니다.",
+    communityIconSub: "정사각형 아이콘을 업로드하거나 글자와 강조 색상을 사용하세요.",
+    changeBanner: "배너 변경",
+    uploadBanner: "배너 업로드",
+    removeBanner: "배너 제거",
+    officialCommunity: "공식 커뮤니티",
     visibilityPublic: "공개",
     visibilityPublicDesc:
       "누구나 이 커뮤니티를 보고, 게시하고, 댓글을 달 수 있습니다.",
