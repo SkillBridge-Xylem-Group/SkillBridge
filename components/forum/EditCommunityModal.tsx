@@ -14,7 +14,6 @@ import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/Dashbo
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
 import { useLocale } from "@/components/i18n/LocaleProvider";
-import BannerCropper from "@/components/forum/BannerCropper";
 
 type EditCommunityModalProps = {
   community: ForumCommunity;
@@ -48,7 +47,6 @@ export default function EditCommunityModal({ community, onClose }: EditCommunity
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(community.banner_url);
   const [bannerRemoved, setBannerRemoved] = useState(false);
-  const [cropperFile, setCropperFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -92,7 +90,6 @@ export default function EditCommunityModal({ community, onClose }: EditCommunity
     if (iconInputRef.current) iconInputRef.current.value = "";
   }
 
-  // Opens the cropper instead of setting the preview directly.
   function onPickBanner(file: File | undefined) {
     setError("");
     if (!file) return;
@@ -104,19 +101,12 @@ export default function EditCommunityModal({ community, onClose }: EditCommunity
       setError(f.imageTooLarge);
       return;
     }
-    setCropperFile(file);
-    if (bannerInputRef.current) bannerInputRef.current.value = "";
-  }
-
-  // Called by BannerCropper once the user confirms their crop.
-  function onBannerCropped(cropped: File) {
     if (bannerPreview && bannerPreview !== community.banner_url) {
       URL.revokeObjectURL(bannerPreview);
     }
-    setBannerFile(cropped);
-    setBannerPreview(URL.createObjectURL(cropped));
+    setBannerFile(file);
+    setBannerPreview(URL.createObjectURL(file));
     setBannerRemoved(false);
-    setCropperFile(null);
   }
 
   function clearBanner() {
@@ -292,7 +282,7 @@ export default function EditCommunityModal({ community, onClose }: EditCommunity
                 <SectionLabel>{f.communityBanner}</SectionLabel>
                 <p className="text-xs leading-relaxed text-slate-500">{f.communityBannerSub}</p>
                 <div className="overflow-hidden rounded-2xl ring-1 ring-slate-200/80" style={{ boxShadow: "var(--sb-shadow-sm)" }}>
-                  <div className="relative aspect-[3/1] w-full overflow-hidden bg-slate-100">
+                  <div className="relative aspect-[5/1] w-full overflow-hidden bg-slate-100">
                     {showBannerPreview ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={bannerPreview} alt="" className="h-full w-full object-cover object-center" />
@@ -400,7 +390,7 @@ export default function EditCommunityModal({ community, onClose }: EditCommunity
                   className="rounded-2xl border border-slate-200 bg-white"
                   style={{ boxShadow: "var(--sb-shadow-sm)" }}
                 >
-                  <div className="relative aspect-[3/1] overflow-hidden rounded-t-2xl bg-slate-100">
+                  <div className="relative aspect-[5/1] overflow-hidden rounded-t-2xl bg-slate-100">
                     {showBannerPreview ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={bannerPreview} alt="" className="h-full w-full object-cover object-center" />
@@ -471,17 +461,6 @@ export default function EditCommunityModal({ community, onClose }: EditCommunity
           </button>
         </div>
       </div>
-
-      {cropperFile ? (
-        <BannerCropper
-          file={cropperFile}
-          onCancel={() => setCropperFile(null)}
-          onCropped={onBannerCropped}
-          title={f.communityBanner}
-          confirmLabel={c.save}
-          cancelLabel={c.cancel}
-        />
-      ) : null}
     </div>
   );
 }

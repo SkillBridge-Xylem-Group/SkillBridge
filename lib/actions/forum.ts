@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createQuestion, createAnswer, setAnswerVote, deleteAnswer, deleteQuestion } from "@/lib/forum";
+import { createQuestion, createAnswer, setAnswerVote } from "@/lib/forum";
 import { createNotification } from "@/lib/notifications";
 import { getSafeForumImageUrl } from "@/lib/forumImageUrl";
 import { forumSubforumPath } from "@/lib/forumSubforums";
@@ -454,37 +454,6 @@ export async function createReportAction(params: {
 
   if (error) return { error };
   return { success: true };
-}
-
-export async function deleteAnswerAction(answerId: string, questionId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
-
-  const { data, error } = await deleteAnswer(supabase, { answerId, userId: user.id });
-  if (error) return { error: error.message };
-  if (!data) return { error: "Could not delete this comment." };
-
-  revalidatePath(`/dashboard/forum/${questionId}`);
-  return { success: true };
-}
-
-export async function deleteQuestionAction(questionId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
-
-  const { data, error } = await deleteQuestion(supabase, { questionId, userId: user.id });
-  if (error) return { error: error.message };
-  if (!data) return { error: "Could not delete this post." };
-
-  revalidatePath("/dashboard/forum");
-  if (data.subforum_slug) revalidatePath(forumSubforumPath(data.subforum_slug));
-  return { success: true, subforumSlug: data.subforum_slug };
 }
 
 export async function createQuestionReportAction(params: {

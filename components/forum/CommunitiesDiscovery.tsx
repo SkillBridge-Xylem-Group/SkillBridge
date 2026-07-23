@@ -1,11 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { COMMUNITY_CATEGORIES, COMMUNITY_TOPICS } from "@/lib/forumCommunities";
-import type { WantedSkillRef } from "@/lib/forumCommunityRecommendations";
+import {
+  hasSkillBasedRecommendations,
+  rankCommunitiesByWantedSkills,
+  type WantedSkillRef,
+} from "@/lib/forumCommunityRecommendations";
 import { toggleJoinCommunityAction } from "@/lib/actions/forum";
 import { invalidateSidebarCommunitiesCache } from "@/components/dashboard/DashboardChrome";
 import CreateCommunityModal from "@/components/forum/CreateCommunityModal";
@@ -36,35 +41,6 @@ function sortByActivity(list: ForumCommunity[]) {
   });
 }
 
-<<<<<<< HEAD
-/** Trending = most discussion activity (posts) first. */
-function sortByTrending(list: ForumCommunity[]) {
-  return list.slice().sort((a, b) => {
-    if (b.member_count !== a.member_count) {
-      return b.member_count - a.member_count;
-    }
-    if (b.post_count !== a.post_count) {
-      return b.post_count - a.post_count;
-    }
-    return a.title.localeCompare(b.title);
-  });
-}
-
-/** Popular = biggest membership first. */
-function sortByPopular(list: ForumCommunity[]) {
-  return list.slice().sort((a, b) => {
-    if (b.post_count !== a.post_count) {
-      return b.post_count - a.post_count;
-    }
-    if (b.member_count !== a.member_count) {
-      return b.member_count - a.member_count;
-    }
-    return a.title.localeCompare(b.title);
-  });
-}
-
-=======
->>>>>>> origin/develop
 function JoinButton({
   community,
   viewerId,
@@ -243,6 +219,7 @@ function CommunitySection({
 export default function CommunitiesDiscovery({
   communities: initialCommunities,
   viewerId,
+  wantedSkills = [],
   initialCategory = ALL,
   initialCreateOpen = false,
 }: CommunitiesDiscoveryProps) {
@@ -298,19 +275,6 @@ export default function CommunitiesDiscovery({
     return [ALL, ...withCommunities, ...without, ...extras];
   }, [communities, countsByCategory]);
 
-<<<<<<< HEAD
-  // When a specific category is selected, keep it simple: one section, sorted by activity.
-  const categoryFiltered = useMemo(() => {
-    if (category === ALL) return [];
-    return sortByActivity(communities.filter((c) => c.category === category));
-  }, [communities, category]);
-
-  // On "All": Trending → Popular → The rest.
-  const trending = useMemo(() => {
-    if (category !== ALL) return [];
-    return sortByTrending(communities).slice(0, 6);
-  }, [communities, category]);
-=======
   const recommended = useMemo(() => {
     const pool =
       category === ALL ? communities : communities.filter((c) => c.category === category);
@@ -327,25 +291,9 @@ export default function CommunitiesDiscovery({
     }
     return undefined;
   }, [category, wantedSkills, communities, f.recommendedNoSkillMatch]);
->>>>>>> origin/develop
 
   const topicSections = useMemo(() => {
     if (category !== ALL) return [];
-<<<<<<< HEAD
-
-    const trendingIds = new Set(trending.map((c) => c.id));
-
-    return sortByPopular(communities.filter((c) => !trendingIds.has(c.id))).slice(0, 6);
-  }, [communities, category, trending]);
-
-  const rest = useMemo(() => {
-    if (category !== ALL) return [];
-
-    const shown = new Set([...trending.map((c) => c.id), ...popular.map((c) => c.id)]);
-
-    return sortByActivity(communities.filter((c) => !shown.has(c.id)));
-  }, [communities, category, trending, popular]);
-=======
     const recommendedIds = new Set(recommended.slice(0, INITIAL_VISIBLE).map((c) => c.id));
     const byCat = new Map<string, ForumCommunity[]>();
     for (const c of communities) {
@@ -365,7 +313,6 @@ export default function CommunitiesDiscovery({
       .sort((a, b) => b.communities.length - a.communities.length)
       .slice(0, 4);
   }, [communities, category, recommended, f.moreLike, locale]);
->>>>>>> origin/develop
 
   const categoryDisplay = categoryLabel(locale, category);
 
@@ -435,33 +382,6 @@ export default function CommunitiesDiscovery({
               : interpolate(f.createCommunityIn, { category: categoryDisplay })}
           </button>
         </div>
-<<<<<<< HEAD
-      ) : (
-        <>
-          <CommunitySection
-            title={f.trending}
-            communities={trending}
-            viewerId={viewerId}
-            onJoinedChange={onJoinedChange}
-          />
-
-          <CommunitySection
-            title={f.popular}
-            communities={popular}
-            viewerId={viewerId}
-            onJoinedChange={onJoinedChange}
-          />
-
-          <CommunitySection
-            title={f.moreCommunities}
-            communities={rest}
-            viewerId={viewerId}
-            initialCount={3}
-            onJoinedChange={onJoinedChange}
-          />
-        </>
-=======
->>>>>>> origin/develop
       )}
 
       {topicSections.map((section) => (

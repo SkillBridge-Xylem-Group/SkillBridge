@@ -112,9 +112,6 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
   const [topics, setTopics] = useState<string[]>(() =>
     initialTopics.filter((t) => (COMMUNITY_TOPICS as readonly string[]).includes(t)).slice(0, 3)
   );
-  const [otherActive, setOtherActive] = useState(false);
-  const [otherValue, setOtherValue] = useState("");
-  const totalSelectedCount = topics.length + (otherActive ? 1 : 0);
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
@@ -167,24 +164,13 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
   function toggleTopic(topic: string) {
     setTopics((prev) => {
       if (prev.includes(topic)) return prev.filter((t) => t !== topic);
-      if (prev.length + (otherActive ? 1 : 0) >= 3) return prev;
+      if (prev.length >= 3) return prev;
       return [...prev, topic];
     });
   }
 
-  function toggleOther() {
-    setOtherActive((prev) => {
-      if (prev) {
-        setOtherValue("");
-        return false;
-      }
-      if (topics.length >= 3) return prev;
-      return true;
-    });
-  }
-
   function canContinue(): boolean {
-    if (step === 0) return topics.length >= 1 || (otherActive && otherValue.trim().length >= 2);
+    if (step === 0) return topics.length >= 1;
     if (step === 1) {
       return title.trim().length >= 3 && description.trim().length >= 1 && previewSlug.length >= 3;
     }
@@ -289,18 +275,11 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
         }
       }
 
-      const finalTopics =
-        otherActive && otherValue.trim() ? [...topics, otherValue.trim().slice(0, 40)].slice(0, 3) : topics;
-
       const res = await createCommunityAction({
         title: title.trim(),
         slug: previewSlug,
         description: description.trim(),
-<<<<<<< HEAD
-        category: finalTopics[0] ?? "General",
-=======
         category: topics[0] ?? "General",
->>>>>>> origin/develop
         visibility,
         accentColor: accent,
         imageUrl,
@@ -371,39 +350,8 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                     </button>
                   );
                 })}
-                <button
-                  type="button"
-                  onClick={toggleOther}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
-                    otherActive
-                      ? "border-slate-900 bg-slate-900 text-white"
-                      : "border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  <Sparkles size={16} className={otherActive ? "text-white" : "text-slate-500"} aria-hidden />
-                  Other
-                </button>
               </div>
-
-              {otherActive ? (
-                <div className="mt-3">
-                  <input
-                    type="text"
-                    value={otherValue}
-                    onChange={(e) => setOtherValue(e.target.value.slice(0, 40))}
-                    placeholder="Type your own topic (e.g. Marketing)"
-                    maxLength={40}
-                    autoFocus
-                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-slate-400"
-                  />
-                  <p className="mt-1 text-[11px] text-slate-400">
-                    Custom topics won't have their own Discover tab yet — your community will still show up under
-                    "All".
-                  </p>
-                </div>
-              ) : null}
-
-              <p className="mt-3 text-xs text-slate-400">{totalSelectedCount}/3 topics selected</p>
+              <p className="mt-3 text-xs text-slate-400">{topics.length}/3 topics selected</p>
             </div>
           ) : null}
 
@@ -656,8 +604,6 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                       ) : null}
                       {topics[0] ? (
                         <p className="text-xs text-slate-500">{categoryLabel(locale, topics[0])}</p>
-                      ) : otherActive && otherValue.trim() ? (
-                        <p className="text-xs text-slate-500">{otherValue.trim()}</p>
                       ) : null}
                     </div>
                   </div>

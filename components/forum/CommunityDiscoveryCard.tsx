@@ -47,42 +47,38 @@ export default function CommunityDiscoveryCard({ community, joinControl }: Commu
       </Link>
 
       <div className="relative flex flex-1 flex-col px-4 pb-4 pt-0">
-  {/* Avatar overlaps the banner on its own */}
-  <div className="-mt-8 mb-2">
-    <Link href={`/dashboard/forum/c/${community.slug}`} className="inline-block">
-      <CommunityAvatar
-        title={community.title}
-        imageUrl={community.image_url}
-        accentColor={community.accent_color}
-        size="lg"
-        contrast
-      />
-    </Link>
-  </div>
+        <div className="-mt-8 mb-2 flex items-end justify-between gap-2">
+          <Link href={`/dashboard/forum/c/${community.slug}`} className="shrink-0">
+            <CommunityAvatar
+              title={community.title}
+              imageUrl={community.image_url}
+              accentColor={community.accent_color}
+              size="lg"
+              contrast
+            />
+          </Link>
+          <div className="mb-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+            {joinControl}
+          </div>
+        </div>
 
-  {/* Title row now carries the join control, well clear of the banner */}
-  <div className="flex items-start justify-between gap-2">
-    <Link href={`/dashboard/forum/c/${community.slug}`} className="min-w-0 flex-1">
-      <div className="flex items-center gap-1.5">
-        <h3 className="truncate text-base font-extrabold tracking-tight" style={{ color: "var(--sb-ink)" }}>
-          {community.title}
-        </h3>
-      </div>
-      {community.description ? (
-        <p className="mt-1.5 line-clamp-2 text-sm leading-snug" style={{ color: "var(--sb-muted)" }}>
-          {community.description}
-        </p>
-      ) : null}
-    </Link>
-    <div className="shrink-0 pt-0.5" onClick={(e) => e.stopPropagation()}>
-      {joinControl}
-    </div>
-  </div>
+        <Link href={`/dashboard/forum/c/${community.slug}`} className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <h3 className="truncate text-base font-extrabold tracking-tight" style={{ color: "var(--sb-ink)" }}>
+              {community.title}
+            </h3>
+          </div>
+          {community.description ? (
+            <p className="mt-1.5 line-clamp-2 text-sm leading-snug" style={{ color: "var(--sb-muted)" }}>
+              {community.description}
+            </p>
+          ) : null}
+        </Link>
 
-  <div
-    className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold"
-    style={{ color: "var(--sb-muted)" }}
-  >
+        <div
+          className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold"
+          style={{ color: "var(--sb-muted)" }}
+        >
           <span className="inline-flex items-center gap-1.5">
             <Users size={13} className="shrink-0" style={{ color: "var(--sb-teal-dark)" }} aria-hidden />
             {community.member_count.toLocaleString()}{" "}

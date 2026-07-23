@@ -200,7 +200,8 @@ export const idPack: Dictionary = {
     posts: "postingan",
     post: "postingan",
     discoverTitle: "Jelajahi Komunitas",
-    trending: "Tren",
+    discoverSubtitle:
+      "Temukan komunitas untuk diikuti, atau buat sendiri dan mulai posting.",
     recommended: "Direkomendasikan untuk Anda",
     recommendedBasedOnSkills: "Berdasarkan skill yang ingin Anda pelajari: {skills}",
     recommendedNoSkillMatch:
@@ -208,7 +209,6 @@ export const idPack: Dictionary = {
     moreLike: "Lainnya seperti {category}",
     showMore: "Tampilkan lebih banyak",
     showLess: "Tampilkan lebih sedikit",
-    moreCommunities: "Komunitas Lainnya",
     noCommunities: "Belum ada komunitas",
     noCommunitiesIn: "Belum ada komunitas di {category}",
     beFirst: "Jadilah yang pertama membuatnya.",
@@ -720,7 +720,8 @@ export const jaPack: Dictionary = {
     posts: "件の投稿",
     post: "件の投稿",
     discoverTitle: "コミュニティを探す",
-    trending: "トレンド",
+    discoverSubtitle:
+      "参加するコミュニティを見つけるか、自分で作って投稿を始めましょう。",
     recommended: "あなたへのおすすめ",
     recommendedBasedOnSkills: "学びたいスキルに基づくおすすめ：{skills}",
     recommendedNoSkillMatch:
@@ -728,7 +729,6 @@ export const jaPack: Dictionary = {
     moreLike: "「{category}」に似たコミュニティ",
     showMore: "もっと見る",
     showLess: "閉じる",
-    moreCommunities: "その他のコミュニティ",
     noCommunities: "まだコミュニティがありません",
     noCommunitiesIn: "「{category}」にはまだコミュニティがありません",
     beFirst: "最初の作成者になりましょう。",
@@ -1238,7 +1238,8 @@ export const koPack: Dictionary = {
     posts: "게시물",
     post: "게시물",
     discoverTitle: "커뮤니티 둘러보기",
-    trending: "트렌딩",
+    discoverSubtitle:
+      "가입할 커뮤니티를 찾거나 직접 만들고 게시물을 작성하세요.",
     recommended: "맞춤 추천",
     recommendedBasedOnSkills: "배우고 싶은 스킬 기반 추천: {skills}",
     recommendedNoSkillMatch:
@@ -1246,7 +1247,6 @@ export const koPack: Dictionary = {
     moreLike: "{category}와(과) 비슷한 커뮤니티",
     showMore: "더 보기",
     showLess: "접기",
-    moreCommunities: "더 많은 커뮤니티",
     noCommunities: "아직 커뮤니티가 없습니다",
     noCommunitiesIn: "{category}에 아직 커뮤니티가 없습니다",
     beFirst: "첫 번째로 만들어 보세요.",
