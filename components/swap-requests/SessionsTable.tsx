@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
@@ -29,6 +29,10 @@ const STATUS_STYLES: Record<string, { bg: string; ink: string }> = {
 
 const HISTORY_STATUSES = new Set(["completed", "cancelled", "declined"]);
 
+const TH_CLASS =
+  "px-4 pb-3 pt-1 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 first:pl-0 last:pr-0";
+const TD_CLASS = "px-4 py-4 align-middle first:pl-0 last:pr-0";
+
 function formatDateTime(value: string | null, locale: string, notScheduled: string) {
   if (!value) return notScheduled;
   return new Date(value).toLocaleString(locale, {
@@ -38,6 +42,39 @@ function formatDateTime(value: string | null, locale: string, notScheduled: stri
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function ActionButton({
+  children,
+  onClick,
+  disabled,
+  variant = "secondary",
+  className = "",
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  variant?: "primary" | "secondary" | "danger";
+  className?: string;
+}) {
+  const styles =
+    variant === "primary"
+      ? { background: "var(--sb-gradient)", color: "#fff" }
+      : variant === "danger"
+        ? { background: "#fff", color: "#dc2626", border: "1px solid #fecaca" }
+        : { background: "#fff", color: "var(--sb-ink)", border: "1px solid #e2e8f0" };
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      style={styles}
+    >
+      {children}
+    </button>
+  );
 }
 
 function SessionRow({
@@ -67,6 +104,7 @@ function SessionRow({
   const canManage = session.status === "accepted" || session.status === "rescheduled";
   const canReview = session.status === "completed" && !session.hasReviewedPartner;
   const canRemoveHistory = HISTORY_STATUSES.has(session.status);
+  const category = session.topic?.category?.trim();
 
   function markComplete() {
     startTransition(async () => {
@@ -109,122 +147,98 @@ function SessionRow({
   const status = STATUS_STYLES[session.status] ?? STATUS_STYLES.pending;
 
   return (
-    <tr>
-      <td className="py-4">
-        <p className="font-bold" style={{ color: "var(--sb-ink)" }}>
-          {session.topic?.skill_name ?? s.skillSwapSession}
-        </p>
-        <p style={{ color: "var(--sb-muted)" }}>{session.topic?.category ?? ""}</p>
+    <tr className="transition hover:bg-[#f8fcfa]">
+      <td className={TD_CLASS}>
+        <div className="min-w-[10rem]">
+          <p className="font-semibold leading-snug" style={{ color: "var(--sb-ink)" }}>
+            {session.topic?.skill_name ?? s.skillSwapSession}
+          </p>
+          {category ? (
+            <p className="mt-0.5 text-xs" style={{ color: "var(--sb-muted)" }}>
+              {category}
+            </p>
+          ) : null}
+        </div>
       </td>
-      <td className="py-4">
-        <div className="flex items-center gap-2.5">
-          <Avatar className="h-9 w-9 text-xs">
+      <td className={TD_CLASS}>
+        <div className="flex min-w-[9rem] items-center gap-2.5">
+          <Avatar className="h-9 w-9 shrink-0 text-xs">
             {session.partner.avatar_url ? <AvatarImage src={session.partner.avatar_url} alt="" /> : null}
             <AvatarFallback className="font-bold text-white" style={{ background: "var(--sb-gradient)" }}>
               {getInitials(session.partner.fullname)}
             </AvatarFallback>
           </Avatar>
-          <span className="font-semibold" style={{ color: "var(--sb-ink)" }}>
+          <span className="font-medium leading-snug" style={{ color: "var(--sb-ink)" }}>
             {session.partner.fullname}
           </span>
         </div>
       </td>
-      <td className="py-4" style={{ color: "var(--sb-muted)" }}>
+      <td className={`${TD_CLASS} whitespace-nowrap text-sm tabular-nums`} style={{ color: "var(--sb-muted)" }}>
         {isRescheduling ? (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex max-w-xs flex-wrap items-center gap-2">
             <input
               type="datetime-local"
               value={newTime}
               onChange={(e) => setNewTime(e.target.value)}
-              className="nb-input px-2 py-1 text-xs"
+              className="nb-input px-2 py-1.5 text-xs"
             />
-            <button
-              type="button"
-              disabled={isPending || !newTime}
-              onClick={confirmReschedule}
-              className="nb-btn px-3 py-1 text-xs text-white disabled:opacity-50"
-              style={{ background: "var(--sb-gradient)" }}
-            >
+            <ActionButton variant="primary" disabled={isPending || !newTime} onClick={confirmReschedule}>
               {dictionary.common.save}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsRescheduling(false)}
-              className="nb-btn bg-white px-3 py-1 text-xs"
-              style={{ color: "var(--sb-ink)" }}
-            >
+            </ActionButton>
+            <ActionButton disabled={isPending} onClick={() => setIsRescheduling(false)}>
               {s.cancel}
-            </button>
+            </ActionButton>
           </div>
         ) : (
           formatDateTime(session.scheduled_time, dateLocaleTag(locale), s.notScheduled)
         )}
       </td>
-      <td className="py-4">
+      <td className={TD_CLASS}>
         <span
-          className="rounded-full px-3 py-1 text-xs font-bold"
+          className="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
           style={{ background: status.bg, color: status.ink }}
         >
           {statusLabels[session.status] ?? session.status}
         </span>
       </td>
-      <td className="py-4">
-        <div className="flex flex-col items-start gap-1.5">
-          {canManage && !isRescheduling && (
-            <div className="flex w-[11.5rem] flex-col gap-1.5">
+      <td className={TD_CLASS}>
+        <div className="flex min-w-[11rem] flex-wrap items-center gap-2">
+          {canManage && !isRescheduling ? (
+            <div className="flex flex-wrap items-center gap-2">
               <Link
                 href={`/dashboard/swap-session/${session.request_id}`}
-                className="nb-btn px-3 py-1.5 text-xs text-white"
+                className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
                 style={{ background: "var(--sb-gradient)" }}
               >
                 {s.joinSession}
               </Link>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={markComplete}
-                className="nb-btn bg-white px-3 py-1.5 text-xs disabled:opacity-50"
-                style={{ color: "var(--sb-ink)" }}
-              >
+              <ActionButton disabled={isPending} onClick={markComplete}>
                 {s.markComplete}
-              </button>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => setIsRescheduling(true)}
-                className="nb-btn bg-white px-3 py-1.5 text-xs disabled:opacity-50"
-                style={{ color: "var(--sb-ink)" }}
-              >
+              </ActionButton>
+              <ActionButton disabled={isPending} onClick={() => setIsRescheduling(true)}>
                 {s.reschedule}
-              </button>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={cancel}
-                className="nb-btn bg-white px-3 py-1.5 text-xs text-red-600 disabled:opacity-50"
-              >
+              </ActionButton>
+              <ActionButton variant="danger" disabled={isPending} onClick={cancel}>
                 {s.cancel}
-              </button>
+              </ActionButton>
             </div>
-          )}
-          {canReview && (
-            <button
-              type="button"
-              onClick={() => onReview(session)}
-              className="nb-btn px-3 py-1.5 text-xs text-white"
-              style={{ background: "var(--sb-gradient)" }}
-            >
+          ) : null}
+
+          {canReview ? (
+            <ActionButton variant="primary" onClick={() => onReview(session)}>
               {s.leaveReview}
-            </button>
-          )}
-          {session.status === "completed" && session.hasReviewedPartner && (
+            </ActionButton>
+          ) : null}
+
+          {session.status === "completed" && session.hasReviewedPartner ? (
             <span
-              className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+              className="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
               style={{ background: "#f1f5f9", color: "var(--sb-muted)" }}
             >
               {s.reviewed}
             </span>
-          )}
+          ) : null}
+
           {canRemoveHistory ? (
             <button
               type="button"
@@ -233,14 +247,19 @@ function SessionRow({
                 setHideError("");
                 setConfirmHide(true);
               }}
-              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+              aria-label={s.removeFromHistory}
+              title={s.removeFromHistory}
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
             >
-              <Trash2 size={13} />
-              {s.removeFromHistory}
+              <Trash2 size={15} />
             </button>
           ) : null}
-          {hideError ? <p className="max-w-[11.5rem] text-[11px] font-medium text-red-600">{hideError}</p> : null}
+
+          {!canManage && !canReview && !canRemoveHistory && session.status !== "completed" ? (
+            <span className="text-sm text-slate-300">—</span>
+          ) : null}
         </div>
+        {hideError ? <p className="mt-1.5 max-w-[14rem] text-[11px] font-medium text-red-600">{hideError}</p> : null}
 
         <ConfirmDialog
           open={confirmHide}
@@ -265,26 +284,28 @@ export default function SessionsTable({ sessions }: { sessions: SessionRequestSu
   const router = useRouter();
 
   return (
-    <div className="nb-card p-6 sm:p-8">
-      <h2 className="text-lg font-extrabold nb-heading">{s.recentSessions}</h2>
+    <div className="nb-card overflow-hidden">
+      <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
+        <h2 className="text-lg font-extrabold nb-heading">{s.recentSessions}</h2>
+      </div>
 
       {sessions.length === 0 ? (
-        <p className="mt-4 text-sm" style={{ color: "var(--sb-muted)" }}>
+        <p className="px-6 py-8 text-sm sm:px-8" style={{ color: "var(--sb-muted)" }}>
           {s.noSessionsHint}
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
+        <div className="overflow-x-auto px-6 pb-2 sm:px-8">
+          <table className="w-full min-w-[760px] border-collapse text-left text-sm">
             <thead>
-              <tr className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sb-muted)" }}>
-                <th className="pb-3 font-bold">{s.sessionInfo}</th>
-                <th className="pb-3 font-bold">{s.swapPartner}</th>
-                <th className="pb-3 font-bold">{s.dateTime}</th>
-                <th className="pb-3 font-bold">{s.status}</th>
-                <th className="pb-3 font-bold">{s.actions}</th>
+              <tr className="border-b border-slate-100">
+                <th className={TH_CLASS}>{s.sessionInfo}</th>
+                <th className={TH_CLASS}>{s.swapPartner}</th>
+                <th className={TH_CLASS}>{s.dateTime}</th>
+                <th className={TH_CLASS}>{s.status}</th>
+                <th className={`${TH_CLASS} min-w-[11rem]`}>{s.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y" style={{ borderColor: "#eef7f0" }}>
+            <tbody className="divide-y divide-slate-100">
               {sessions.map((row) => (
                 <SessionRow key={row.request_id} session={row} onReview={setReviewTarget} />
               ))}
@@ -293,7 +314,7 @@ export default function SessionsTable({ sessions }: { sessions: SessionRequestSu
         </div>
       )}
 
-      {reviewTarget && (
+      {reviewTarget ? (
         <ReviewModal
           open
           sessionRequestId={reviewTarget.request_id}
@@ -301,7 +322,7 @@ export default function SessionsTable({ sessions }: { sessions: SessionRequestSu
           onClose={() => setReviewTarget(null)}
           onSubmitted={() => router.refresh()}
         />
-      )}
+      ) : null}
     </div>
   );
 }
