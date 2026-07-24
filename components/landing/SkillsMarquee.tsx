@@ -75,8 +75,8 @@ export default function SkillsMarquee() {
       });
     }
 
-    layoutRing("[data-orbit='outer']", 46, 360 / 70000);
-    layoutRing("[data-orbit='inner']", 27, -360 / 50000);
+    layoutRing("[data-orbit='outer']", 50, 360 / 70000);
+    layoutRing("[data-orbit='inner']", 31, -360 / 50000);
 
     let frameId: number;
     function tick(now: number) {
@@ -115,7 +115,10 @@ export default function SkillsMarquee() {
         ref={containerRef}
         className="relative mx-auto mt-6 aspect-square w-[92vw] max-w-[560px] sm:max-w-[400px] lg:max-w-[560px]"
       >
-        <div className="absolute inset-0 rounded-full" style={{ border: "2px dashed rgba(15,31,22,.18)" }} />
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{ border: "2px dashed rgba(15,31,22,.18)", animation: "orbitSpin 70s linear infinite" }}
+        />
         <div
           className="absolute rounded-full"
           style={{ inset: "19%", border: "2px dashed rgba(15,31,22,.18)", animation: "orbitSpin 50s linear infinite reverse" }}

@@ -587,6 +587,20 @@ button.bg-brand:enabled:active,
   }
 }
 
+/* Hero "Teach everything." — kinetic per-letter, follows cursor (magnetic-ish). */
+.landing-kinetic-letter {
+  display: inline-block;
+  transform: translateY(var(--kinetic-y, 0)) scale(var(--kinetic-s, 1));
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-kinetic-letter {
+    transition: none;
+    transform: none !important;
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* "nb-" utilities — the authenticated dashboard's design system.      */
 /* Soft, rounded, shadow-based "friendly" look (emerald/teal, Poppins, */
