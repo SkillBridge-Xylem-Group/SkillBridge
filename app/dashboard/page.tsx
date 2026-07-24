@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getRequestUser } from "@/lib/dashboardShell";
-import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 import TopRatedMembers from "@/components/dashboard/TopRatedMembers";
 import RecentForumDiscussions from "@/components/dashboard/RecentForumDiscussions";
 import RecentMessages from "@/components/dashboard/RecentMessages";
 import OnboardingGate from "@/components/onboarding/OnboardingGate";
-import { deriveNameFromEmail } from "@/lib/deriveName";
 import { getSkillsByCategory } from "@/lib/skillCatalog";
 import { isAdminUser } from "@/lib/auth/isAdmin";
 
@@ -19,7 +17,7 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, isAdmin] = await Promise.all([
-    supabase.from("users").select("fullname, bio, experience_points, level").eq("id", user.id).maybeSingle(),
+    supabase.from("users").select("bio").eq("id", user.id).maybeSingle(),
     isAdminUser(supabase, user.id),
   ]);
 
@@ -32,12 +30,6 @@ export default async function DashboardPage() {
     supabase.from("user_skill_wanted").select("id", { count: "exact", head: true }).eq("user_id", user.id),
   ]);
 
-  const displayName =
-    profile?.fullname ||
-    user.user_metadata?.full_name ||
-    user.user_metadata?.name ||
-    (user.email ? deriveNameFromEmail(user.email) : "there");
-
   const showOnboarding = !profile?.bio && (offeredCount ?? 0) === 0 && (wantedCount ?? 0) === 0;
   const skillsByCategory = showOnboarding ? await getSkillsByCategory(supabase) : {};
 
@@ -45,7 +37,6 @@ export default async function DashboardPage() {
     <>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <WelcomeBanner name={displayName} />
           <TopRatedMembers />
           <RecentMessages />
         </div>
