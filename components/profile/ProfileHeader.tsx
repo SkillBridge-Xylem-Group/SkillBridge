@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Pencil, Calendar, Clock, Check, X, Plus } from "lucide-react";
+import ProfileUidMeta from "./ProfileUidMeta";
 import { uploadAvatar } from "@/lib/avatarUpload";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLocale } from "@/components/i18n/LocaleProvider";
@@ -9,6 +10,7 @@ import { formatAppDate } from "@/lib/i18n/locales";
 
 type ProfileHeaderProps = {
   userId: string;
+  publicUid: number | null;
   fullname: string;
   createdAt: string;
   timezone: string;
@@ -21,6 +23,7 @@ type ProfileHeaderProps = {
 
 export default function ProfileHeader({
   userId,
+  publicUid,
   fullname,
   createdAt,
   timezone,
@@ -122,8 +125,11 @@ export default function ProfileHeader({
                 className="nb-input px-3 py-1.5 text-2xl font-extrabold nb-heading"
               />
             ) : (
-              <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>{fullname}</h1>
+              <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>
+                {fullname}
+              </h1>
             )}
+            <ProfileUidMeta publicUid={publicUid} />
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ color: "var(--sb-muted)" }}>
               <span className="flex items-center gap-1.5">
                 <Calendar size={14} />

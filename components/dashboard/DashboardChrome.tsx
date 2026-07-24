@@ -17,6 +17,7 @@ import { DASHBOARD_NAV_ITEMS } from "@/lib/dashboard-nav";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import { TopbarLeadingProvider } from "./TopbarLeading";
 import { MobileBottomNav } from "./MobileNav";
 import NavigationProgressBar from "./NavigationProgressBar";
 
@@ -156,25 +157,27 @@ export default function DashboardChrome({
   return (
     <LocaleProvider initialLocale={shell.initialLocale}>
       <PendingNavContext.Provider value={{ pendingHref, navigate }}>
-        <Suspense fallback={null}>
-          <NavigationProgressBar active={isPending} />
-        </Suspense>
-        <div className="nb-page flex min-h-screen items-start gap-0 p-0 lg:gap-3 lg:px-3 lg:pb-3 lg:pt-2">
-          <Sidebar communities={communities} />
+        <TopbarLeadingProvider>
+          <Suspense fallback={null}>
+            <NavigationProgressBar active={isPending} />
+          </Suspense>
+          <div className="nb-page flex min-h-screen items-start gap-0 p-0 lg:gap-3 lg:px-3 lg:pb-3 lg:pt-2">
+            <Sidebar communities={communities} />
 
-          <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
-            <Topbar userName={shell.userName} avatarUrl={shell.avatarUrl} communities={communities} />
-            <main
-              className={
-                mainClassName ?? "min-w-0 px-4 pb-24 pt-2 sm:px-6 lg:px-0 lg:pb-8 lg:pt-1"
-              }
-            >
-              {children}
-            </main>
+            <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
+              <Topbar userName={shell.userName} avatarUrl={shell.avatarUrl} communities={communities} />
+              <main
+                className={
+                  mainClassName ?? "min-w-0 px-4 pb-24 pt-2 sm:px-6 lg:px-0 lg:pb-8 lg:pt-1"
+                }
+              >
+                {children}
+              </main>
+            </div>
+
+            <MobileBottomNav />
           </div>
-
-          <MobileBottomNav />
-        </div>
+        </TopbarLeadingProvider>
       </PendingNavContext.Provider>
     </LocaleProvider>
   );

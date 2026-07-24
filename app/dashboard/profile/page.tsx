@@ -23,12 +23,13 @@ export default async function ProfilePage() {
 
   const { data: row } = await supabase
     .from("users")
-    .select("fullname, bio, avatar_url, timezone, experience_points, level, trust_score")
+    .select("fullname, bio, avatar_url, timezone, experience_points, level, trust_score, public_uid")
     .eq("id", user.id)
     .maybeSingle();
 
   const profile: Profile = {
     user_id: user.id,
+    public_uid: row?.public_uid ?? null,
     fullname:
       row?.fullname ||
       user.user_metadata?.full_name ||
