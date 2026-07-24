@@ -180,6 +180,7 @@ export type Dictionary = {
     popular: string;
     unanswered: string;
     communities: string;
+    backToCommunity: string;
     createCommunity: string;
     manageCommunities: string;
     joinFromForum: string;
@@ -270,6 +271,8 @@ export type Dictionary = {
     allCommunities: string;
     favoritesTab: string;
     trendingIn: string;
+    visitCommunity: string;
+    morePostsIn: string;
     noPostsYet: string;
     startFeed: string;
     noPostsFor: string;
@@ -320,6 +323,9 @@ export type Dictionary = {
   };
   profile: {
     memberSince: string;
+    userUid: string;
+    copyUid: string;
+    uidCopied: string;
     timezone: string;
     editProfile: string;
     saveProfile: string;
@@ -678,6 +684,7 @@ const en: Dictionary = {
     popular: "Popular",
     unanswered: "Unanswered",
     communities: "Communities",
+    backToCommunity: "Back to {community}",
     createCommunity: "Create community",
     manageCommunities: "Manage",
     joinFromForum: "Join communities from the Forum.",
@@ -770,6 +777,8 @@ const en: Dictionary = {
     allCommunities: "All Communities",
     favoritesTab: "Favorites",
     trendingIn: "Trending in {title}",
+    visitCommunity: "Visit community",
+    morePostsIn: "More in {title}",
     noPostsYet: "This community doesn't have any posts yet",
     startFeed: "Make one and get this feed started.",
     noPostsFor: 'No posts found for "{q}"',
@@ -821,6 +830,9 @@ const en: Dictionary = {
   },
   profile: {
     memberSince: "Member since",
+    userUid: "UID: {uid}",
+    copyUid: "Copy UID",
+    uidCopied: "Copied",
     timezone: "Timezone",
     editProfile: "Edit Profile",
     saveProfile: "Save Profile",
@@ -1177,6 +1189,7 @@ const zhCN: Dictionary = {
     popular: "热门",
     unanswered: "未回复",
     communities: "社区",
+    backToCommunity: "返回 {community}",
     createCommunity: "创建社区",
     manageCommunities: "管理",
     joinFromForum: "在论坛中加入感兴趣的社区。",
@@ -1267,6 +1280,8 @@ const zhCN: Dictionary = {
     allCommunities: "全部社区",
     favoritesTab: "收藏",
     trendingIn: "{title} 中的热门",
+    visitCommunity: "访问社区",
+    morePostsIn: "{title} 中的更多帖子",
     noPostsYet: "这个社区还没有帖子",
     startFeed: "发一篇，开启讨论吧。",
     noPostsFor: "没有找到与「{q}」相关的帖子",
@@ -1317,6 +1332,9 @@ const zhCN: Dictionary = {
   },
   profile: {
     memberSince: "加入于",
+    userUid: "UID：{uid}",
+    copyUid: "复制 UID",
+    uidCopied: "已复制",
     timezone: "时区",
     editProfile: "编辑资料",
     saveProfile: "保存资料",

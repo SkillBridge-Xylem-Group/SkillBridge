@@ -6,6 +6,7 @@ export type Skill = {
 
 export type Profile = {
   user_id: string;
+  public_uid: number | null;
   fullname: string;
   bio: string | null;
   avatar_url: string | null;

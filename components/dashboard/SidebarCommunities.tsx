@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Plus, Settings, Star } from "lucide-react";
+import { ChevronDown, Settings, Star } from "lucide-react";
 import type { SidebarCommunity } from "@/lib/forumCommunities";
 import CommunityAvatar from "@/components/forum/CommunityAvatar";
 import { useLocale } from "@/components/i18n/LocaleProvider";
@@ -132,15 +132,6 @@ export default function SidebarCommunities({ communities, onNavigate }: SidebarC
             className={`shrink-0 text-slate-400 transition ${open ? "rotate-180" : ""}`}
           />
         </button>
-        <Link
-          href="/dashboard/forum?create=1"
-          onClick={onNavigate}
-          className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-          aria-label={f.createCommunity}
-          title={f.createCommunity}
-        >
-          <Plus size={14} strokeWidth={2.5} />
-        </Link>
       </div>
 
       {open ? (
