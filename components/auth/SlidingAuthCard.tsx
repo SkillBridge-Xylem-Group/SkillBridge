@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 import ForgotPasswordForm from "./ForgotPasswordForm";
 import { ArrowLeft } from "lucide-react";
+
+const AUTH_PANEL_BG = "/images/auth-panel-bg.jpg";
 
 type Mode = "login" | "signup" | "reset";
 
@@ -74,9 +77,26 @@ export default function SlidingAuthCard({ initialMode, redirectTo, urlError, jus
         </div>
 
         <div
-          className="absolute inset-y-0 left-0 z-10 flex w-1/2 flex-col items-center justify-center px-12 text-center text-white transition-transform duration-700"
-          style={{ background: "var(--neu-grad)", transform: mode === "signup" ? "translateX(100%)" : "translateX(0)" }}
+          className="absolute inset-y-0 left-0 z-10 flex w-1/2 flex-col items-center justify-center overflow-hidden px-12 text-center text-white transition-transform duration-700"
+          style={{ transform: mode === "signup" ? "translateX(100%)" : "translateX(0)" }}
         >
+          <Image
+            src={AUTH_PANEL_BG}
+            alt=""
+            fill
+            priority
+            quality={100}
+            unoptimized
+            sizes="550px"
+            className="object-cover object-center"
+            draggable={false}
+            aria-hidden
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-br from-emerald-950/50 via-teal-900/40 to-slate-900/45"
+            aria-hidden
+          />
+          <div className="relative z-10">
           {mode === "signup" ? (
             <>
               <h1 className="text-3xl font-semibold" style={{ fontFamily: "var(--font-playful)" }}>Welcome Back!</h1>
@@ -108,6 +128,7 @@ export default function SlidingAuthCard({ initialMode, redirectTo, urlError, jus
               </button>
             </>
           )}
+          </div>
         </div>
       </div>
 
