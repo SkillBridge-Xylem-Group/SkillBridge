@@ -38,7 +38,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
   const { data: profileRow } = await supabase
     .from("users")
-    .select("id, fullname, bio, timezone, experience_points, level, trust_score, created_at")
+    .select("id, fullname, bio, timezone, experience_points, level, trust_score, created_at, public_uid")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -75,6 +75,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       <div className="space-y-6 lg:col-span-2">
         <PublicProfileHeader
           fullname={profileRow.fullname}
+          publicUid={profileRow.public_uid ?? null}
           memberSince={memberSince}
           memberSinceLabel={p.memberSince}
           timezone={timezoneDisplay}

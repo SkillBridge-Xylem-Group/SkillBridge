@@ -10,6 +10,7 @@ import NotificationBell from "./NotificationBell";
 import { MobileNavDrawer } from "./MobileNav";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useTopbarLeading } from "./TopbarLeading";
 
 type TopbarProps = {
   userName: string;
@@ -19,13 +20,20 @@ type TopbarProps = {
 
 export default function Topbar({ userName, avatarUrl = null, communities = [] }: TopbarProps) {
   const { dictionary } = useLocale();
+  const leading = useTopbarLeading();
   const [menuOpen, setMenuOpen] = useState(false);
   const { notifications, unreadCount, unreadMessageCount, reload } = useRealtimeNotifications();
 
   return (
     <>
-      <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 bg-white/90 px-4 py-2.5 backdrop-blur-sm sm:px-6 lg:mb-0 lg:justify-end lg:bg-[var(--sb-bg)]/90 lg:px-0 lg:py-2">
-        <div className="flex min-w-0 items-center gap-2 lg:hidden">
+      <div
+        className={`sticky top-0 z-30 flex shrink-0 items-center gap-3 bg-white/90 px-4 py-2.5 backdrop-blur-sm sm:px-6 lg:mb-0 lg:bg-[var(--sb-bg)]/90 lg:px-0 lg:py-2 ${
+          leading ? "justify-between" : "justify-between lg:justify-end"
+        }`}
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          {leading ? <div className="shrink-0">{leading}</div> : null}
+          <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"
             aria-label={dictionary.nav.openNavigationMenu}
@@ -45,6 +53,7 @@ export default function Topbar({ userName, avatarUrl = null, communities = [] }:
             />
             <span className="truncate text-base font-extrabold nb-heading">SkillBridge</span>
           </Link>
+          </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">

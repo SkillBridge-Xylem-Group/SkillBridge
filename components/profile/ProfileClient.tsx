@@ -125,6 +125,7 @@ export default function ProfileClient({
     <>
       <ProfileHeader
         userId={profile.user_id}
+        publicUid={profile.public_uid}
         fullname={fullname}
         createdAt={profile.created_at}
         timezone={timezoneDisplay}
