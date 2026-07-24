@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillBridge | Master Your Future</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- GSAP untuk Animasi Scroll -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --secondary: #8b5cf6;
+            --accent: #f59e0b;
+            --bg-light: #f8fafc;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND ORNAMENTS --- */
+        .bg-glow {
+            position: fixed;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            z-index: -1; top: -200px; right: -200px;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; width: 100%; padding: 25px 10%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 100; transition: 0.3s;
+        }
+        nav.scrolled { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+        .nav-links a { text-decoration: none; margin-left: 30px; color: var(--text-main); font-weight: 600; font-size: 0.9rem; }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 140vh; /* Extra height for scroll effect */
+            display: flex; flex-direction: column; align-items: center;
+            padding-top: 150px; text-align: center;
+        }
+
+        .tagline {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 800; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: 1.1; margin-bottom: 25px; max-width: 900px; font-weight: 800; }
+        p.sub { color: var(--text-sub); font-size: 1.2rem; max-width: 600px; margin-bottom: 40px; }
+
+        .btn-start {
+            padding: 16px 45px; background: var(--primary); color: white;
+            border-radius: 50px; text-decoration: none; font-weight: 700;
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3); transition: 0.3s;
+        }
+        .btn-start:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4); }
+
+        /* --- LAPTOP ANIMATION SCROLL --- */
+        .laptop-scene {
+            position: sticky; top: 20%;
+            width: 100%; max-width: 1000px;
+            height: 600px; margin-top: 50px;
+            z-index: 10; pointer-events: none;
+        }
+
+        .laptop {
+            width: 800px; margin: 0 auto;
+            perspective: 2000px; transform-style: preserve-3d;
+        }
+
+        .screen {
+            width: 100%; aspect-ratio: 16/10;
+            background: #1e293b; border: 12px solid #334155;
+            border-radius: 20px 20px 0 0;
+            overflow: hidden; position: relative;
+            transform: rotateX(-15deg); /* Initial tilt */
+            transform-origin: bottom;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.1);
+        }
+
+        .screen-content {
+            width: 100%; height: 100%;
+            background: white; opacity: 0; /* Starts off */
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 1s ease;
+        }
+
+        .brand-logo-on-screen {
+            font-size: 4rem; font-weight: 800; color: var(--primary);
+        }
+
+        .laptop-base {
+            width: 110%; height: 12px; background: #94a3b8;
+            margin-left: -5%; border-radius: 0 0 100px 100px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        /* --- CONTENT SECTION --- */
+        .features {
+            padding: 200px 10%; background: white;
+            position: relative; z-index: 20;
+        }
+
+        .feature-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;
+        }
+
+        .f-card {
+            padding: 40px; border-radius: 30px; background: var(--bg-light);
+            border: 1px solid rgba(0,0,0,0.03); transition: 0.3s;
+        }
+        .f-card:hover { transform: translateY(-10px); background: white; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        .f-card i { font-size: 2.5rem; color: var(--primary); margin-bottom: 20px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+
+    <nav id="navbar">
+        <div class="logo">SkillBridge</div>
+        <div class="nav-links">
+            <a href="#">Courses</a>
+            <a href="#">Career</a>
+            <a href="#">Pricing</a>
+            <a href="#" style="color: var(--primary); border: 2px solid var(--primary); padding: 8px 20px; border-radius: 50px;">Sign In</a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="tagline">The Future of Learning is Here</div>
+        <h1>Master New Skills With Interactive Dashboards</h1>
+        <p class="sub">Empower your growth with real-time analytics, industry experts, and a community that supports you.</p>
+        <a href="#" class="btn-start">Get Started Free</a>
+
+        <!-- LAPTOP SCROLL CONTAINER -->
+        <div class="laptop-scene">
+            <div class="laptop">
+                <div class="screen" id="laptopScreen">
+                    <div class="screen-content" id="screenContent">
+                        <div class="brand-logo-on-screen">SkillBridge</div>
+                    </div>
+                </div>
+                <div class="laptop-base"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTENT SECTION -->
+    <section class="features">
+        <div style="text-align:center; margin-bottom: 80px;">
+            <h2 style="font-size: 3rem; margin-bottom: 20px;">Why SkillBridge?</h2>
+            <p style="color:var(--text-sub)">Everything you need to advance your career.</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="f-card">
+                <i class="fas fa-bolt"></i>
+                <h3>Fast Learning</h3>
+                <p>Curated paths designed to get you job-ready in weeks, not years.</p>
+            </div>
+            <div class="f-card">
+                <i class="fas fa-users"></i>
+                <h3>Expert Mentors</h3>
+                <p>Connect with professionals from top tech companies worldwide.</p>
+            </div>
+            <div class="f-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Track Progress</h3>
+                <p>Monitor your growth with our advanced data-driven dashboard.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FontAwesome -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <script>
+        // --- 1. Animasi Masuk (Page Load) ---
+        window.addEventListener('load', () => {
+            gsap.to("#screenContent", { opacity: 1, duration: 1.5, delay: 0.5 });
+        });
+
+        // --- 2. Nav Scroll Effect ---
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+        // --- 3. SCROLL ANIMATION (LAPTOP) ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: ".hero",
+                start: "top top",
+                end: "bottom center",
+                scrub: 1, // Gerakan mengikuti scroll (halus)
+                pin: false
+            }
+        });
+
+        tl.to("#laptopScreen", {
+            rotateX: 0,       // Layar menjadi tegak lurus
+            scale: 1.2,       // Zoom in ke arah layar
+            y: -50,           // Sedikit naik
+            duration: 2
+        });
+
+        // Efek masuk ke arah fitur
+        gsap.to(".laptop", {
+            scrollTrigger: {
+                trigger: ".features",
+                start: "top bottom",
+                end: "top top",
+                scrub: 1
+            },
+            opacity: 0,      // Menghilang perlahan saat masuk konten bawah
+            y: -100,
+            scale: 1.5
+        });
+
+    </script>
+</body>
+</html>

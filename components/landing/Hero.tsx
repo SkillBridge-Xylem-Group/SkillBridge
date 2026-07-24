@@ -1,11 +1,38 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useRef } from "react";
 import Navbar from "./Navbar";
 import ScatteredIcons from "./ScatteredIcons";
 
+const KINETIC_RADIUS = 90;
+
 export default function Hero() {
   const teachLetters = [..."Teach everything."];
+  const teachRef = useRef<HTMLSpanElement>(null);
+
+  function handleTeachMouseMove(e: React.MouseEvent<HTMLSpanElement>) {
+    const container = teachRef.current;
+    if (!container) return;
+    const letters = container.querySelectorAll<HTMLElement>(".landing-kinetic-letter");
+    letters.forEach((letter) => {
+      const rect = letter.getBoundingClientRect();
+      const center = rect.left + rect.width / 2;
+      const distance = Math.abs(e.clientX - center);
+      const strength = Math.max(0, 1 - distance / KINETIC_RADIUS);
+      letter.style.setProperty("--kinetic-y", `${-16 * strength}px`);
+      letter.style.setProperty("--kinetic-s", `${1 + 0.25 * strength}`);
+    });
+  }
+
+  function handleTeachMouseLeave() {
+    const container = teachRef.current;
+    if (!container) return;
+    container.querySelectorAll<HTMLElement>(".landing-kinetic-letter").forEach((letter) => {
+      letter.style.setProperty("--kinetic-y", "0px");
+      letter.style.setProperty("--kinetic-s", "1");
+    });
+  }
 
   return (
     <header className="relative flex min-h-screen flex-col">
@@ -21,19 +48,17 @@ export default function Hero() {
               style={{ fontFamily: "var(--font-playful)", color: "var(--neu-ink)" }}
             >
               <span className="block">Learn anything.</span>
-              <span className="group relative mt-1 inline-block" style={{ color: "var(--neu-indigo)" }}>
+              <span
+                ref={teachRef}
+                onMouseMove={handleTeachMouseMove}
+                onMouseLeave={handleTeachMouseLeave}
+                className="relative mt-1 inline-block"
+                style={{ color: "var(--neu-indigo)" }}
+              >
                 {teachLetters.map((ch, i) => (
                   <span
                     key={i}
-                    className="inline-block transition-transform duration-300"
-                    onMouseEnter={(e) => {
-                      const el = e.currentTarget;
-                      el.style.transitionDelay = `${i * 20}ms`;
-                      el.style.transform = "translateY(-14px) rotate(-8deg) scale(1.15)";
-                      setTimeout(() => {
-                        el.style.transform = "translateY(0) rotate(0deg) scale(1)";
-                      }, 260);
-                    }}
+                    className="landing-kinetic-letter"
                   >
                     {ch === " " ? " " : ch}
                   </span>

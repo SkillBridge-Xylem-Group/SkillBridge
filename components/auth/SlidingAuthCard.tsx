@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
@@ -22,32 +22,6 @@ type SlidingAuthCardProps = {
 
 export default function SlidingAuthCard({ initialMode, redirectTo, urlError, justLoggedOut }: SlidingAuthCardProps) {
   const [mode, setMode] = useState<Mode>(() => parseMode(initialMode));
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  // Hover-to-switch on desktop only — meaningless on touch, and locked out
-  // while the reset sub-panel is open (mirrors the reference mockup).
-  useEffect(() => {
-    if (mode === "reset") return;
-    if (typeof window === "undefined") return;
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-    if (window.innerWidth < 1024) return;
-
-    const card = cardRef.current;
-    if (!card) return;
-
-    function handleMouseMove(e: MouseEvent) {
-      const rect = card!.getBoundingClientRect();
-      const xRatio = (e.clientX - rect.left) / rect.width;
-      setMode((current) => {
-        if (current === "reset") return current;
-        if (xRatio < 0.5) return "signup";
-        return "login";
-      });
-    }
-
-    card.addEventListener("mousemove", handleMouseMove);
-    return () => card.removeEventListener("mousemove", handleMouseMove);
-  }, [mode]);
 
   return (
     <div className="auth-neu-page relative flex min-h-screen items-center justify-center p-4 sm:p-6">
@@ -62,7 +36,6 @@ export default function SlidingAuthCard({ initialMode, redirectTo, urlError, jus
 
       {/* Desktop: sliding two-panel card */}
       <div
-        ref={cardRef}
         className="auth-neu-card relative hidden h-[650px] w-full max-w-[1100px] overflow-hidden rounded-[50px] lg:block"
       >
         <div
