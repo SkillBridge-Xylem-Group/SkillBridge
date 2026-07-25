@@ -527,6 +527,7 @@ export const idPack: Dictionary = {
     download: "Unduh",
     typeMessage: "Ketik pesan…",
     attachFile: "Lampirkan file",
+    partnerCompletedSession: "Partner kamu menandai sesi ini selesai.",
   },
 };
 
@@ -1057,6 +1058,7 @@ export const jaPack: Dictionary = {
     download: "ダウンロード",
     typeMessage: "メッセージを入力…",
     attachFile: "ファイルを添付",
+    partnerCompletedSession: "相手がこのセッションを完了としてマークしました。",
   },
 };
 
@@ -1583,5 +1585,6 @@ export const koPack: Dictionary = {
     download: "다운로드",
     typeMessage: "메시지 입력…",
     attachFile: "파일 첨부",
+    partnerCompletedSession: "파트너가 이 세션을 완료로 표시했습니다.",
   },
 };

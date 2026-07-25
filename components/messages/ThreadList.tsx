@@ -20,6 +20,12 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
   const [query, setQuery] = useState("");
   // Layout props stay stale across soft navigations — keep a local copy we can clear.
   const [items, setItems] = useState(threads);
+  // "5 minutes ago"-style labels depend on the current time, which never
+  // matches exactly between the server render and the client hydration
+  // pass — computing it only after mount avoids a text-content mismatch
+  // (React error #418).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const activeSlug = pathname.startsWith("/dashboard/messages/")
@@ -146,7 +152,7 @@ export default function ThreadList({ threads }: { threads: ThreadSummary[] }) {
                         >
                           {t.partner.fullname}
                         </p>
-                        {t.lastMessage?.sent_at ? (
+                        {t.lastMessage?.sent_at && mounted ? (
                           <span
                             className={`shrink-0 text-[11px] font-semibold ${unread ? "" : "font-medium"}`}
                             style={{
