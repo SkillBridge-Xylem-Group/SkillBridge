@@ -19,8 +19,6 @@ import {
   Clapperboard,
   Cpu,
   Dumbbell,
-  Eye,
-  EyeOff,
   Flower2,
   Gamepad2,
   Globe2,
@@ -32,7 +30,6 @@ import {
   Landmark,
   Languages,
   Leaf,
-  Lock,
   Megaphone,
   MessageCircleQuestion,
   Mountain,
@@ -57,8 +54,6 @@ type CreateCommunityModalProps = {
   /** Prefill topic chips (e.g. from discovery category filter). */
   initialTopics?: string[];
 };
-
-type Visibility = "public" | "restricted" | "private";
 
 const TOPIC_ICONS: Record<string, LucideIcon> = {
   Technology: Cpu,
@@ -100,7 +95,7 @@ const TOPIC_ICONS: Record<string, LucideIcon> = {
   Vehicles: Car,
 };
 
-const STEP_COUNT = 4;
+const STEP_COUNT = 3;
 
 const NAME_MAX = 21;
 const DESC_MAX = 300;
@@ -114,7 +109,6 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
     { key: "topics", title: f.createWizardAbout, subtitle: f.createWizardAboutSub },
     { key: "about", title: f.createWizardDetails, subtitle: f.createWizardDetailsSub },
     { key: "style", title: f.createWizardStyle, subtitle: f.createWizardStyleSub },
-    { key: "type", title: f.createWizardType, subtitle: f.createWizardTypeSub },
   ];
   const [step, setStep] = useState(0);
   const [topics, setTopics] = useState<string[]>(() =>
@@ -132,7 +126,6 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
-  const [visibility, setVisibility] = useState<Visibility>("public");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const iconInputRef = useRef<HTMLInputElement>(null);
@@ -197,7 +190,6 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
       return title.trim().length >= 3 && description.trim().length >= 1 && previewSlug.length >= 3;
     }
     if (step === 2) return true;
-    if (step === 3) return Boolean(visibility);
     return false;
   }
 
@@ -305,7 +297,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
         slug: previewSlug,
         description: description.trim(),
         category: finalTopics[0] ?? "General",
-        visibility,
+        visibility: "public",
         accentColor: accent,
         imageUrl,
         bannerUrl,
@@ -670,59 +662,6 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                   ) : null}
                 </div>
               </div>
-            </div>
-          ) : null}
-
-          {step === 3 ? (
-            <div className="space-y-2">
-              {(
-                [
-                  {
-                    id: "public" as const,
-                    icon: Globe2,
-                    label: f.visibilityPublic,
-                    desc: f.visibilityPublicDesc,
-                  },
-                  {
-                    id: "restricted" as const,
-                    icon: Users,
-                    label: f.visibilityRestricted,
-                    desc: f.visibilityRestrictedDesc,
-                  },
-                  {
-                    id: "private" as const,
-                    icon: Lock,
-                    label: f.visibilityPrivate,
-                    desc: f.visibilityPrivateDesc,
-                  },
-                ] as const
-              ).map((opt) => {
-                const Icon = opt.icon;
-                const selected = visibility === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setVisibility(opt.id)}
-                    className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-left transition ${
-                      selected
-                        ? "border-brand bg-brand-light/50"
-                        : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                    }`}
-                  >
-                    <Icon size={20} className={selected ? "text-brand" : "text-slate-500"} />
-                    <span>
-                      <span className="block text-sm font-extrabold text-slate-900">{opt.label}</span>
-                      <span className="mt-0.5 block text-sm text-slate-500">{opt.desc}</span>
-                    </span>
-                    {selected ? (
-                      <Eye size={16} className="ml-auto shrink-0 text-brand" />
-                    ) : (
-                      <EyeOff size={16} className="ml-auto shrink-0 text-slate-300" />
-                    )}
-                  </button>
-                );
-              })}
             </div>
           ) : null}
 
