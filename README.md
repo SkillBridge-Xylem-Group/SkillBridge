@@ -53,10 +53,15 @@ SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ALLOWED_ORIGINS=http://localhost:3000
 
-# Feature-specific secrets
-SWAP_CHANNEL_SECRET=
+# Feature-specific secrets (server-only)
+SWAP_CHANNEL_SECRET=          # Required in production — openssl rand -base64 48
+# ADMIN_ALLOWED_IPS=            # Optional — comma-separated IPs for admin console access
 GIPHY_API_KEY=
 ```
+
+**Production requirements:** set `SUPABASE_SERVICE_ROLE_KEY` and `SWAP_CHANNEL_SECRET` on the server. The app will refuse to start in production without them. Also run `supabase/auth-rate-limits.sql` so rate limits work across PM2 instances.
+
+**Admin hardening:** set `ADMIN_ALLOWED_IPS` to restrict admin login and `/dashboard/admin` to known IPs. Enroll admin accounts in Supabase Auth MFA (TOTP); admins with MFA enabled must complete a 6-digit code at login.
 
 Run the development server:
 

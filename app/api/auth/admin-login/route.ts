@@ -5,6 +5,8 @@ import { isSuspiciousSubmission } from "@/lib/auth/bot-guard";
 import { checkRateLimitAsync, getClientIp, rateLimitHeaders } from "@/lib/auth/rate-limit";
 import { authResponseDelay } from "@/lib/auth/timing";
 import { isAdminUser } from "@/lib/auth/isAdmin";
+import { adminIpBlockedResponse, isAdminIpAllowedForRequest } from "@/lib/auth/adminAccess";
+import { createAdminMfaChallenge } from "@/lib/auth/adminMfa";
 
 /**
  * Dedicated, tighter limits than the regular /api/auth/login. This is the
@@ -43,10 +45,12 @@ export async function POST(request: Request) {
 
   const ip = getClientIp(request);
 
-  // Three independent limiters: short-window per IP, short-window per
-  // email (stops targeting one admin account from many IPs), and a longer
-  // hourly IP cap so someone can't just wait out the 15-minute window
-  // forever. Any one tripping is enough to block the attempt.
+  if (!isAdminIpAllowedForRequest(request)) {
+    await authResponseDelay();
+    return NextResponse.json(adminIpBlockedResponse(), { status: 403 });
+  }
+
+  // Three independent limiters:
   const ipLimit = await checkRateLimitAsync(
     "auth:admin-login:ip",
     ip,
@@ -102,6 +106,15 @@ export async function POST(request: Request) {
     await supabase.auth.signOut();
     await authResponseDelay();
     return NextResponse.json({ error: GENERIC_ERROR }, { status: 401 });
+  }
+
+  const mfaChallenge = await createAdminMfaChallenge(supabase);
+  if (mfaChallenge.ok) {
+    return NextResponse.json({
+      requiresMfa: true,
+      factorId: mfaChallenge.factorId,
+      challengeId: mfaChallenge.challengeId,
+    });
   }
 
   return NextResponse.json({ message: "Signed in" });

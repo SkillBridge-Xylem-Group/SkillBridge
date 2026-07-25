@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Mail } from "lucide-react";
 import { useFormGuard } from "@/hooks/useFormGuard";
 import NeumorphicPasswordField from "./NeumorphicPasswordField";
@@ -9,35 +9,29 @@ import AuthHoneypot from "./AuthHoneypot";
 
 const GENERIC_ERROR = "Invalid email or password.";
 const RATE_LIMITED_ERROR = "Too many attempts. Try again later.";
+const MFA_ERROR = "Invalid verification code.";
+const MFA_REQUIRED_NOTICE = "Enter the 6-digit code from your authenticator app.";
 
-/**
- * Same auth-neu visual language as the regular /login card, on purpose —
- * this page should look like an ordinary sign-in form to anyone who stumbles
- * across it, not a distinct "admin" surface. Secrecy comes entirely from the
- * URL never being linked anywhere, not from a different look.
- *
- * Errors are intentionally generic ("Invalid email or password") whether the
- * credentials were wrong OR the account simply isn't an admin, so this page
- * never confirms which case happened to someone who's guessing.
- *
- * The actual sign-in happens server-side via /api/auth/admin-login, which
- * rate-limits and locks out repeated attempts (per IP and per email) —
- * this is the only door into the admin console, so brute-forcing it needs
- * to fail fast, not just fail with a wrong-password message.
- */
 export default function AdminLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { website, setWebsite, guardPayload } = useFormGuard();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaChallenge, setMfaChallenge] = useState<{
+    factorId: string;
+    challengeId: string;
+  } | null>(null);
+  const [error, setError] = useState(
+    searchParams.get("error") === "mfa-required" ? MFA_REQUIRED_NOTICE : ""
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSubmit(e: FormEvent) {
+  async function handlePasswordSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
 
-    // Honeypot: bots fill hidden fields. Fail silently/generically, no signal.
     if (website) {
       setError(GENERIC_ERROR);
       return;
@@ -56,8 +50,15 @@ export default function AdminLoginForm() {
         }),
       });
 
+      const body = await res.json().catch(() => ({}));
+
       if (res.status === 429) {
         setError(RATE_LIMITED_ERROR);
+        return;
+      }
+
+      if (res.status === 403) {
+        setError("Access denied from this network.");
         return;
       }
 
@@ -67,6 +68,50 @@ export default function AdminLoginForm() {
           return;
         }
         setError(GENERIC_ERROR);
+        return;
+      }
+
+      if (body?.requiresMfa && body?.factorId && body?.challengeId) {
+        setMfaChallenge({ factorId: body.factorId, challengeId: body.challengeId });
+        setMfaCode("");
+        setError(MFA_REQUIRED_NOTICE);
+        return;
+      }
+
+      router.replace("/dashboard/admin");
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleMfaSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!mfaChallenge) return;
+
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/api/auth/admin-login/mfa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          factorId: mfaChallenge.factorId,
+          challengeId: mfaChallenge.challengeId,
+          code: mfaCode.trim(),
+        }),
+      });
+
+      if (res.status === 403) {
+        setError("Access denied from this network.");
+        return;
+      }
+
+      if (!res.ok) {
+        setError(MFA_ERROR);
         return;
       }
 
@@ -89,45 +134,86 @@ export default function AdminLoginForm() {
           SkillBridge
         </h1>
         <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
-          Sign in to your account
+          {mfaChallenge ? "Two-factor verification" : "Sign in to your account"}
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-          <AuthHoneypot value={website} onChange={setWebsite} />
-
-          <div className="relative">
-            <Mail size={18} className="auth-neu-icon" style={{ color: "var(--auth-emerald-dark)" }} />
+        {mfaChallenge ? (
+          <form onSubmit={handleMfaSubmit} className="mt-5 space-y-4">
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="mfa-code"
+              name="mfa-code"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="\d{6}"
+              maxLength={6}
               required
-              maxLength={254}
-              autoComplete="email"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="auth-neu-input"
+              placeholder="6-digit code"
+              value={mfaCode}
+              onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              className="auth-neu-input text-center tracking-[0.35em]"
             />
-          </div>
 
-          <NeumorphicPasswordField
-            id="password"
-            value={password}
-            onChange={setPassword}
-            iconColor="var(--auth-teal-dark)"
-          />
+            {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-          {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+            <button
+              type="submit"
+              disabled={isSubmitting || mfaCode.length !== 6}
+              className="auth-neu-button w-full py-3.5 text-sm"
+            >
+              {isSubmitting ? "Verifying..." : "Verify"}
+            </button>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="auth-neu-button w-full py-3.5 text-sm"
-          >
-            {isSubmitting ? "Signing In..." : "Sign In"}
-          </button>
-        </form>
+            <button
+              type="button"
+              className="w-full text-sm text-[var(--neu-text-muted)] hover:underline"
+              onClick={() => {
+                setMfaChallenge(null);
+                setMfaCode("");
+                setError("");
+              }}
+            >
+              Back to sign in
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handlePasswordSubmit} className="mt-5 space-y-4">
+            <AuthHoneypot value={website} onChange={setWebsite} />
+
+            <div className="relative">
+              <Mail size={18} className="auth-neu-icon" style={{ color: "var(--auth-emerald-dark)" }} />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                maxLength={254}
+                autoComplete="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="auth-neu-input"
+              />
+            </div>
+
+            <NeumorphicPasswordField
+              id="password"
+              value={password}
+              onChange={setPassword}
+              iconColor="var(--auth-teal-dark)"
+            />
+
+            {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="auth-neu-button w-full py-3.5 text-sm"
+            >
+              {isSubmitting ? "Signing In..." : "Sign In"}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

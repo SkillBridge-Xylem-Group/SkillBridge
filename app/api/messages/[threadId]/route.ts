@@ -1,5 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
+import {
+  ACTION_RATE_LIMITS,
+  actionRateLimitError,
+  checkUserActionRateLimit,
+} from "@/lib/auth/action-rate-limit";
 import { getThreadParticipant, getThreadMessages } from "@/lib/messages";
 import { createNotification, markThreadMessageNotificationsRead } from "@/lib/notifications";
 
@@ -26,6 +31,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ thr
   const partner = await getThreadParticipant(supabase, threadId, user.id);
   if (!partner) {
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+
+  const messageLimit = await checkUserActionRateLimit(
+    ACTION_RATE_LIMITS.messageSend.bucket,
+    user.id,
+    ACTION_RATE_LIMITS.messageSend.max,
+    ACTION_RATE_LIMITS.messageSend.windowMs
+  );
+  if (!messageLimit.allowed) {
+    return NextResponse.json({ error: actionRateLimitError(messageLimit.retryAfterMs) }, { status: 429 });
   }
 
   const body = await req.json().catch(() => null);
