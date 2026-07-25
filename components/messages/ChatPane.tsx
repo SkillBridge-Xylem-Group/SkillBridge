@@ -33,15 +33,23 @@ function dayKey(iso: string) {
 function formatDayLabel(
   iso: string,
   locale: AppLocale,
-  labels: { today: string; yesterday: string }
+  labels: { today: string; yesterday: string },
+  // "Today"/"Yesterday" depend on the current time, which never matches
+  // exactly between the server render and the client hydration pass —
+  // only compare against "now" once mounted, to avoid a text-content
+  // mismatch (React error #418). Pre-mount, fall back to the absolute
+  // (time-independent) date format instead.
+  useRelativeLabels: boolean
 ) {
   const date = new Date(iso);
   const now = new Date();
-  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startMsg = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const diffDays = Math.round((startToday.getTime() - startMsg.getTime()) / 86_400_000);
-  if (diffDays === 0) return labels.today;
-  if (diffDays === 1) return labels.yesterday;
+  if (useRelativeLabels) {
+    const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startMsg = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const diffDays = Math.round((startToday.getTime() - startMsg.getTime()) / 86_400_000);
+    if (diffDays === 0) return labels.today;
+    if (diffDays === 1) return labels.yesterday;
+  }
   return date.toLocaleDateString(dateLocaleTag(locale), {
     weekday: "short",
     month: "short",
@@ -62,6 +70,10 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  // See formatDayLabel — "Today"/"Yesterday" only compare against the
+  // current time once mounted, to avoid a server/client hydration mismatch.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     setMessages(initialMessages);
@@ -199,7 +211,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
         out.push({
           kind: "day",
           key,
-          label: formatDayLabel(m.sent_at, locale, { today: msg.today, yesterday: msg.yesterday }),
+          label: formatDayLabel(m.sent_at, locale, { today: msg.today, yesterday: msg.yesterday }, mounted),
         });
       }
       const next = messages[i + 1];
@@ -209,7 +221,7 @@ export default function ChatPane({ threadId, viewerId, partner, initialMessages 
       out.push({ kind: "msg", message: m, showAvatar });
     });
     return out;
-  }, [messages, viewerId, locale, msg.today, msg.yesterday]);
+  }, [messages, viewerId, locale, msg.today, msg.yesterday, mounted]);
 
   return (
     <div className="flex h-full flex-col bg-white">
