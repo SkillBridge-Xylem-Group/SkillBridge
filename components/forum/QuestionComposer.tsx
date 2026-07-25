@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Send, X } from "lucide-react";
 import { createQuestionAction } from "@/lib/actions/forum";
+import { FORUM_JOIN_REQUIRED } from "@/lib/forumCommunities";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
 import { FORUM_SUBFORUMS, getForumSubforum } from "@/lib/forumSubforums";
@@ -185,7 +186,7 @@ export default function QuestionComposer({
 
       const result = await createQuestionAction(title, content, imageUrl, effectiveSlug);
       if (result?.error) {
-        setError(result.error);
+        setError(result.error === FORUM_JOIN_REQUIRED ? f.joinToCommentHint : result.error);
         return;
       }
       pendingComposeOpen = false;
