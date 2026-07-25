@@ -26,6 +26,7 @@ export default function ProfileClient({
   const router = useRouter();
   const { dictionary } = useLocale();
   const [fullname, setFullname] = useState(profile.fullname);
+  const [username, setUsername] = useState(profile.username);
   const [bio, setBio] = useState(profile.bio);
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
   const [offered, setOffered] = useState<Skill[]>(initialOffered);
@@ -34,10 +35,45 @@ export default function ProfileClient({
 
   const takenIds = new Set([...offered, ...wanted].map((s) => s.skill_id));
 
-  async function handleSaveProfile(nextName: string, nextBio: string) {
+  function usernameErrorMessage(code: string | undefined) {
+    switch (code) {
+      case "TOO_SHORT":
+        return dictionary.profile.usernameTooShort;
+      case "TOO_LONG":
+        return dictionary.profile.usernameTooLong;
+      case "MUST_START_WITH_LETTER":
+        return dictionary.profile.usernameMustStartWithLetter;
+      case "INVALID_CHARS":
+        return dictionary.profile.usernameInvalidChars;
+      case "RESERVED":
+        return dictionary.profile.usernameReserved;
+      case "TAKEN":
+        return dictionary.profile.usernameTaken;
+      default:
+        return dictionary.profile.saveProfileFailed;
+    }
+  }
+
+  async function handleSaveProfile(nextName: string, nextBio: string, nextUsername: string) {
     setProfileError("");
     const previousName = fullname;
     const previousBio = bio;
+    const previousUsername = username;
+
+    if (nextUsername !== username) {
+      const usernameRes = await fetch("/api/profile/username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: nextUsername }),
+      });
+      if (!usernameRes.ok) {
+        const data = await usernameRes.json().catch(() => null);
+        setProfileError(usernameErrorMessage(data?.error));
+        return false;
+      }
+      setUsername(nextUsername);
+    }
+
     setFullname(nextName);
     setBio(nextBio);
 
@@ -50,14 +86,14 @@ export default function ProfileClient({
     if (!res.ok) {
       setFullname(previousName);
       setBio(previousBio);
+      setUsername(previousUsername);
       const data = await res.json().catch(() => null);
       setProfileError(data?.error ?? dictionary.profile.saveProfileFailed);
-      return;
+      return false;
     }
 
-    // Refresh so the topbar/sidebar (rendered server-side from the same
-    // profiles row) pick up the new name too.
     router.refresh();
+    return true;
   }
 
   async function handleAvatarChange(nextUrl: string) {
@@ -127,6 +163,7 @@ export default function ProfileClient({
         userId={profile.user_id}
         publicUid={profile.public_uid}
         fullname={fullname}
+        username={username}
         createdAt={profile.created_at}
         timezone={timezoneDisplay}
         bio={bio}

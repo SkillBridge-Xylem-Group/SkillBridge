@@ -1,10 +1,12 @@
 ﻿import { Calendar, Clock } from "lucide-react";
 import ProfileUidMeta from "./ProfileUidMeta";
+import ProfileUsernameMeta from "./ProfileUsernameMeta";
 import PublicProfileActions from "./PublicProfileActions";
 import UserAvatar from "@/components/ui/UserAvatar";
 
 type PublicProfileHeaderProps = {
   fullname: string;
+  username: string;
   avatarUrl: string | null;
   publicUid: number | null;
   memberSince: string;
@@ -17,6 +19,7 @@ type PublicProfileHeaderProps = {
 
 export default function PublicProfileHeader({
   fullname,
+  username,
   avatarUrl,
   publicUid,
   memberSince,
@@ -36,6 +39,7 @@ export default function PublicProfileHeader({
             <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>
               {fullname}
             </h1>
+            <ProfileUsernameMeta username={username} className="mt-0.5" />
             <ProfileUidMeta publicUid={publicUid} />
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ color: "var(--sb-muted)" }}>
               <span className="flex items-center gap-1.5">

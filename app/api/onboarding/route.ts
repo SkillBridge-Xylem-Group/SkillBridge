@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { onboardingSchema } from "@/lib/onboarding/validation";
+import { deriveNameFromEmail } from "@/lib/deriveName";
+import { isUsernameAvailable, validateUsernameFormat } from "@/lib/username";
 
 type SupabaseClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
-// Resolves skill names -> skill_id, inserting into `skills` when a name
-// doesn't exist yet. `category` is only used for newly-created rows.
 async function resolveSkillIds(
   supabase: SupabaseClient,
   names: string[],
@@ -58,30 +58,63 @@ export async function POST(request: Request) {
   const { user, supabase, error: authError } = await requireActiveUser();
   if (authError) return authError;
 
-  const { bio, timezone, teachSubject, teachTags, learnSubject, learnTags } = parsed.data;
+  const { username, bio, timezone, teachSubject, teachTags, learnSubject, learnTags } = parsed.data;
 
-  // teachSubject/learnSubject double as the category (e.g. "Design & UI/UX");
-  // the tags are the individual skill_name rows under that category.
+  const format = validateUsernameFormat(username);
+  if (!("ok" in format)) {
+    return NextResponse.json({ error: format.error }, { status: 400 });
+  }
+
+  const available = await isUsernameAvailable(supabase, format.username, user.id);
+  if (!available) {
+    return NextResponse.json({ error: "TAKEN" }, { status: 409 });
+  }
+
+  const { data: existing } = await supabase.from("users").select("id").eq("id", user.id).maybeSingle();
+
+  if (existing) {
+    const { error: userError } = await supabase
+      .from("users")
+      .update({ bio, timezone, slug: format.username })
+      .eq("id", user.id);
+
+    if (userError) {
+      return NextResponse.json({ error: userError.message }, { status: 500 });
+    }
+  } else {
+    const fullname =
+      user.user_metadata?.name ||
+      user.user_metadata?.full_name ||
+      (user.email ? deriveNameFromEmail(user.email) : "New User");
+
+    const { error: insertError } = await supabase.from("users").insert({
+      id: user.id,
+      email: user.email ?? "",
+      fullname,
+      slug: format.username,
+      bio,
+      timezone,
+      experience_points: 0,
+      level: 0,
+      trust_score: 0,
+      role: "user",
+    });
+
+    if (insertError) {
+      if (insertError.message?.toLowerCase().includes("unique")) {
+        return NextResponse.json({ error: "TAKEN" }, { status: 409 });
+      }
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
+  }
+
   const skillsOffered = Array.from(new Set([teachSubject, ...teachTags]));
   const skillsWanted = Array.from(new Set([learnSubject, ...learnTags]));
 
-  // 1. `bio` / `timezone` live directly on `users` — there is no `profiles`
-  //    table and no `updated_at` column on `users`, so we don't send one.
-  const { error: userError } = await supabase
-    .from("users")
-    .update({ bio, timezone })
-    .eq("id", user.id);
-
-  if (userError) {
-    return NextResponse.json({ error: userError.message }, { status: 500 });
-  }
-
   try {
-    // 2. Skills are normalized: resolve names to skill_id rows in `skills`.
     const offeredIds = await resolveSkillIds(supabase, skillsOffered, teachSubject);
     const wantedIds = await resolveSkillIds(supabase, skillsWanted, learnSubject);
 
-    // 3. Replace this user's rows in the join tables.
     const { error: clearOfferedError } = await supabase
       .from("user_skill_offered")
       .delete()
@@ -115,5 +148,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: "Onboarding saved" });
+  return NextResponse.json({ message: "Onboarding saved", username: format.username });
 }

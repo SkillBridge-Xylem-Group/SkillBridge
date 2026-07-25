@@ -7,7 +7,6 @@ import RecentMessages from "@/components/dashboard/RecentMessages";
 import OnboardingGate from "@/components/onboarding/OnboardingGate";
 import { getSkillsByCategory } from "@/lib/skillCatalog";
 import { isAdminUser } from "@/lib/auth/isAdmin";
-
 export const metadata: Metadata = {
   title: "Dashboard | SkillBridge",
 };
@@ -17,7 +16,7 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, isAdmin] = await Promise.all([
-    supabase.from("users").select("bio").eq("id", user.id).maybeSingle(),
+    supabase.from("users").select("bio, fullname").eq("id", user.id).maybeSingle(),
     isAdminUser(supabase, user.id),
   ]);
 
