@@ -61,6 +61,9 @@ export async function createQuestionAction(
     return { error: "Choose a community to post in." };
   }
 
+  const canParticipate = await canUserParticipateInCommunity(supabase, subforumSlug, user.id);
+  if (!canParticipate) return { error: FORUM_JOIN_REQUIRED };
+
   const safeImageUrl = getSafeForumImageUrl(imageUrl);
 
   if (imageUrl?.trim() && !safeImageUrl) {
