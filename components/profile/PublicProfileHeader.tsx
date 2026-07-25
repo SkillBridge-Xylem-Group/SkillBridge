@@ -1,9 +1,11 @@
 ﻿import { Calendar, Clock } from "lucide-react";
 import ProfileUidMeta from "./ProfileUidMeta";
 import PublicProfileActions from "./PublicProfileActions";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 type PublicProfileHeaderProps = {
   fullname: string;
+  avatarUrl: string | null;
   publicUid: number | null;
   memberSince: string;
   memberSinceLabel: string;
@@ -15,6 +17,7 @@ type PublicProfileHeaderProps = {
 
 export default function PublicProfileHeader({
   fullname,
+  avatarUrl,
   publicUid,
   memberSince,
   memberSinceLabel,
@@ -23,20 +26,11 @@ export default function PublicProfileHeader({
   noBioText,
   profileId,
 }: PublicProfileHeaderProps) {
-  const initials = fullname
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
-
   return (
     <div className="nb-card p-6">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="nb-avatar flex h-24 w-24 items-center justify-center text-3xl" style={{ background: "var(--sb-gradient)", color: "#fff" }}>
-            {initials}
-          </div>
+          <UserAvatar name={fullname} avatarUrl={avatarUrl} className="nb-avatar h-24 w-24 text-3xl" />
 
           <div>
             <h1 className="text-2xl font-extrabold nb-heading" style={{ color: "var(--sb-ink)" }}>
