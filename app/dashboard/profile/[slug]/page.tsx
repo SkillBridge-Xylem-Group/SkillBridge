@@ -9,9 +9,9 @@ import TrustScoreCard from "@/components/profile/TrustScoreCard";
 import ReviewsCard from "@/components/profile/ReviewsCard";
 import { getUserSkills } from "@/lib/skillCatalog";
 import { getUserReviews } from "@/lib/reviews";
-import { deriveNameFromEmail } from "@/lib/deriveName";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { isAppLocale, DEFAULT_LOCALE, dateLocaleTag } from "@/lib/i18n/locales";
+import { normalizeAvatarUrl } from "@/lib/avatar";
 
 export const metadata: Metadata = {
   title: "Member Profile | SkillBridge",
@@ -38,7 +38,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
   const { data: profileRow } = await supabase
     .from("users")
-    .select("id, fullname, bio, timezone, experience_points, level, trust_score, created_at, public_uid")
+    .select("id, fullname, bio, avatar_url, timezone, experience_points, level, trust_score, created_at, public_uid")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -75,6 +75,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       <div className="space-y-6 lg:col-span-2">
         <PublicProfileHeader
           fullname={profileRow.fullname}
+          avatarUrl={normalizeAvatarUrl(profileRow.avatar_url)}
           publicUid={profileRow.public_uid ?? null}
           memberSince={memberSince}
           memberSinceLabel={p.memberSince}
