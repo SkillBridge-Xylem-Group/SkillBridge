@@ -2,6 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveServerUser } from "@/lib/auth/requireActiveServerUser";
+import {
+  ACTION_RATE_LIMITS,
+  actionRateLimitError,
+  checkUserActionRateLimit,
+} from "@/lib/auth/action-rate-limit";
 import { createQuestion, createAnswer, setAnswerVote, deleteAnswer, deleteQuestion } from "@/lib/forum";
 import { createNotification } from "@/lib/notifications";
 import { getSafeForumImageUrl } from "@/lib/forumImageUrl";
@@ -42,17 +48,39 @@ async function requireQuestionParticipation(
   return { question };
 }
 
+async function verifyAnswerBelongsToQuestion(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  answerId: string,
+  questionId: string
+) {
+  const { data } = await supabase
+    .from("forum_answers")
+    .select("answer_id")
+    .eq("answer_id", answerId)
+    .eq("question_id", questionId)
+    .maybeSingle();
+  if (!data) return { error: "Comment not found." };
+  return { ok: true as const };
+}
+
 export async function createQuestionAction(
   title: string,
   content: string,
   imageUrl?: string | null,
   subforumSlug?: string | null
 ) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in to post." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
+
+  const postLimit = await checkUserActionRateLimit(
+    ACTION_RATE_LIMITS.forumPost.bucket,
+    user.id,
+    ACTION_RATE_LIMITS.forumPost.max,
+    ACTION_RATE_LIMITS.forumPost.windowMs
+  );
+  if (!postLimit.allowed) return { error: actionRateLimitError(postLimit.retryAfterMs) };
+
   if (!title.trim()) return { error: "Title can't be empty." };
   if (!content.trim() && !imageUrl?.trim()) {
     return { error: "Add some details or an image before posting." };
@@ -94,11 +122,9 @@ export async function createCommunityAction(input: {
   imageUrl?: string | null;
   bannerUrl?: string | null;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const safeImageUrl = getSafeForumImageUrl(input.imageUrl);
   if (input.imageUrl?.trim() && !safeImageUrl) {
@@ -136,11 +162,9 @@ export async function createCommunityAction(input: {
 }
 
 export async function updateCommunityImageAction(communityId: string, imageUrl: string | null) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
   if (communityId.startsWith("static-")) {
     return { error: "This community can’t be edited." };
   }
@@ -169,11 +193,9 @@ export async function updateCommunityDetailsAction(
   communityId: string,
   input: { title: string; description: string }
 ) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
   if (communityId.startsWith("static-")) {
     return { error: "This community can’t be edited." };
   }
@@ -195,11 +217,9 @@ export async function updateCommunityDetailsAction(
 }
 
 export async function updateCommunityBannerAction(communityId: string, bannerUrl: string | null) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
   if (communityId.startsWith("static-")) {
     return { error: "This community can’t be edited." };
   }
@@ -225,11 +245,9 @@ export async function updateCommunityBannerAction(communityId: string, bannerUrl
 }
 
 export async function updateCommunityAccentAction(communityId: string, accentColor: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
   if (communityId.startsWith("static-")) {
     return { error: "This community can’t be edited." };
   }
@@ -250,11 +268,9 @@ export async function updateCommunityAccentAction(communityId: string, accentCol
 }
 
 export async function toggleJoinCommunityAction(communityId: string, currentlyJoined: boolean) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   let resolvedId = communityId;
   if (communityId.startsWith("static-")) {
@@ -293,11 +309,9 @@ export async function toggleJoinCommunityAction(communityId: string, currentlyJo
 }
 
 export async function deleteCommunityAction(communityId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
   if (communityId.startsWith("static-")) {
     return { error: "This community can’t be deleted." };
   }
@@ -322,11 +336,18 @@ export async function createAnswerAction(
   imageUrl?: string | null,
   parentAnswerId?: string | null
 ) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in to reply." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
+
+  const commentLimit = await checkUserActionRateLimit(
+    ACTION_RATE_LIMITS.forumComment.bucket,
+    user.id,
+    ACTION_RATE_LIMITS.forumComment.max,
+    ACTION_RATE_LIMITS.forumComment.windowMs
+  );
+  if (!commentLimit.allowed) return { error: actionRateLimitError(commentLimit.retryAfterMs) };
+
   if (!content.trim() && !imageUrl?.trim()) {
     return { error: "Add a comment or an image before posting." };
   }
@@ -406,17 +427,18 @@ export async function createAnswerAction(
 }
 
 export async function setVoteAction(answerId: string, questionId: string, value: -1 | 0 | 1) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in to vote." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
   if (value !== -1 && value !== 0 && value !== 1) {
     return { error: "Invalid vote." };
   }
 
   const participation = await requireQuestionParticipation(supabase, questionId, user.id);
   if ("error" in participation) return { error: participation.error };
+
+  const answerCheck = await verifyAnswerBelongsToQuestion(supabase, answerId, questionId);
+  if ("error" in answerCheck) return { error: answerCheck.error };
 
   const { error } = await setAnswerVote(supabase, { answerId, userId: user.id, value });
   if (error) return { error: error.message };
@@ -427,14 +449,15 @@ export async function setVoteAction(answerId: string, questionId: string, value:
 
 /** @deprecated use setVoteAction */
 export async function toggleVoteAction(answerId: string, questionId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in to vote." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const participation = await requireQuestionParticipation(supabase, questionId, user.id);
   if ("error" in participation) return { error: participation.error };
+
+  const answerCheck = await verifyAnswerBelongsToQuestion(supabase, answerId, questionId);
+  if ("error" in answerCheck) return { error: answerCheck.error };
 
   const { data: existing } = await supabase
     .from("answer_votes")
@@ -457,11 +480,9 @@ export async function createReportAction(params: {
   reasonKey: string;
   details?: string;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in to report." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const { data: answer } = await supabase
     .from("forum_answers")
@@ -497,11 +518,9 @@ export async function createReportAction(params: {
 }
 
 export async function deleteAnswerAction(answerId: string, questionId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const { data, error } = await deleteAnswer(supabase, { answerId, userId: user.id });
   if (error) return { error: error.message };
@@ -512,11 +531,9 @@ export async function deleteAnswerAction(answerId: string, questionId: string) {
 }
 
 export async function deleteQuestionAction(questionId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const { data, error } = await deleteQuestion(supabase, { questionId, userId: user.id });
   if (error) return { error: error.message };
@@ -532,11 +549,9 @@ export async function createQuestionReportAction(params: {
   reasonKey: string;
   details?: string;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in to report." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const { data: question } = await supabase
     .from("forum_questions")

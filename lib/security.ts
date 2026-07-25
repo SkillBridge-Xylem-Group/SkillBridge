@@ -4,17 +4,20 @@ const RECOVERY_COOKIE = "sb-pw-recovery";
 const CHANNEL_TTL_MS = 2 * 60 * 60 * 1000; // 2h
 
 function secret(): string {
-  const value =
-    process.env.SWAP_CHANNEL_SECRET ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    (process.env.NODE_ENV !== "production" ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY : undefined) ||
-    (process.env.NODE_ENV !== "production" ? "dev-insecure-secret" : undefined);
-  if (!value) {
+  const swapSecret = process.env.SWAP_CHANNEL_SECRET?.trim();
+  if (swapSecret) return swapSecret;
+
+  if (process.env.NODE_ENV === "production") {
     throw new Error(
-      "SWAP_CHANNEL_SECRET or SUPABASE_SERVICE_ROLE_KEY is required to sign recovery/swap tokens."
+      "SWAP_CHANNEL_SECRET is required in production. Use a dedicated random string — do not reuse SUPABASE_SERVICE_ROLE_KEY."
     );
   }
-  return value;
+
+  const devFallback =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    "dev-insecure-secret";
+  return devFallback;
 }
 
 export function recoveryCookieName() {

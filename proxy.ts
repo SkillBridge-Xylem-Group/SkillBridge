@@ -73,26 +73,22 @@ export async function proxy(request: NextRequest) {
       },
     });
 
-    // Prefer getSession (local JWT) over getUser (network) for middleware speed.
-    // Page-level getRequestUser() still verifies with getUser when needed.
-    const sessionResult = await Promise.race([
-      supabase.auth.getSession(),
+    const authResult = await Promise.race([
+      supabase.auth.getUser(),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), AUTH_TIMEOUT_MS)),
     ]);
 
-    if (!sessionResult) {
-      // Timed out — fail closed. Page-level auth can still recover after refresh.
+    if (!authResult) {
       console.warn("[proxy] auth check timed out; redirecting to login");
       return redirectToLogin(request, pathname, search, "auth-unavailable");
     }
 
     const {
-      data: { session },
-    } = sessionResult;
+      data: { user },
+      error: authError,
+    } = authResult;
 
-    const user = session?.user ?? null;
-
-    if (!user) {
+    if (authError || !user) {
       return redirectToLogin(request, pathname, search);
     }
 
