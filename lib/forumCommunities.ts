@@ -89,14 +89,45 @@ export type ForumCommunity = {
   joined: boolean;
 };
 
+/** Forum discovery + create-community topics — skill catalog + related learning areas. */
 export const COMMUNITY_TOPICS = [
-  "Art",
-  "Education & Career",
-  "Food & Drinks",
-  "Games",
-  "Health",
-  "Music",
+  // Core skill categories
   "Technology",
+  "Design",
+  "Art",
+  "Business",
+  "Marketing",
+  "Soft Skills",
+  "Languages",
+  "Music",
+  "Fitness",
+  "Food & Lifestyle",
+  "Education",
+  "Games & Media",
+  // STEM & knowledge
+  "Sciences",
+  "Reading & Writing",
+  "Humanities & Law",
+  // Career & finance
+  "Education & Career",
+  "Business & Finance",
+  // Health & movement
+  "Health",
+  "Wellness",
+  "Sports",
+  "Nature & Outdoors",
+  // Creative media
+  "Movies & TV",
+  "Internet Culture",
+  "Anime & Cosplay",
+  "Pop Culture",
+  // Lifestyle & hobbies
+  "Fashion & Beauty",
+  "Home & Garden",
+  "Places & Travel",
+  "Collectibles & Hobbies",
+  // Community formats
+  "Q&As & Stories",
   "General",
 ] as const;
 
