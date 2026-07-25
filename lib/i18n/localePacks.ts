@@ -435,7 +435,8 @@ export const idPack: Dictionary = {
     statusCompleted: "Selesai",
     statusDeclined: "Ditolak",
     statusCancelled: "Dibatalkan",
-    scheduleMustBeFuture: "Pilih tanggal dan waktu di masa depan.",
+    scheduleMustBeFuture: "Pilih waktu saat ini atau tanggal dan waktu yang lebih baru.",
+    scheduleTooFar: "Sesi hanya dapat dijadwalkan hingga 4 minggu ke depan.",
   },
   onboarding: {
     skillSaved: "Skill tersimpan",
@@ -964,7 +965,8 @@ export const jaPack: Dictionary = {
     statusCompleted: "完了",
     statusDeclined: "却下済み",
     statusCancelled: "キャンセル済み",
-    scheduleMustBeFuture: "未来の日時を選択してください。",
+    scheduleMustBeFuture: "現在またはそれ以降の日時を選択してください。",
+    scheduleTooFar: "予約は4週間以内の日時のみ選択できます。",
   },
   onboarding: {
     skillSaved: "スキルを保存しました",
@@ -1489,7 +1491,8 @@ export const koPack: Dictionary = {
     statusCompleted: "완료됨",
     statusDeclined: "거절됨",
     statusCancelled: "취소됨",
-    scheduleMustBeFuture: "미래의 날짜와 시간을 선택하세요.",
+    scheduleMustBeFuture: "현재 시각 또는 그 이후의 날짜와 시간을 선택하세요.",
+    scheduleTooFar: "예약은 최대 4주 이내의 날짜와 시간만 선택할 수 있습니다.",
   },
   onboarding: {
     skillSaved: "스킬이 저장되었습니다",
