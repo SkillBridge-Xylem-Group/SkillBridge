@@ -55,7 +55,7 @@ export default async function SettingsPage() {
   const hasEmailPassword = user.identities?.some((identity) => identity.provider === "email") ?? false;
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] flex-1 flex-col">
+    <div className="flex min-h-[calc(100vh-8rem)] flex-1 flex-col pt-2">
       <SettingsClient
         email={user.email ?? ""}
         hasEmailPassword={hasEmailPassword}

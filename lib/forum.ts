@@ -60,8 +60,78 @@ function unwrapUser(u: unknown): { fullname: string; avatar_url: string | null }
   };
 }
 
+/** Stored slug on a forum_questions row (null/empty → general). */
+export function storedSubforumSlug(raw: unknown): string {
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  return "general";
+}
+
+export function belongsToSubforum(raw: unknown, targetSlug: string): boolean {
+  return storedSubforumSlug(raw) === storedSubforumSlug(targetSlug);
+}
+
 function normalizeSlug(raw: unknown): string {
   return getForumSubforum(typeof raw === "string" ? raw : null).slug;
+}
+
+type ForumQuestionRow = {
+  question_id: string;
+  title: string;
+  content: string;
+  image_url?: string | null;
+  subforum_slug?: string | null;
+  created_at: string;
+  user_id: string;
+  users: unknown;
+  forum_answers?: { count: number }[];
+};
+
+function mapQuestionRow(q: ForumQuestionRow): ForumQuestionSummary {
+  return {
+    question_id: q.question_id,
+    title: q.title,
+    content: q.content,
+    image_url: q.image_url ?? null,
+    subforum_slug: storedSubforumSlug(q.subforum_slug),
+    created_at: q.created_at,
+    author: {
+      id: q.user_id,
+      fullname: unwrapUser(q.users).fullname,
+      avatar_url: unwrapUser(q.users).avatar_url,
+    },
+    answer_count: q.forum_answers?.[0]?.count ?? 0,
+  };
+}
+
+function applySubforumFilter<T extends { eq: (col: string, val: string) => T; or: (filters: string) => T }>(
+  query: T,
+  subforumSlug: string
+): T {
+  if (subforumSlug === "general") {
+    return query.or("subforum_slug.eq.general,subforum_slug.is.null");
+  }
+  return query.eq("subforum_slug", subforumSlug);
+}
+
+/** Count posts that belong to a community/subforum slug. */
+export async function countPostsInSubforum(supabase: SupabaseClient, slug: string): Promise<number> {
+  const target = storedSubforumSlug(slug);
+
+  const { data, error } = await supabase.from("forum_questions").select("subforum_slug");
+
+  if (error?.message?.toLowerCase().includes("subforum_slug")) {
+    const legacy = await supabase
+      .from("forum_questions")
+      .select("question_id", { count: "exact", head: true });
+    const total = legacy.count ?? 0;
+    return target === "general" ? total : 0;
+  }
+
+  if (error || !data) return 0;
+
+  return data.filter((row) =>
+    belongsToSubforum((row as { subforum_slug?: string | null }).subforum_slug, target)
+  ).length;
 }
 
 export async function getForumQuestions(
@@ -73,6 +143,8 @@ export async function getForumQuestions(
     subforumSlug?: string;
   } = {}
 ): Promise<ForumQuestionSummary[]> {
+  const targetSlug = opts.subforumSlug?.trim() || null;
+
   let query = supabase
     .from("forum_questions")
     .select(
@@ -81,8 +153,8 @@ export async function getForumQuestions(
     .order("created_at", { ascending: false })
     .limit(opts.limit ?? 100);
 
-  if (opts.subforumSlug?.trim()) {
-    query = query.eq("subforum_slug", opts.subforumSlug.trim());
+  if (targetSlug) {
+    query = applySubforumFilter(query, targetSlug);
   }
 
   if (opts.search?.trim()) {
@@ -108,40 +180,33 @@ export async function getForumQuestions(
       }
     }
     const legacyRes = await legacy;
-    let results: ForumQuestionSummary[] = (legacyRes.data ?? []).map((q) => ({
-      question_id: q.question_id,
-      title: q.title,
-      content: q.content,
-      image_url: (q as { image_url?: string | null }).image_url ?? null,
-      subforum_slug: "general",
-      created_at: q.created_at,
-      author: {
-        id: q.user_id,
-        fullname: unwrapUser(q.users).fullname,
-        avatar_url: unwrapUser(q.users).avatar_url,
-      },
-      answer_count: (q as { forum_answers?: { count: number }[] }).forum_answers?.[0]?.count ?? 0,
-    }));
-    if (opts.subforumSlug && opts.subforumSlug !== "general") results = [];
+    if (legacyRes.error) {
+      console.error("getForumQuestions legacy:", legacyRes.error.message);
+      return [];
+    }
+
+    let rows = (legacyRes.data ?? []) as ForumQuestionRow[];
+    if (targetSlug) {
+      rows = rows.filter((row) => belongsToSubforum(row.subforum_slug, targetSlug));
+    }
+
+    let results = rows.map(mapQuestionRow);
     if (opts.tab === "unanswered") results = results.filter((r) => r.answer_count === 0);
     else if (opts.tab === "popular") results = results.slice().sort((a, b) => b.answer_count - a.answer_count);
     return results;
   }
 
-  let results: ForumQuestionSummary[] = (data ?? []).map((q) => ({
-    question_id: q.question_id,
-    title: q.title,
-    content: q.content,
-    image_url: (q as { image_url?: string | null }).image_url ?? null,
-    subforum_slug: normalizeSlug((q as { subforum_slug?: string | null }).subforum_slug),
-    created_at: q.created_at,
-    author: {
-      id: q.user_id,
-      fullname: unwrapUser(q.users).fullname,
-      avatar_url: unwrapUser(q.users).avatar_url,
-    },
-    answer_count: (q as { forum_answers?: { count: number }[] }).forum_answers?.[0]?.count ?? 0,
-  }));
+  if (error) {
+    console.error("getForumQuestions:", error.message);
+    return [];
+  }
+
+  let rows = (data ?? []) as ForumQuestionRow[];
+  if (targetSlug) {
+    rows = rows.filter((row) => belongsToSubforum(row.subforum_slug, targetSlug));
+  }
+
+  let results = rows.map(mapQuestionRow);
 
   if (opts.tab === "unanswered") {
     results = results.filter((r) => r.answer_count === 0);
@@ -164,7 +229,7 @@ export async function getSubforumStats(supabase: SupabaseClient): Promise<Record
 
   const counts: Record<string, number> = {};
   for (const row of data ?? []) {
-    const slug = normalizeSlug((row as { subforum_slug?: string | null }).subforum_slug);
+    const slug = storedSubforumSlug((row as { subforum_slug?: string | null }).subforum_slug);
     counts[slug] = (counts[slug] ?? 0) + 1;
   }
   return counts;
