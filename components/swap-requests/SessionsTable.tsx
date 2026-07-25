@@ -17,6 +17,7 @@ import { dateLocaleTag } from "@/lib/i18n/locales";
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { datetimeLocalMinValue, isFutureScheduledTime, SCHEDULE_PAST_ERROR } from "@/lib/sessionSchedule";
 
 const STATUS_STYLES: Record<string, { bg: string; ink: string }> = {
   pending: { bg: "#fff6d9", ink: "#b45309" },
@@ -97,9 +98,11 @@ function SessionRow({
   const [isPending, startTransition] = useTransition();
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [newTime, setNewTime] = useState("");
+  const [scheduleError, setScheduleError] = useState("");
   const [confirmHide, setConfirmHide] = useState(false);
   const [hideError, setHideError] = useState("");
   const router = useRouter();
+  const minScheduleTime = datetimeLocalMinValue();
 
   const canManage = session.status === "accepted" || session.status === "rescheduled";
   const canReview = session.status === "completed" && !session.hasReviewedPartner;
@@ -123,8 +126,21 @@ function SessionRow({
 
   function confirmReschedule() {
     if (!newTime) return;
+    if (!isFutureScheduledTime(newTime)) {
+      setScheduleError(s.scheduleMustBeFuture);
+      return;
+    }
+    setScheduleError("");
     startTransition(async () => {
-      await rescheduleSessionAction(session.request_id, new Date(newTime).toISOString());
+      const result = await rescheduleSessionAction(session.request_id, new Date(newTime).toISOString());
+      if (result?.error === SCHEDULE_PAST_ERROR) {
+        setScheduleError(s.scheduleMustBeFuture);
+        return;
+      }
+      if (result?.error) {
+        setScheduleError(result.error);
+        return;
+      }
       setIsRescheduling(false);
       setNewTime("");
       router.refresh();
@@ -175,19 +191,37 @@ function SessionRow({
       </td>
       <td className={`${TD_CLASS} whitespace-nowrap text-sm tabular-nums`} style={{ color: "var(--sb-muted)" }}>
         {isRescheduling ? (
-          <div className="flex max-w-xs flex-wrap items-center gap-2">
+          <div className="flex max-w-xs flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
             <input
               type="datetime-local"
               value={newTime}
-              onChange={(e) => setNewTime(e.target.value)}
+              min={minScheduleTime}
+              onChange={(e) => {
+                setNewTime(e.target.value);
+                setScheduleError("");
+              }}
               className="nb-input px-2 py-1.5 text-xs"
             />
-            <ActionButton variant="primary" disabled={isPending || !newTime} onClick={confirmReschedule}>
+            <ActionButton
+              variant="primary"
+              disabled={isPending || !newTime || !isFutureScheduledTime(newTime)}
+              onClick={confirmReschedule}
+            >
               {dictionary.common.save}
             </ActionButton>
-            <ActionButton disabled={isPending} onClick={() => setIsRescheduling(false)}>
+            <ActionButton
+              disabled={isPending}
+              onClick={() => {
+                setIsRescheduling(false);
+                setNewTime("");
+                setScheduleError("");
+              }}
+            >
               {s.cancel}
             </ActionButton>
+            </div>
+            {scheduleError ? <p className="text-xs font-medium text-red-600">{scheduleError}</p> : null}
           </div>
         ) : (
           formatDateTime(session.scheduled_time, dateLocaleTag(locale), s.notScheduled)
@@ -215,7 +249,13 @@ function SessionRow({
               <ActionButton disabled={isPending} onClick={markComplete}>
                 {s.markComplete}
               </ActionButton>
-              <ActionButton disabled={isPending} onClick={() => setIsRescheduling(true)}>
+              <ActionButton
+                disabled={isPending}
+                onClick={() => {
+                  setScheduleError("");
+                  setIsRescheduling(true);
+                }}
+              >
                 {s.reschedule}
               </ActionButton>
               <ActionButton variant="danger" disabled={isPending} onClick={cancel}>

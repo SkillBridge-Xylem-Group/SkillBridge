@@ -13,6 +13,11 @@ import {
 } from "@/lib/sessionRequests";
 import { createNotification } from "@/lib/notifications";
 import { awardSessionCompletionXp } from "@/lib/gamification";
+import {
+  SCHEDULE_INVALID_ERROR,
+  SCHEDULE_PAST_ERROR,
+  validateFutureScheduledTime,
+} from "@/lib/sessionSchedule";
 
 async function assertParticipant(supabase: SupabaseClient, requestId: string, userId: string) {
   const { data } = await supabase
@@ -71,6 +76,16 @@ export async function respondToRequestAction(requestId: string, status: "accepte
 
   if (!existing || existing.receiver_id !== user.id) {
     return { error: "You can't respond to this request." };
+  }
+
+  if (status === "accepted") {
+    if (!scheduledTime) return { error: "Choose a date and time for the session." };
+    const validated = validateFutureScheduledTime(scheduledTime);
+    if (!validated.ok) {
+      if (validated.error === SCHEDULE_INVALID_ERROR) return { error: "Invalid date and time." };
+      return { error: SCHEDULE_PAST_ERROR };
+    }
+    scheduledTime = validated.iso;
   }
 
   const { error } = await respondToSessionRequest(supabase, requestId, status, scheduledTime);
@@ -173,7 +188,13 @@ export async function rescheduleSessionAction(requestId: string, scheduledTime: 
   const request = await assertParticipant(supabase, requestId, user.id);
   if (!request) return { error: "You can't update this session." };
 
-  const { error } = await rescheduleSessionRequest(supabase, requestId, scheduledTime);
+  const validated = validateFutureScheduledTime(scheduledTime);
+  if (!validated.ok) {
+    if (validated.error === SCHEDULE_INVALID_ERROR) return { error: "Invalid date and time." };
+    return { error: SCHEDULE_PAST_ERROR };
+  }
+
+  const { error } = await rescheduleSessionRequest(supabase, requestId, validated.iso);
   if (error) return { error: error.message };
 
   revalidatePath("/dashboard/swap-requests");

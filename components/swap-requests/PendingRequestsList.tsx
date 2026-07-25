@@ -7,6 +7,7 @@ import { respondToRequestAction } from "@/lib/actions/sessionRequests";
 import type { SessionRequestSummary } from "@/lib/sessionRequests";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
+import { datetimeLocalMinValue, isFutureScheduledTime, SCHEDULE_PAST_ERROR } from "@/lib/sessionSchedule";
 
 export default function PendingRequestsList({ requests }: { requests: SessionRequestSummary[] }) {
   const { dictionary } = useLocale();
@@ -14,7 +15,9 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
   const [isPending, startTransition] = useTransition();
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
   const [scheduledTime, setScheduledTime] = useState("");
+  const [scheduleError, setScheduleError] = useState("");
   const router = useRouter();
+  const minScheduleTime = datetimeLocalMinValue();
 
   function decline(requestId: string) {
     startTransition(async () => {
@@ -25,15 +28,27 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
 
   function confirmAccept(requestId: string) {
     if (!scheduledTime) return;
+    if (!isFutureScheduledTime(scheduledTime)) {
+      setScheduleError(s.scheduleMustBeFuture);
+      return;
+    }
+    setScheduleError("");
     startTransition(async () => {
-      await respondToRequestAction(
+      const result = await respondToRequestAction(
         requestId,
         "accepted",
         new Date(scheduledTime).toISOString()
       );
+      if (result?.error === SCHEDULE_PAST_ERROR) {
+        setScheduleError(s.scheduleMustBeFuture);
+        return;
+      }
+      if (result?.error) {
+        setScheduleError(result.error);
+        return;
+      }
       setSchedulingId(null);
       setScheduledTime("");
-      // Stay on swap-requests; user joins via Join Session when ready.
       router.refresh();
     });
   }
@@ -104,16 +119,21 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
                 </div>
 
                 {isScheduling && (
-                  <div className="mt-3 flex flex-wrap items-center gap-2 pt-3" style={{ borderTop: "1px solid #eef7f0" }}>
+                  <div className="mt-3 flex flex-col gap-2 pt-3" style={{ borderTop: "1px solid #eef7f0" }}>
+                    <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="datetime-local"
                       value={scheduledTime}
-                      onChange={(e) => setScheduledTime(e.target.value)}
+                      min={minScheduleTime}
+                      onChange={(e) => {
+                        setScheduledTime(e.target.value);
+                        setScheduleError("");
+                      }}
                       className="nb-input px-2 py-1.5 text-sm"
                     />
                     <button
                       type="button"
-                      disabled={isPending || !scheduledTime}
+                      disabled={isPending || !scheduledTime || !isFutureScheduledTime(scheduledTime)}
                       onClick={() => confirmAccept(r.request_id)}
                       className="nb-btn px-4 py-1.5 text-xs text-white disabled:opacity-50"
                       style={{ background: "var(--sb-gradient)" }}
@@ -125,12 +145,17 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
                       onClick={() => {
                         setSchedulingId(null);
                         setScheduledTime("");
+                        setScheduleError("");
                       }}
                       className="px-3 py-1.5 text-xs font-semibold"
                       style={{ color: "var(--sb-muted)" }}
                     >
                       {s.cancel}
                     </button>
+                    </div>
+                    {scheduleError ? (
+                      <p className="text-xs font-medium text-red-600">{scheduleError}</p>
+                    ) : null}
                   </div>
                 )}
               </div>
