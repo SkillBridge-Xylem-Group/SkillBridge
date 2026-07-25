@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { CommentSort, ForumAnswer } from "@/lib/forum";
 import { countComments, filterCommentTree, sortCommentTree } from "@/lib/forum";
@@ -10,12 +11,18 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 
 export default function CommentsSection({
   questionId,
+  communitySlug,
+  communityTitle,
+  canParticipate,
   userName,
   userAvatarUrl = null,
   currentUserId,
   initialRoots,
 }: {
   questionId: string;
+  communitySlug: string;
+  communityTitle: string;
+  canParticipate: boolean;
   userName: string;
   userAvatarUrl?: string | null;
   currentUserId: string;
@@ -23,6 +30,7 @@ export default function CommentsSection({
 }) {
   const { dictionary } = useLocale();
   const f = dictionary.forum;
+  const c = dictionary.common;
   const [sort, setSort] = useState<CommentSort>("best");
   const [search, setSearch] = useState("");
 
@@ -35,7 +43,25 @@ export default function CommentsSection({
 
   return (
     <div className="space-y-4">
-      <AnswerComposer questionId={questionId} userName={userName} userAvatarUrl={userAvatarUrl} />
+      {canParticipate ? (
+        <AnswerComposer questionId={questionId} userName={userName} userAvatarUrl={userAvatarUrl} />
+      ) : (
+        <div className="nb-card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="min-w-0">
+            <p className="text-sm font-extrabold text-slate-900">{f.joinToComment}</p>
+            <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--sb-muted)" }}>
+              {f.joinToCommentHint}
+            </p>
+          </div>
+          <Link
+            href={`/dashboard/forum/c/${communitySlug}`}
+            className="inline-flex shrink-0 items-center justify-center rounded-full px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+            style={{ background: "var(--sb-gradient)" }}
+          >
+            {c.join} {communityTitle}
+          </Link>
+        </div>
+      )}
 
       {totalCount > 0 ? (
         <CommentControls
@@ -58,6 +84,7 @@ export default function CommentsSection({
           userName={userName}
           userAvatarUrl={userAvatarUrl}
           currentUserId={currentUserId}
+          canParticipate={canParticipate}
         />
       )}
     </div>
