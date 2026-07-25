@@ -503,6 +503,7 @@ export type Dictionary = {
     download: string;
     typeMessage: string;
     attachFile: string;
+    partnerCompletedSession: string;
   };
 };
 
@@ -1015,6 +1016,7 @@ const en: Dictionary = {
     download: "Download",
     typeMessage: "Type a message…",
     attachFile: "Attach file",
+    partnerCompletedSession: "Your partner marked this session as complete.",
   },
 };
 
@@ -1520,6 +1522,7 @@ const zhCN: Dictionary = {
     download: "下载",
     typeMessage: "输入消息…",
     attachFile: "添加附件",
+    partnerCompletedSession: "你的伙伴已将此会话标记为完成。",
   },
 };
 

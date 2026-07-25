@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import {
   ArrowLeft,
   Mic,
@@ -75,11 +75,25 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
     sendChat,
     sendChatFile,
     hangUp,
+    notifySessionComplete,
+    partnerCompletedSession,
   } = useSwapWebRtc({ requestId: session.requestId, userId, userName: viewerName });
 
   const topic = session.topic?.skill_name ?? s.defaultTopic;
-  const label = statusLabel(connectionState, partnerPresent, s);
+  const label = partnerCompletedSession ? s.partnerCompletedSession : statusLabel(connectionState, partnerPresent, s);
   const roomOpen = connectionState !== "ended";
+
+  // The partner marked the session complete while we were still in the
+  // room — let them see why the call ended, then take them back so their
+  // swap-requests list reflects the now-completed status.
+  useEffect(() => {
+    if (!partnerCompletedSession) return;
+    const timer = setTimeout(() => {
+      router.push("/dashboard/swap-requests");
+      router.refresh();
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [partnerCompletedSession, router]);
 
   async function leave() {
     await hangUp();
@@ -88,6 +102,7 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
 
   function markComplete() {
     startComplete(async () => {
+      await notifySessionComplete();
       await hangUp();
       await completeSessionAction(session.requestId);
       router.push("/dashboard/swap-requests");
