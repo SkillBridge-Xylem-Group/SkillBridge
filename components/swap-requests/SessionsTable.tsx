@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
@@ -17,7 +17,14 @@ import { dateLocaleTag } from "@/lib/i18n/locales";
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import { datetimeLocalMinValue, isFutureScheduledTime, SCHEDULE_PAST_ERROR } from "@/lib/sessionSchedule";
+import {
+  datetimeLocalMaxValue,
+  datetimeLocalMinValue,
+  isAllowedScheduledTime,
+  isScheduledTimeTooFar,
+  SCHEDULE_PAST_ERROR,
+  SCHEDULE_TOO_FAR_ERROR,
+} from "@/lib/sessionSchedule";
 
 const STATUS_STYLES: Record<string, { bg: string; ink: string }> = {
   pending: { bg: "#fff6d9", ink: "#b45309" },
@@ -101,8 +108,17 @@ function SessionRow({
   const [scheduleError, setScheduleError] = useState("");
   const [confirmHide, setConfirmHide] = useState(false);
   const [hideError, setHideError] = useState("");
+  const [nowTick, setNowTick] = useState(0);
   const router = useRouter();
-  const minScheduleTime = datetimeLocalMinValue();
+
+  useEffect(() => {
+    if (!isRescheduling) return;
+    const id = window.setInterval(() => setNowTick((tick) => tick + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [isRescheduling]);
+
+  const minScheduleTime = useMemo(() => datetimeLocalMinValue(), [nowTick, isRescheduling]);
+  const maxScheduleTime = useMemo(() => datetimeLocalMaxValue(), [nowTick, isRescheduling]);
 
   const canManage = session.status === "accepted" || session.status === "rescheduled";
   const canReview = session.status === "completed" && !session.hasReviewedPartner;
@@ -126,8 +142,8 @@ function SessionRow({
 
   function confirmReschedule() {
     if (!newTime) return;
-    if (!isFutureScheduledTime(newTime)) {
-      setScheduleError(s.scheduleMustBeFuture);
+    if (!isAllowedScheduledTime(newTime, new Date())) {
+      setScheduleError(isScheduledTimeTooFar(newTime, new Date()) ? s.scheduleTooFar : s.scheduleMustBeFuture);
       return;
     }
     setScheduleError("");
@@ -135,6 +151,10 @@ function SessionRow({
       const result = await rescheduleSessionAction(session.request_id, new Date(newTime).toISOString());
       if (result?.error === SCHEDULE_PAST_ERROR) {
         setScheduleError(s.scheduleMustBeFuture);
+        return;
+      }
+      if (result?.error === SCHEDULE_TOO_FAR_ERROR) {
+        setScheduleError(s.scheduleTooFar);
         return;
       }
       if (result?.error) {
@@ -197,6 +217,7 @@ function SessionRow({
               type="datetime-local"
               value={newTime}
               min={minScheduleTime}
+              max={maxScheduleTime}
               onChange={(e) => {
                 setNewTime(e.target.value);
                 setScheduleError("");
@@ -205,7 +226,7 @@ function SessionRow({
             />
             <ActionButton
               variant="primary"
-              disabled={isPending || !newTime || !isFutureScheduledTime(newTime)}
+              disabled={isPending || !newTime || !isAllowedScheduledTime(newTime, new Date())}
               onClick={confirmReschedule}
             >
               {dictionary.common.save}

@@ -1,13 +1,20 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { respondToRequestAction } from "@/lib/actions/sessionRequests";
 import type { SessionRequestSummary } from "@/lib/sessionRequests";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
-import { datetimeLocalMinValue, isFutureScheduledTime, SCHEDULE_PAST_ERROR } from "@/lib/sessionSchedule";
+import {
+  datetimeLocalMaxValue,
+  datetimeLocalMinValue,
+  isAllowedScheduledTime,
+  isScheduledTimeTooFar,
+  SCHEDULE_PAST_ERROR,
+  SCHEDULE_TOO_FAR_ERROR,
+} from "@/lib/sessionSchedule";
 
 export default function PendingRequestsList({ requests }: { requests: SessionRequestSummary[] }) {
   const { dictionary } = useLocale();
@@ -16,8 +23,17 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
   const [scheduledTime, setScheduledTime] = useState("");
   const [scheduleError, setScheduleError] = useState("");
+  const [nowTick, setNowTick] = useState(0);
   const router = useRouter();
-  const minScheduleTime = datetimeLocalMinValue();
+
+  useEffect(() => {
+    if (!schedulingId) return;
+    const id = window.setInterval(() => setNowTick((tick) => tick + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [schedulingId]);
+
+  const minScheduleTime = useMemo(() => datetimeLocalMinValue(), [nowTick, schedulingId]);
+  const maxScheduleTime = useMemo(() => datetimeLocalMaxValue(), [nowTick, schedulingId]);
 
   function decline(requestId: string) {
     startTransition(async () => {
@@ -28,8 +44,10 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
 
   function confirmAccept(requestId: string) {
     if (!scheduledTime) return;
-    if (!isFutureScheduledTime(scheduledTime)) {
-      setScheduleError(s.scheduleMustBeFuture);
+    if (!isAllowedScheduledTime(scheduledTime, new Date())) {
+      setScheduleError(
+        isScheduledTimeTooFar(scheduledTime, new Date()) ? s.scheduleTooFar : s.scheduleMustBeFuture
+      );
       return;
     }
     setScheduleError("");
@@ -41,6 +59,10 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
       );
       if (result?.error === SCHEDULE_PAST_ERROR) {
         setScheduleError(s.scheduleMustBeFuture);
+        return;
+      }
+      if (result?.error === SCHEDULE_TOO_FAR_ERROR) {
+        setScheduleError(s.scheduleTooFar);
         return;
       }
       if (result?.error) {
@@ -125,6 +147,7 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
                       type="datetime-local"
                       value={scheduledTime}
                       min={minScheduleTime}
+                      max={maxScheduleTime}
                       onChange={(e) => {
                         setScheduledTime(e.target.value);
                         setScheduleError("");
@@ -133,7 +156,11 @@ export default function PendingRequestsList({ requests }: { requests: SessionReq
                     />
                     <button
                       type="button"
-                      disabled={isPending || !scheduledTime || !isFutureScheduledTime(scheduledTime)}
+                      disabled={
+                        isPending ||
+                        !scheduledTime ||
+                        !isAllowedScheduledTime(scheduledTime, new Date())
+                      }
                       onClick={() => confirmAccept(r.request_id)}
                       className="nb-btn px-4 py-1.5 text-xs text-white disabled:opacity-50"
                       style={{ background: "var(--sb-gradient)" }}
