@@ -6,34 +6,39 @@ export type WantedSkillRef = {
   category: string;
 };
 
-/** Skill catalog categories → forum community topic keys. */
+/** Skill catalog categories → related forum community topics. */
 const SKILL_CATEGORY_TO_COMMUNITY_TOPICS: Record<string, string[]> = {
-  Technology: ["Technology", "Sciences", "Games", "Internet Culture"],
+  Technology: ["Technology", "Sciences", "Internet Culture", "Games & Media"],
   Design: ["Design", "Art", "Fashion & Beauty"],
   Art: ["Art", "Design", "Collectibles & Hobbies"],
-  Business: ["Business & Finance", "Education & Career", "Soft Skills"],
-  Marketing: ["Marketing", "Business & Finance", "Internet Culture"],
-  "Soft Skills": ["Soft Skills", "Education & Career", "Q&As & Stories"],
-  Languages: ["Places & Travel", "Education & Career", "Q&As & Stories", "Pop Culture"],
+  Business: ["Business", "Business & Finance", "Soft Skills", "Education & Career"],
+  Marketing: ["Marketing", "Business", "Internet Culture"],
+  "Soft Skills": ["Soft Skills", "Education & Career", "Q&As & Stories", "Education"],
+  Languages: ["Languages", "Places & Travel", "Education", "Humanities & Law"],
   Music: ["Music", "Pop Culture"],
-  Fitness: ["Health", "Wellness", "Sports", "Nature & Outdoors"],
-  "Food & Lifestyle": ["Food & Drinks", "Home & Garden", "Places & Travel", "Fashion & Beauty"],
-  Education: ["Education & Career", "Reading & Writing", "Sciences", "Q&As & Stories"],
-  "Games & Media": ["Games", "Movies & TV", "Internet Culture", "Anime & Cosplay"],
+  Fitness: ["Fitness", "Sports", "Wellness", "Health"],
+  "Food & Lifestyle": ["Food & Lifestyle", "Home & Garden", "Fashion & Beauty", "Places & Travel"],
+  Education: ["Education", "Reading & Writing", "Sciences", "Education & Career"],
+  "Games & Media": ["Games & Media", "Movies & TV", "Internet Culture", "Anime & Cosplay"],
 };
 
 const EXTRA_SKILL_KEYWORDS: Record<string, string[]> = {
-  language: ["Places & Travel", "Education & Career"],
-  fitness: ["Health", "Wellness", "Sports"],
-  wellness: ["Wellness", "Health"],
-  writing: ["Reading & Writing", "Q&As & Stories"],
-  cooking: ["Food & Drinks"],
-  game: ["Games"],
+  language: ["Languages", "Education"],
+  fitness: ["Fitness", "Sports", "Wellness", "Health"],
+  wellness: ["Wellness", "Health", "Fitness"],
+  yoga: ["Fitness", "Wellness"],
+  writing: ["Reading & Writing", "Education"],
+  cooking: ["Food & Lifestyle"],
+  game: ["Games & Media"],
   music: ["Music"],
   art: ["Art", "Design"],
   design: ["Design", "Art"],
-  business: ["Business & Finance"],
-  tech: ["Technology"],
+  business: ["Business", "Business & Finance"],
+  finance: ["Business & Finance", "Business"],
+  tech: ["Technology", "Sciences"],
+  photo: ["Art", "Design", "Movies & TV"],
+  travel: ["Places & Travel", "Languages"],
+  career: ["Education & Career", "Soft Skills"],
 };
 
 function normalize(text: string): string {
