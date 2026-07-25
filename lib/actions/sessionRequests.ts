@@ -81,7 +81,7 @@ export async function respondToRequestAction(requestId: string, status: "accepte
   if (status === "accepted") {
     if (!scheduledTime) return { error: "Choose a date and time for the session." };
     const validated = validateFutureScheduledTime(scheduledTime);
-    if (!validated.ok) {
+    if (!("ok" in validated)) {
       if (validated.error === SCHEDULE_INVALID_ERROR) return { error: "Invalid date and time." };
       return { error: SCHEDULE_PAST_ERROR };
     }
@@ -189,7 +189,7 @@ export async function rescheduleSessionAction(requestId: string, scheduledTime: 
   if (!request) return { error: "You can't update this session." };
 
   const validated = validateFutureScheduledTime(scheduledTime);
-  if (!validated.ok) {
+  if (!("ok" in validated)) {
     if (validated.error === SCHEDULE_INVALID_ERROR) return { error: "Invalid date and time." };
     return { error: SCHEDULE_PAST_ERROR };
   }
