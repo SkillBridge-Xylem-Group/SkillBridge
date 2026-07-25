@@ -30,7 +30,9 @@ export default function OnboardingGate({ initialShow, skillsByCategory }: Onboar
 
   return (
     <>
-      {show && <OnboardingModal onComplete={handleComplete} skillsByCategory={skillsByCategory} />}
+      {show && (
+        <OnboardingModal onComplete={handleComplete} skillsByCategory={skillsByCategory} />
+      )}
       {showSavedToast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
           {dictionary.onboarding.skillSaved}

@@ -169,6 +169,11 @@ export default function BrowsePeopleGrid() {
                         <p className="truncate text-sm font-bold" style={{ color: "var(--sb-ink)" }} title={p.name}>
                           {p.name}
                         </p>
+                        {p.slug ? (
+                          <p className="truncate text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>
+                            @{p.slug}
+                          </p>
+                        ) : null}
                         <div className="mt-0.5 flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--sb-muted)" }}>
                           <Star size={13} className="shrink-0 fill-amber-400 text-amber-400" />
                           <span className="truncate">

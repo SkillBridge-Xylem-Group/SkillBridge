@@ -377,6 +377,17 @@ export type Dictionary = {
     noBioYet: string;
     saveProfileFailed: string;
     savePhotoFailed: string;
+    usernameLabel: string;
+    usernamePlaceholder: string;
+    usernameHint: string;
+    usernameChecking: string;
+    usernameAvailable: string;
+    usernameTaken: string;
+    usernameTooShort: string;
+    usernameTooLong: string;
+    usernameInvalidChars: string;
+    usernameMustStartWithLetter: string;
+    usernameReserved: string;
   };
   swaps: {
     pendingRequests: string;
@@ -417,6 +428,7 @@ export type Dictionary = {
   onboarding: {
     skillSaved: string;
     errorBioRequired: string;
+    errorUsernameRequired: string;
     errorSubjectRequired: string;
     errorTeachTagsRequired: string;
     errorLearnTagsRequired: string;
@@ -888,6 +900,17 @@ const en: Dictionary = {
     noBioYet: "This user hasn't added a bio yet.",
     saveProfileFailed: "Failed to save profile. Please try again.",
     savePhotoFailed: "Failed to save photo. Please try again.",
+    usernameLabel: "Username",
+    usernamePlaceholder: "your-name",
+    usernameHint: "3–30 characters. Letters, numbers, and hyphens. Must start with a letter.",
+    usernameChecking: "Checking availability…",
+    usernameAvailable: "This username is available.",
+    usernameTaken: "This username is already taken.",
+    usernameTooShort: "Username must be at least 3 characters.",
+    usernameTooLong: "Username must be 30 characters or fewer.",
+    usernameInvalidChars: "Use only letters, numbers, and single hyphens.",
+    usernameMustStartWithLetter: "Username must start with a letter.",
+    usernameReserved: "This username is reserved.",
   },
   swaps: {
     pendingRequests: "Pending Requests",
@@ -929,6 +952,7 @@ const en: Dictionary = {
   onboarding: {
     skillSaved: "Skill saved",
     errorBioRequired: "Please write a short bio before continuing.",
+    errorUsernameRequired: "Choose an available username before continuing.",
     errorSubjectRequired: "Please tell us your subject field.",
     errorTeachTagsRequired: "Please select at least one skill you can teach.",
     errorLearnTagsRequired: "Please select at least one skill you want to learn.",
@@ -1394,6 +1418,17 @@ const zhCN: Dictionary = {
     noBioYet: "该用户还没有添加简介。",
     saveProfileFailed: "保存资料失败，请重试。",
     savePhotoFailed: "保存头像失败，请重试。",
+    usernameLabel: "用户名",
+    usernamePlaceholder: "your-name",
+    usernameHint: "3–30 个字符，可使用字母、数字和连字符，且必须以字母开头。",
+    usernameChecking: "正在检查是否可用…",
+    usernameAvailable: "该用户名可用。",
+    usernameTaken: "该用户名已被占用。",
+    usernameTooShort: "用户名至少需要 3 个字符。",
+    usernameTooLong: "用户名不能超过 30 个字符。",
+    usernameInvalidChars: "只能使用字母、数字和单个连字符。",
+    usernameMustStartWithLetter: "用户名必须以字母开头。",
+    usernameReserved: "该用户名为系统保留，无法使用。",
   },
   swaps: {
     pendingRequests: "待处理请求",
@@ -1434,6 +1469,7 @@ const zhCN: Dictionary = {
   onboarding: {
     skillSaved: "技能已保存",
     errorBioRequired: "请先填写一段简短的个人简介再继续。",
+    errorUsernameRequired: "请先选择一个可用的用户名再继续。",
     errorSubjectRequired: "请告诉我们你的专业领域。",
     errorTeachTagsRequired: "请至少选择一项你能教的技能。",
     errorLearnTagsRequired: "请至少选择一项你想学的技能。",
