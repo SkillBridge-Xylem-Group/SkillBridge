@@ -3,9 +3,13 @@
 import { useEffect, useState } from "react";
 import { getTimezoneOptions, type TimezoneOption } from "@/lib/timezones";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import UsernameField from "@/components/profile/UsernameField";
 import TimezoneCombobox from "./TimezoneCombobox";
 
 type ProfileStepProps = {
+  username: string;
+  onUsernameChange: (value: string) => void;
+  onUsernameReadyChange: (ready: boolean) => void;
   bio: string;
   onBioChange: (value: string) => void;
   timezone: string;
@@ -14,7 +18,15 @@ type ProfileStepProps = {
 
 const INITIAL_TIMEZONES: TimezoneOption[] = [{ value: "Asia/Jakarta", label: "(GMT+07:00) Jakarta" }];
 
-export default function ProfileStep({ bio, onBioChange, timezone, onTimezoneChange }: ProfileStepProps) {
+export default function ProfileStep({
+  username,
+  onUsernameChange,
+  onUsernameReadyChange,
+  bio,
+  onBioChange,
+  timezone,
+  onTimezoneChange,
+}: ProfileStepProps) {
   const { dictionary } = useLocale();
   const o = dictionary.onboarding;
   const maxLength = 300;
@@ -37,6 +49,14 @@ export default function ProfileStep({ bio, onBioChange, timezone, onTimezoneChan
       </div>
 
       <div className="mt-8">
+        <UsernameField
+          value={username}
+          onChange={onUsernameChange}
+          onReadyChange={onUsernameReadyChange}
+        />
+      </div>
+
+      <div className="mt-6">
         <label htmlFor="bio" className="text-sm font-semibold" style={{ color: "var(--sb-ink)" }}>
           {o.shortBio}
         </label>

@@ -3,7 +3,10 @@
 import { useRef, useState } from "react";
 import { Pencil, Calendar, Clock, Check, X, Plus } from "lucide-react";
 import ProfileUidMeta from "./ProfileUidMeta";
+import ProfileUsernameMeta from "./ProfileUsernameMeta";
+import UsernameField from "./UsernameField";
 import { uploadAvatar } from "@/lib/avatarUpload";
+import { normalizeUsernameInput } from "@/lib/username";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { formatAppDate } from "@/lib/i18n/locales";
@@ -12,11 +15,12 @@ type ProfileHeaderProps = {
   userId: string;
   publicUid: number | null;
   fullname: string;
+  username: string;
   createdAt: string;
   timezone: string;
   bio: string | null;
   avatarUrl: string | null;
-  onSaveProfile: (name: string, bio: string) => Promise<void>;
+  onSaveProfile: (name: string, bio: string, username: string) => Promise<boolean>;
   onAvatarChange: (nextUrl: string) => Promise<void>;
   profileError: string;
 };
@@ -25,6 +29,7 @@ export default function ProfileHeader({
   userId,
   publicUid,
   fullname,
+  username,
   createdAt,
   timezone,
   bio,
@@ -37,7 +42,9 @@ export default function ProfileHeader({
   const p = dictionary.profile;
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(fullname);
+  const [draftUsername, setDraftUsername] = useState(username);
   const [draftBio, setDraftBio] = useState(bio ?? "");
+  const [usernameReady, setUsernameReady] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState("");
@@ -45,16 +52,21 @@ export default function ProfileHeader({
 
   function startEdit() {
     setDraftName(fullname);
+    setDraftUsername(username);
     setDraftBio(bio ?? "");
     setPhotoError("");
+    setUsernameReady(true);
     setIsEditing(true);
   }
 
+  const canSave = draftName.trim().length > 0 && usernameReady;
+
   async function save() {
+    if (!canSave) return;
     setIsSaving(true);
-    await onSaveProfile(draftName.trim(), draftBio.trim());
+    const ok = await onSaveProfile(draftName.trim(), draftBio.trim(), normalizeUsernameInput(draftUsername));
     setIsSaving(false);
-    setIsEditing(false);
+    if (ok) setIsEditing(false);
   }
 
   async function onPickPhoto(file: File | undefined) {
@@ -129,6 +141,7 @@ export default function ProfileHeader({
                 {fullname}
               </h1>
             )}
+            <ProfileUsernameMeta username={username} className="mt-0.5" />
             <ProfileUidMeta publicUid={publicUid} />
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ color: "var(--sb-muted)" }}>
               <span className="flex items-center gap-1.5">
@@ -165,13 +178,20 @@ export default function ProfileHeader({
       <div className="mt-5 pt-5" style={{ borderTop: "1px solid #eef7f0" }}>
         {isEditing ? (
           <div>
+            <UsernameField
+              value={draftUsername}
+              onChange={setDraftUsername}
+              currentUsername={username}
+              onReadyChange={setUsernameReady}
+            />
+
             <textarea
               value={draftBio}
               onChange={(e) => setDraftBio(e.target.value)}
               rows={3}
               maxLength={300}
               placeholder={p.bioPlaceholder}
-              className="nb-input w-full resize-none p-3 text-sm"
+              className="nb-input mt-4 w-full resize-none p-3 text-sm"
             />
             {profileError && <p className="mt-2 text-sm font-medium text-red-600">{profileError}</p>}
 
@@ -179,7 +199,7 @@ export default function ProfileHeader({
               <button
                 type="button"
                 onClick={save}
-                disabled={isSaving}
+                disabled={isSaving || !canSave}
                 className="nb-btn flex items-center gap-1.5 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
                 style={{ background: "var(--sb-gradient)" }}
               >
@@ -190,6 +210,7 @@ export default function ProfileHeader({
                 type="button"
                 onClick={() => {
                   setPhotoError("");
+                  setUsernameReady(true);
                   setIsEditing(false);
                 }}
                 disabled={isSaving}

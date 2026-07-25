@@ -29,6 +29,8 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
   const subjectOptions = [...Object.keys(skillsByCategory), OTHER_SUBJECT];
 
   const [bio, setBio] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameReady, setUsernameReady] = useState(false);
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
 
   function validateStep(): string | null {
     if (step === 1) {
+      if (!usernameReady) return o.errorUsernameRequired;
       if (!bio.trim()) return o.errorBioRequired;
     }
     if (step === 2) {
@@ -107,6 +110,7 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          username,
           bio,
           timezone,
           teachSubject: finalTeachSubject,
@@ -118,6 +122,10 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
+        if (data?.error === "TAKEN") {
+          setError(dictionary.profile.usernameTaken);
+          return;
+        }
         setError(data?.error ?? o.errorSaveFailed);
         return;
       }
@@ -153,7 +161,15 @@ export default function OnboardingModal({ onComplete, skillsByCategory }: Onboar
 
         <div className="flex-1 overflow-y-auto px-8 py-8">
           {step === 1 && (
-            <ProfileStep bio={bio} onBioChange={setBio} timezone={timezone} onTimezoneChange={setTimezone} />
+            <ProfileStep
+              username={username}
+              onUsernameChange={setUsername}
+              onUsernameReadyChange={setUsernameReady}
+              bio={bio}
+              onBioChange={setBio}
+              timezone={timezone}
+              onTimezoneChange={setTimezone}
+            />
           )}
 
           {step === 2 && (
