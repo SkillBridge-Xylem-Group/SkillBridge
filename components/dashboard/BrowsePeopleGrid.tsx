@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Search, Star, SlidersHorizontal } from "lucide-react";
+import { Search, Star } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLocale } from "@/components/i18n/LocaleProvider";
@@ -101,13 +101,6 @@ export default function BrowsePeopleGrid() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div
-            className="nb-icon-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl"
-            aria-hidden
-          >
-            <SlidersHorizontal size={16} />
-          </div>
-
           <select
             id="browse-people-category"
             name="browse-people-category"
