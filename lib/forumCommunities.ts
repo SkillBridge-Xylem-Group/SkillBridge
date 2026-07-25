@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { FORUM_SUBFORUMS } from "@/lib/forumSubforums";
+import { countPostsInSubforum, storedSubforumSlug } from "@/lib/forum";
 
 export const COMMUNITY_ACCENT_COLORS = [
   { id: "brand", hex: "#2563eb", ring: "ring-blue-600", avatar: "bg-brand text-white" },
@@ -209,7 +210,7 @@ async function loadPostCounts(supabase: SupabaseClient): Promise<Record<string, 
   const { data: postRows } = await supabase.from("forum_questions").select("subforum_slug");
   const postCounts: Record<string, number> = {};
   for (const row of postRows ?? []) {
-    const slug = (row as { subforum_slug?: string | null }).subforum_slug ?? "general";
+    const slug = storedSubforumSlug((row as { subforum_slug?: string | null }).subforum_slug);
     postCounts[slug] = (postCounts[slug] ?? 0) + 1;
   }
   return postCounts;
@@ -360,10 +361,7 @@ export async function getCommunityBySlug(
     }
   }
 
-  const { count } = await supabase
-    .from("forum_questions")
-    .select("question_id", { count: "exact", head: true })
-    .eq("subforum_slug", slug);
+  const post_count = await countPostsInSubforum(supabase, slug);
 
   const decoded = decodeCommunityImageField(row.image_url);
   const accent_color = isCommunityAccentColor(row.accent_color) ? row.accent_color : decoded.accent;
@@ -381,7 +379,7 @@ export async function getCommunityBySlug(
     is_official: row.is_official,
     created_at: row.created_at,
     member_count: row.forum_community_members?.[0]?.count ?? 0,
-    post_count: count ?? 0,
+    post_count,
     joined,
   };
 }

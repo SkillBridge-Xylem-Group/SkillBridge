@@ -67,9 +67,11 @@ function SettingRow({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="pt-8 first:pt-6">
-      <h2 className="mb-1 px-1 text-xs font-bold uppercase tracking-widest text-slate-400">{title}</h2>
-      <div>{children}</div>
+    <section className="pt-8 first:pt-2">
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">{title}</h2>
+      <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100 px-1">
+        {children}
+      </div>
     </section>
   );
 }
@@ -328,34 +330,35 @@ export default function SettingsClient({
     "btn-pill w-full bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60";
 
   return (
-    <div className="flex w-full min-w-0 flex-1 flex-col">
-      <h1 className="text-[28px] font-bold leading-none tracking-tight text-slate-900">{s.title}</h1>
+    <div className="flex w-full min-w-0 flex-1 flex-col pt-2">
+      <div className="nb-card overflow-hidden p-6 sm:p-8">
+        <h1 className="text-[28px] font-bold leading-none tracking-tight text-slate-900">{s.title}</h1>
 
-      <nav className="mt-5 w-full border-b border-slate-100" aria-label={s.settingsSections}>
-        <div className="flex gap-5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {tabs.map((item) => {
-            const active = tab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setTab(item.id)}
-                className={`relative shrink-0 pb-3 text-sm font-semibold transition ${
-                  active ? "text-brand" : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                {item.label}
-                {active ? <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-brand" /> : null}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+        <nav className="mt-5 w-full border-b border-slate-100" aria-label={s.settingsSections}>
+          <div className="flex gap-5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {tabs.map((item) => {
+              const active = tab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setTab(item.id)}
+                  className={`relative shrink-0 pb-3 text-sm font-semibold transition ${
+                    active ? "text-brand" : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  {item.label}
+                  {active ? <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-brand" /> : null}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
 
-      <div className="w-full">
-        {tab === "account" ? (
-          <div>
-            <Section title={s.general}>
+        <div className="w-full">
+          {tab === "account" ? (
+            <div>
+              <Section title={s.general}>
               <SettingRow label={s.emailAddress} onClick={() => openModal("email")}>
                 <span className="max-w-[24rem] truncate text-sm text-slate-500">{email || "—"}</span>
                 <ChevronRight
@@ -493,6 +496,7 @@ export default function SettingsClient({
             </Section>
           </div>
         ) : null}
+        </div>
       </div>
 
       {modal === "email" ? (
