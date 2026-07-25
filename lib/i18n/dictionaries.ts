@@ -411,6 +411,7 @@ export type Dictionary = {
     statusCompleted: string;
     statusDeclined: string;
     statusCancelled: string;
+    scheduleMustBeFuture: string;
   };
   onboarding: {
     skillSaved: string;
@@ -921,6 +922,7 @@ const en: Dictionary = {
     statusCompleted: "Completed",
     statusDeclined: "Declined",
     statusCancelled: "Cancelled",
+    scheduleMustBeFuture: "Choose a date and time in the future.",
   },
   onboarding: {
     skillSaved: "Skill saved",
@@ -1424,6 +1426,7 @@ const zhCN: Dictionary = {
     statusCompleted: "已完成",
     statusDeclined: "已拒绝",
     statusCancelled: "已取消",
+    scheduleMustBeFuture: "请选择未来的日期和时间。",
   },
   onboarding: {
     skillSaved: "技能已保存",

@@ -435,6 +435,7 @@ export const idPack: Dictionary = {
     statusCompleted: "Selesai",
     statusDeclined: "Ditolak",
     statusCancelled: "Dibatalkan",
+    scheduleMustBeFuture: "Pilih tanggal dan waktu di masa depan.",
   },
   onboarding: {
     skillSaved: "Skill tersimpan",
@@ -963,6 +964,7 @@ export const jaPack: Dictionary = {
     statusCompleted: "完了",
     statusDeclined: "却下済み",
     statusCancelled: "キャンセル済み",
+    scheduleMustBeFuture: "未来の日時を選択してください。",
   },
   onboarding: {
     skillSaved: "スキルを保存しました",
@@ -1487,6 +1489,7 @@ export const koPack: Dictionary = {
     statusCompleted: "완료됨",
     statusDeclined: "거절됨",
     statusCancelled: "취소됨",
+    scheduleMustBeFuture: "미래의 날짜와 시간을 선택하세요.",
   },
   onboarding: {
     skillSaved: "스킬이 저장되었습니다",
