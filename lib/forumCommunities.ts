@@ -355,6 +355,19 @@ export async function getCommunityBySlug(
   };
 }
 
+export const FORUM_JOIN_REQUIRED = "FORUM_JOIN_REQUIRED" as const;
+
+export async function canUserParticipateInCommunity(
+  supabase: SupabaseClient,
+  slug: string,
+  userId: string
+): Promise<boolean> {
+  const community = await getCommunityBySlug(supabase, slug, userId);
+  if (!community) return false;
+  if (community.created_by === userId) return true;
+  return community.joined;
+}
+
 export async function createCommunity(
   supabase: SupabaseClient,
   params: {

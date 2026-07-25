@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Bold, Code, Image as ImageIcon, Italic, Link2, Strikethrough, Video, X } from "lucide-react";
 import { createAnswerAction } from "@/lib/actions/forum";
+import { FORUM_JOIN_REQUIRED } from "@/lib/forumCommunities";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { MAX_FORUM_IMAGE_BYTES, uploadForumImage } from "@/lib/forumImageUpload";
 import GifPicker from "./GifPicker";
@@ -182,7 +183,7 @@ export default function AnswerComposer({
 
       const result = await createAnswerAction(questionId, content, imageUrl, parentAnswerId);
       if (result?.error) {
-        setError(result.error);
+        setError(result.error === FORUM_JOIN_REQUIRED ? f.joinToCommentHint : result.error);
         return;
       }
       resetForm();

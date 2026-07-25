@@ -31,6 +31,7 @@ function CommentNode({
   userName,
   userAvatarUrl = null,
   currentUserId,
+  canParticipate,
   collapsed,
   onToggleCollapse,
 }: {
@@ -39,6 +40,7 @@ function CommentNode({
   userName: string;
   userAvatarUrl?: string | null;
   currentUserId: string;
+  canParticipate: boolean;
   collapsed: Set<string>;
   onToggleCollapse: (id: string) => void;
 }) {
@@ -56,6 +58,7 @@ function CommentNode({
   const isOwnComment = answer.author.id === currentUserId;
 
   function vote(next: -1 | 1) {
+    if (!canParticipate) return;
     const value: -1 | 0 | 1 = answer.myVote === next ? 0 : next;
     startTransition(async () => {
       await setVoteAction(answer.answer_id, questionId, value);
@@ -186,12 +189,15 @@ function CommentNode({
                   ) : null}
 
                   <div className="mt-2 flex flex-wrap items-center gap-1">
-                    <div className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-1 py-0.5">
+                    <div
+                      className={`inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-1 py-0.5 ${canParticipate ? "" : "opacity-60"}`}
+                      title={canParticipate ? undefined : f.joinToCommentHint}
+                    >
                       <button
                         type="button"
                         onClick={() => vote(1)}
-                        disabled={isPending}
-                        className="rounded-full p-1 disabled:opacity-50"
+                        disabled={isPending || !canParticipate}
+                        className="rounded-full p-1 disabled:cursor-not-allowed disabled:opacity-50"
                         style={{ color: answer.myVote === 1 ? "var(--sb-emerald)" : "var(--sb-muted)" }}
                         aria-label="Upvote"
                       >
@@ -206,8 +212,8 @@ function CommentNode({
                       <button
                         type="button"
                         onClick={() => vote(-1)}
-                        disabled={isPending}
-                        className="rounded-full p-1 disabled:opacity-50"
+                        disabled={isPending || !canParticipate}
+                        className="rounded-full p-1 disabled:cursor-not-allowed disabled:opacity-50"
                         style={{ color: answer.myVote === -1 ? "#dc2626" : "var(--sb-muted)" }}
                         aria-label="Downvote"
                       >
@@ -215,15 +221,17 @@ function CommentNode({
                       </button>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setReplyOpen((v) => !v)}
-                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition hover:bg-slate-100"
-                      style={{ color: "var(--sb-muted)" }}
-                    >
-                      <MessageSquare size={14} />
-                      {f.replyAction}
-                    </button>
+                    {canParticipate ? (
+                      <button
+                        type="button"
+                        onClick={() => setReplyOpen((v) => !v)}
+                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition hover:bg-slate-100"
+                        style={{ color: "var(--sb-muted)" }}
+                      >
+                        <MessageSquare size={14} />
+                        {f.replyAction}
+                      </button>
+                    ) : null}
 
                     <button
                       type="button"
@@ -304,7 +312,7 @@ function CommentNode({
                     </p>
                   ) : null}
 
-                  {replyOpen ? (
+                  {replyOpen && canParticipate ? (
                     <div className="mt-3">
                       <AnswerComposer
                         questionId={questionId}
@@ -333,6 +341,7 @@ function CommentNode({
                   userName={userName}
                   userAvatarUrl={userAvatarUrl}
                   currentUserId={currentUserId}
+                  canParticipate={canParticipate}
                   collapsed={collapsed}
                   onToggleCollapse={onToggleCollapse}
                 />
@@ -368,12 +377,14 @@ export default function CommentThread({
   userName,
   userAvatarUrl = null,
   currentUserId,
+  canParticipate = true,
 }: {
   roots: ForumAnswer[];
   questionId: string;
   userName: string;
   userAvatarUrl?: string | null;
   currentUserId: string;
+  canParticipate?: boolean;
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const { dictionary } = useLocale();
@@ -397,7 +408,7 @@ export default function CommentThread({
   if (roots.length === 0) {
     return (
       <p className="py-6 text-center text-sm" style={{ color: "var(--sb-muted)" }}>
-        {dictionary.forum.noCommentsYet}
+        {canParticipate ? dictionary.forum.noCommentsYet : dictionary.forum.joinToCommentHint}
       </p>
     );
   }
@@ -412,6 +423,7 @@ export default function CommentThread({
           userName={userName}
           userAvatarUrl={userAvatarUrl}
           currentUserId={currentUserId}
+          canParticipate={canParticipate}
           collapsed={collapsed}
           onToggleCollapse={onToggleCollapse}
         />

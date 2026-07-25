@@ -280,6 +280,8 @@ export type Dictionary = {
     deleteCommunityConfirmTitle: string;
     deleteCommunityConfirmDesc: string;
     joinConversation: string;
+    joinToComment: string;
+    joinToCommentHint: string;
     commentAction: string;
     commentCancel: string;
     sortBy: string;
@@ -787,6 +789,8 @@ const en: Dictionary = {
     deleteCommunityConfirmDesc:
       "Delete r/{slug}? Posts will move to General. This can't be undone.",
     joinConversation: "Join the conversation",
+    joinToComment: "Join the community to participate",
+    joinToCommentHint: "You need to be a member before you can comment or vote in this community.",
     commentAction: "Comment",
     commentCancel: "Cancel",
     sortBy: "Sort by",
@@ -1289,6 +1293,8 @@ const zhCN: Dictionary = {
     deleteCommunityConfirmTitle: "删除该社区？",
     deleteCommunityConfirmDesc: "删除 r/{slug}？帖子将移至 General，此操作无法撤销。",
     joinConversation: "参与讨论",
+    joinToComment: "加入社区后才能参与讨论",
+    joinToCommentHint: "你需要先加入该社区，才能评论或投票。",
     commentAction: "评论",
     commentCancel: "取消",
     sortBy: "排序",
