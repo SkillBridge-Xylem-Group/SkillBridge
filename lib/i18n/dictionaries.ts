@@ -412,6 +412,7 @@ export type Dictionary = {
     statusDeclined: string;
     statusCancelled: string;
     scheduleMustBeFuture: string;
+    scheduleTooFar: string;
   };
   onboarding: {
     skillSaved: string;
@@ -922,7 +923,8 @@ const en: Dictionary = {
     statusCompleted: "Completed",
     statusDeclined: "Declined",
     statusCancelled: "Cancelled",
-    scheduleMustBeFuture: "Choose a date and time in the future.",
+    scheduleMustBeFuture: "Choose the current time or a later date and time.",
+    scheduleTooFar: "Sessions can only be scheduled up to 4 weeks ahead.",
   },
   onboarding: {
     skillSaved: "Skill saved",
@@ -1426,7 +1428,8 @@ const zhCN: Dictionary = {
     statusCompleted: "已完成",
     statusDeclined: "已拒绝",
     statusCancelled: "已取消",
-    scheduleMustBeFuture: "请选择未来的日期和时间。",
+    scheduleMustBeFuture: "请选择当前或更晚的日期和时间。",
+    scheduleTooFar: "预订时间不能超过 4 周。",
   },
   onboarding: {
     skillSaved: "技能已保存",

@@ -16,6 +16,7 @@ import { awardSessionCompletionXp } from "@/lib/gamification";
 import {
   SCHEDULE_INVALID_ERROR,
   SCHEDULE_PAST_ERROR,
+  SCHEDULE_TOO_FAR_ERROR,
   validateFutureScheduledTime,
 } from "@/lib/sessionSchedule";
 
@@ -83,6 +84,7 @@ export async function respondToRequestAction(requestId: string, status: "accepte
     const validated = validateFutureScheduledTime(scheduledTime);
     if (!("ok" in validated)) {
       if (validated.error === SCHEDULE_INVALID_ERROR) return { error: "Invalid date and time." };
+      if (validated.error === SCHEDULE_TOO_FAR_ERROR) return { error: SCHEDULE_TOO_FAR_ERROR };
       return { error: SCHEDULE_PAST_ERROR };
     }
     scheduledTime = validated.iso;
@@ -191,6 +193,7 @@ export async function rescheduleSessionAction(requestId: string, scheduledTime: 
   const validated = validateFutureScheduledTime(scheduledTime);
   if (!("ok" in validated)) {
     if (validated.error === SCHEDULE_INVALID_ERROR) return { error: "Invalid date and time." };
+    if (validated.error === SCHEDULE_TOO_FAR_ERROR) return { error: SCHEDULE_TOO_FAR_ERROR };
     return { error: SCHEDULE_PAST_ERROR };
   }
 
