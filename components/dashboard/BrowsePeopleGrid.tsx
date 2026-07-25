@@ -90,6 +90,8 @@ export default function BrowsePeopleGrid() {
           <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--sb-muted)" }} />
           <input
             type="text"
+            id="browse-people-search"
+            name="browse-people-search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={b.searchPlaceholder}
@@ -107,6 +109,8 @@ export default function BrowsePeopleGrid() {
           </div>
 
           <select
+            id="browse-people-category"
+            name="browse-people-category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="min-w-[9.5rem] flex-1 rounded-full border-none bg-white px-4 py-3 text-sm font-bold sm:flex-none sm:w-48"
@@ -118,6 +122,8 @@ export default function BrowsePeopleGrid() {
           </select>
 
           <select
+            id="browse-people-sort"
+            name="browse-people-sort"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="min-w-[9.5rem] flex-1 rounded-full border-none bg-white px-4 py-3 text-sm font-bold sm:flex-none sm:w-48"
