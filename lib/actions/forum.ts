@@ -10,6 +10,8 @@ import {
   createCommunity,
   deleteCommunity,
   isKnownCommunitySlug,
+  canUserParticipateInCommunity,
+  FORUM_JOIN_REQUIRED,
   joinCommunity,
   leaveCommunity,
   updateCommunityAccent,
@@ -19,6 +21,26 @@ import {
 } from "@/lib/forumCommunities";
 import { composeReportReason, isReportReasonKey } from "@/lib/forumReportReasons";
 import { createReport } from "@/lib/reports";
+
+async function requireQuestionParticipation(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  questionId: string,
+  userId: string
+) {
+  const { data: question } = await supabase
+    .from("forum_questions")
+    .select("subforum_slug")
+    .eq("question_id", questionId)
+    .maybeSingle();
+  if (!question) return { error: "Post not found." };
+  const canParticipate = await canUserParticipateInCommunity(
+    supabase,
+    question.subforum_slug,
+    userId
+  );
+  if (!canParticipate) return { error: FORUM_JOIN_REQUIRED };
+  return { question };
+}
 
 export async function createQuestionAction(
   title: string,
@@ -314,9 +336,18 @@ export async function createAnswerAction(
 
   const { data: question } = await supabase
     .from("forum_questions")
-    .select("user_id, title")
+    .select("user_id, title, subforum_slug")
     .eq("question_id", questionId)
     .maybeSingle();
+
+  if (!question) return { error: "Post not found." };
+
+  const canParticipate = await canUserParticipateInCommunity(
+    supabase,
+    question.subforum_slug,
+    user.id
+  );
+  if (!canParticipate) return { error: FORUM_JOIN_REQUIRED };
 
   let parentAuthorId: string | null = null;
   if (parentAnswerId) {
@@ -381,6 +412,9 @@ export async function setVoteAction(answerId: string, questionId: string, value:
     return { error: "Invalid vote." };
   }
 
+  const participation = await requireQuestionParticipation(supabase, questionId, user.id);
+  if ("error" in participation) return { error: participation.error };
+
   const { error } = await setAnswerVote(supabase, { answerId, userId: user.id, value });
   if (error) return { error: error.message };
 
@@ -395,6 +429,9 @@ export async function toggleVoteAction(answerId: string, questionId: string) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "You need to be signed in to vote." };
+
+  const participation = await requireQuestionParticipation(supabase, questionId, user.id);
+  if ("error" in participation) return { error: participation.error };
 
   const { data: existing } = await supabase
     .from("answer_votes")

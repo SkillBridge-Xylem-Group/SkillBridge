@@ -29,12 +29,14 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
 
   const [answers, community, allInSubforum] = await Promise.all([
     getAnswers(supabase, questionId, user.id, question.author.id),
-    getCommunityBySlug(supabase, question.subforum_slug),
+    getCommunityBySlug(supabase, question.subforum_slug, user.id),
     getForumQuestions(supabase, { subforumSlug: question.subforum_slug, limit: 12 }),
   ]);
   const communityTitle = community?.title ?? subforum.title;
   const communitySlug = community?.slug ?? question.subforum_slug;
   const communityDescription = community?.description ?? subforum.description;
+  const isOwner = community?.created_by === user.id;
+  const canParticipate = isOwner || Boolean(community?.joined);
   const commentCount = countComments(answers);
 
   return (
@@ -77,6 +79,9 @@ export default async function QuestionPage({ params }: { params: Promise<{ quest
 
           <CommentsSection
             questionId={questionId}
+            communitySlug={communitySlug}
+            communityTitle={communityTitle}
+            canParticipate={canParticipate}
             userName={viewer.fullname}
             userAvatarUrl={viewer.avatarUrl}
             currentUserId={user.id}

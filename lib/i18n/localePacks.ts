@@ -299,6 +299,8 @@ export const idPack: Dictionary = {
     deleteCommunityConfirmDesc:
       "Hapus r/{slug}? Postingan akan dipindah ke General. Tindakan ini tidak dapat dibatalkan.",
     joinConversation: "Ikuti percakapan",
+    joinToComment: "Bergabung dengan komunitas untuk berpartisipasi",
+    joinToCommentHint: "Anda harus menjadi anggota sebelum dapat berkomentar atau memberi suara di komunitas ini.",
     commentAction: "Komentar",
     commentCancel: "Batal",
     sortBy: "Urutkan",
@@ -825,6 +827,8 @@ export const jaPack: Dictionary = {
     deleteCommunityConfirmDesc:
       "r/{slug} を削除しますか？投稿は General に移動され、元に戻せません。",
     joinConversation: "会話に参加",
+    joinToComment: "参加してコメントや投票に参加しましょう",
+    joinToCommentHint: "このコミュニティでコメントや投票をするには、メンバーになる必要があります。",
     commentAction: "コメント",
     commentCancel: "キャンセル",
     sortBy: "並び替え",
@@ -1348,6 +1352,8 @@ export const koPack: Dictionary = {
     deleteCommunityConfirmDesc:
       "r/{slug}을(를) 삭제할까요? 게시물은 General로 이동되며 되돌릴 수 없습니다.",
     joinConversation: "대화에 참여",
+    joinToComment: "커뮤니티에 가입해 참여하세요",
+    joinToCommentHint: "이 커뮤니티에서 댓글을 작성하거나 투표하려면 먼저 멤버가 되어야 합니다.",
     commentAction: "댓글",
     commentCancel: "취소",
     sortBy: "정렬",
