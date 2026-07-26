@@ -61,6 +61,36 @@ export async function adminDeleteCommunityAction(params: { communityId: string }
   return { success: true };
 }
 
+/**
+ * Admin-only: generate a working activation link directly via the Admin API,
+ * bypassing email entirely. This is a magic link, not the original
+ * confirm-signup link — Supabase doesn't expose a way to regenerate that
+ * specific link type for an existing user without their password — but
+ * clicking it confirms the user's email and logs them in, which is the
+ * outcome that matters here.
+ */
+export async function adminGenerateActivationLinkAction(params: { email: string }) {
+  const auth = await requireAdminServerAction();
+  if (!auth.ok) return { error: auth.error };
+
+  const admin = tryCreateSupabaseAdminClient();
+  if (!admin) {
+    return { error: "Admin client not configured (missing SUPABASE_SERVICE_ROLE_KEY)." };
+  }
+
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email: params.email,
+  });
+
+  if (error) return { error: error.message };
+
+  const link = data?.properties?.action_link;
+  if (!link) return { error: "Supabase did not return a link." };
+
+  return { success: true, link };
+}
+
 export async function setUserSuspensionAction(params: {
   userId: string;
   suspend: boolean;

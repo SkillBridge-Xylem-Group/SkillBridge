@@ -35,12 +35,19 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  const ipLimit = await checkRateLimitAsync(
-    "auth:register:ip",
-    ip,
-    MAX_REGISTER_PER_IP,
-    WINDOW_MS
-  );
+
+  // These three checks don't depend on each other's results, so run them
+  // concurrently instead of one-after-another. Previously this was three
+  // sequential awaits — two DB round-trips plus an external HIBP call with
+  // a 5s timeout — adding their latency together in front of every signUp()
+  // call, which is what actually queues the confirmation email. Now the
+  // worst case is the slowest single check, not the sum of all three.
+  const [ipLimit, emailLimit, breachCheck] = await Promise.all([
+    checkRateLimitAsync("auth:register:ip", ip, MAX_REGISTER_PER_IP, WINDOW_MS),
+    checkRateLimitAsync("auth:register:email", email, MAX_REGISTER_PER_EMAIL, WINDOW_MS),
+    checkPasswordBreached(password),
+  ]);
+
   if (!ipLimit.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Try again later." },
@@ -48,12 +55,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const emailLimit = await checkRateLimitAsync(
-    "auth:register:email",
-    email,
-    MAX_REGISTER_PER_EMAIL,
-    WINDOW_MS
-  );
   if (!emailLimit.allowed) {
     return NextResponse.json(
       { error: "Too many requests. Try again later." },
@@ -61,7 +62,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const breachCheck = await checkPasswordBreached(password);
   if (breachCheck === "pwned") {
     return NextResponse.json(
       { error: "This password has appeared in a data breach. Choose a different password." },
