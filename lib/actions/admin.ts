@@ -5,6 +5,62 @@ import { requireAdminServerAction } from "@/lib/auth/requireAdminAction";
 import { tryCreateSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/auth/isAdmin";
 
+/** Admin-only: delete any forum question (and its answers), no report required. */
+export async function adminDeleteQuestionAction(params: { questionId: string }) {
+  const auth = await requireAdminServerAction();
+  if (!auth.ok) return { error: auth.error };
+
+  const admin = tryCreateSupabaseAdminClient();
+  const db = admin ?? auth.supabase;
+
+  const { data: question } = await db
+    .from("forum_questions")
+    .select("question_id")
+    .eq("question_id", params.questionId)
+    .maybeSingle();
+
+  if (!question) return { error: "Question not found." };
+
+  const { error } = await db.from("forum_questions").delete().eq("question_id", params.questionId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/admin/community");
+  revalidatePath("/dashboard/forum");
+  return { success: true };
+}
+
+/**
+ * Admin-only: delete a user-created community. Mirrors deleteCommunity() in
+ * lib/forumCommunities.ts but bypasses the created_by ownership check —
+ * official/built-in communities still can't be deleted either way.
+ */
+export async function adminDeleteCommunityAction(params: { communityId: string }) {
+  const auth = await requireAdminServerAction();
+  if (!auth.ok) return { error: auth.error };
+
+  const admin = tryCreateSupabaseAdminClient();
+  const db = admin ?? auth.supabase;
+
+  const { data: existing, error: lookupError } = await db
+    .from("forum_communities")
+    .select("id, slug, is_official")
+    .eq("id", params.communityId)
+    .maybeSingle();
+
+  if (lookupError) return { error: lookupError.message };
+  if (!existing) return { error: "Community not found." };
+
+  // Keep posts discoverable under General after the community is gone.
+  await db.from("forum_questions").update({ subforum_slug: "general" }).eq("subforum_slug", existing.slug);
+
+  const { error } = await db.from("forum_communities").delete().eq("id", params.communityId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/admin/community");
+  revalidatePath("/dashboard/forum");
+  return { success: true };
+}
+
 export async function setUserSuspensionAction(params: {
   userId: string;
   suspend: boolean;

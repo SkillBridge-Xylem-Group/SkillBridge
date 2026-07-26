@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { ADMIN_NAV_ITEMS, isAdminNavActive } from "@/lib/admin-nav";
@@ -29,11 +30,8 @@ export default function AdminTopbar({ userName }: AdminTopbarProps) {
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <Link href="/dashboard/admin" className="inline-flex min-w-0 items-center gap-2">
-            <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold text-white"
-              style={{ background: "var(--sb-gradient)" }}
-            >
-              S
+            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl">
+              <Image src="/images/logo-mark.png" alt="SkillBridge" fill sizes="32px" className="object-cover" />
             </span>
             <span className="truncate text-base font-extrabold nb-heading">SkillBridge Admin</span>
           </Link>
