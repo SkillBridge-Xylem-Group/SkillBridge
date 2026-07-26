@@ -1,10 +1,7 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import AdminLoginForm from "@/components/auth/AdminLoginForm";
 
-// Deliberately generic <title> and a hard noindex/nofollow/noarchive so this
-// page never shows up in search results, previews, or crawler caches. Do NOT
-// link to this route from anywhere in the public site — the only way in is
-// knowing the exact URL.
 export const metadata: Metadata = {
   title: "Sign In | SkillBridge",
   robots: {
@@ -23,5 +20,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLoginPage() {
-  return <AdminLoginForm />;
+  return (
+    <Suspense fallback={null}>
+      <AdminLoginForm />
+    </Suspense>
+  );
 }

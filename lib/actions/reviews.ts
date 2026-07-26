@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveServerUser } from "@/lib/auth/requireActiveServerUser";
 import { createSessionReview } from "@/lib/reviews";
 import { createNotification } from "@/lib/notifications";
 
@@ -11,11 +11,9 @@ export async function submitSessionReviewAction(params: {
   rating: number;
   comment: string;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const { error } = await createSessionReview(supabase, {
     reviewerId: user.id,

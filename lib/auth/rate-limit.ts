@@ -15,10 +15,14 @@ function getStore(namespace: string): Map<string, Entry> {
 
 /** Prefer headers set by the reverse proxy; harder to spoof than x-forwarded-for alone. */
 export function getClientIp(request: Request): string {
+  return getClientIpFromHeaders(request.headers);
+}
+
+export function getClientIpFromHeaders(headers: Headers): string {
   return (
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    headers.get("cf-connecting-ip") ||
+    headers.get("x-real-ip") ||
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown"
   );
 }

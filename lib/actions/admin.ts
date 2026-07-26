@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireAdminServerAction } from "@/lib/auth/requireAdminAction";
 import { tryCreateSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminUser } from "@/lib/auth/isAdmin";
 
@@ -10,13 +10,9 @@ export async function setUserSuspensionAction(params: {
   suspend: boolean;
   reason?: string;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "You need to be signed in." };
-  if (!(await isAdminUser(supabase, user.id))) return { error: "Not authorized." };
+  const auth = await requireAdminServerAction();
+  if (!auth.ok) return { error: auth.error };
+  const { user, supabase } = auth;
 
   if (params.userId === user.id) {
     return { error: "You can't suspend your own account." };
@@ -48,13 +44,9 @@ export async function updateReportStatusAction(params: {
   reportId: string;
   status: "pending" | "reviewed" | "dismissed" | "actioned";
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "You need to be signed in." };
-  if (!(await isAdminUser(supabase, user.id))) return { error: "Not authorized." };
+  const auth = await requireAdminServerAction();
+  if (!auth.ok) return { error: auth.error };
+  const { supabase } = auth;
 
   const admin = tryCreateSupabaseAdminClient();
   const db = admin ?? supabase;
@@ -76,13 +68,9 @@ export async function deleteReportedContentAction(params: {
   questionId?: string | null;
   answerId?: string | null;
 }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "You need to be signed in." };
-  if (!(await isAdminUser(supabase, user.id))) return { error: "Not authorized." };
+  const auth = await requireAdminServerAction();
+  if (!auth.ok) return { error: auth.error };
+  const { supabase } = auth;
 
   const { data: report } = await supabase
     .from("reports")

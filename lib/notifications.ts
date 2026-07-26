@@ -162,8 +162,16 @@ export async function getUnreadMessageCountsByThread(
   return counts;
 }
 
-export async function markNotificationRead(supabase: SupabaseClient, notificationId: string) {
-  await supabase.from("notifications").update({ is_read: true }).eq("notification_id", notificationId);
+export async function markNotificationRead(
+  supabase: SupabaseClient,
+  userId: string,
+  notificationId: string
+) {
+  await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("notification_id", notificationId)
+    .eq("user_id", userId);
 }
 
 export async function markAllNotificationsRead(supabase: SupabaseClient, userId: string) {

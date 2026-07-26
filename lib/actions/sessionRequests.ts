@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveServerUser } from "@/lib/auth/requireActiveServerUser";
 import {
   createSessionRequest,
   respondToSessionRequest,
@@ -33,12 +33,9 @@ async function assertParticipant(supabase: SupabaseClient, requestId: string, us
 }
 
 export async function sendSwapRequestAction(receiverId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "You need to be signed in to send a request." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
   if (user.id === receiverId) return { error: "You can't send a request to yourself." };
 
   const { data: created, error } = await createSessionRequest(supabase, {
@@ -62,12 +59,9 @@ export async function sendSwapRequestAction(receiverId: string) {
 }
 
 export async function respondToRequestAction(requestId: string, status: "accepted" | "declined", scheduledTime?: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const { data: existing } = await supabase
     .from("session_requests")
@@ -111,11 +105,9 @@ export async function respondToRequestAction(requestId: string, status: "accepte
 }
 
 export async function completeSessionAction(requestId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const request = await assertParticipant(supabase, requestId, user.id);
   if (!request) return { error: "You can't update this session." };
@@ -164,11 +156,9 @@ export async function completeSessionAction(requestId: string) {
 }
 
 export async function cancelSessionAction(requestId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const request = await assertParticipant(supabase, requestId, user.id);
   if (!request) return { error: "You can't update this session." };
@@ -181,11 +171,9 @@ export async function cancelSessionAction(requestId: string) {
 }
 
 export async function rescheduleSessionAction(requestId: string, scheduledTime: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const request = await assertParticipant(supabase, requestId, user.id);
   if (!request) return { error: "You can't update this session." };
@@ -205,11 +193,9 @@ export async function rescheduleSessionAction(requestId: string, scheduledTime: 
 }
 
 export async function hideSessionHistoryAction(requestId: string) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You need to be signed in." };
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
 
   const { data } = await supabase
     .from("session_requests")

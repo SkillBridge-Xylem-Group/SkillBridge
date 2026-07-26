@@ -9,4 +9,8 @@ process.on("unhandledRejection", (reason) => {
   console.error("[unhandledRejection]", reason);
 });
 
+import { validateProductionEnv } from "./lib/env/validateProduction";
+
+validateProductionEnv();
+
 export {};

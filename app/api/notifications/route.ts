@@ -28,7 +28,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
 
   if (typeof body?.notificationId === "string") {
-    await markNotificationRead(supabase, body.notificationId);
+    await markNotificationRead(supabase, user.id, body.notificationId);
   } else {
     await markAllNotificationsRead(supabase, user.id);
   }
