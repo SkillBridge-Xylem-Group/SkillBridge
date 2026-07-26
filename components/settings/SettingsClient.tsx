@@ -342,7 +342,14 @@ export default function SettingsClient({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setTab(item.id)}
+                  onClick={(e) => {
+                    setTab(item.id);
+                   e.currentTarget.scrollIntoView({
+                    behavior: "smooth",
+                   inline: "center",
+                    block: "nearest",
+                  });
+               }}
                   className={`relative shrink-0 pb-3 text-sm font-semibold transition ${
                     active ? "text-brand" : "text-slate-500 hover:text-slate-800"
                   }`}

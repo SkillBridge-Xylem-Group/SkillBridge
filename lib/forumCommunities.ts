@@ -168,6 +168,48 @@ export function isValidCommunitySlug(slug: string): boolean {
   return SLUG_RE.test(slug);
 }
 
+/** Static built-in communities (e.g. /c/general) can never be claimed by a user community. */
+const RESERVED_COMMUNITY_SLUGS = new Set(FORUM_SUBFORUMS.map((s) => s.slug));
+
+export async function isCommunitySlugAvailable(
+  supabase: SupabaseClient,
+  slug: string,
+  excludeCommunityId?: string
+): Promise<boolean> {
+  if (!isValidCommunitySlug(slug)) return false;
+  if (RESERVED_COMMUNITY_SLUGS.has(slug)) return false;
+
+  const { data } = await supabase
+    .from("forum_communities")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!data) return true;
+  if (excludeCommunityId && data.id === excludeCommunityId) return true;
+  return false;
+}
+
+/** Case-insensitive check so "Study Group" and "study group" can't coexist. */
+export async function isCommunityTitleAvailable(
+  supabase: SupabaseClient,
+  title: string,
+  excludeCommunityId?: string
+): Promise<boolean> {
+  const normalized = title.trim();
+  if (!normalized) return false;
+
+  const { data } = await supabase
+    .from("forum_communities")
+    .select("id")
+    .ilike("title", normalized)
+    .maybeSingle();
+
+  if (!data) return true;
+  if (excludeCommunityId && data.id === excludeCommunityId) return true;
+  return false;
+}
+
 function fallbackCommunities(): ForumCommunity[] {
   const categoryBySlug: Record<string, string> = {
     general: "General",
@@ -415,11 +457,22 @@ export async function createCommunity(
   if (!isValidCommunitySlug(slug)) {
     return { data: null, error: { message: "Slug must be 3–50 characters: lowercase letters, numbers, hyphens." } };
   }
+  if (RESERVED_COMMUNITY_SLUGS.has(slug)) {
+    return { data: null, error: { message: "That community name/URL is already taken." } };
+  }
+  const slugAvailable = await isCommunitySlugAvailable(supabase, slug);
+  if (!slugAvailable) {
+    return { data: null, error: { message: "That community name/URL is already taken." } };
+  }
   if (!params.title.trim() || params.title.trim().length < 3) {
     return { data: null, error: { message: "Community name must be at least 3 characters." } };
   }
   if (params.title.trim().length > 21) {
     return { data: null, error: { message: "Community name must be 21 characters or fewer." } };
+  }
+  const titleAvailable = await isCommunityTitleAvailable(supabase, params.title);
+  if (!titleAvailable) {
+    return { data: null, error: { message: "A community with this name already exists. Try a different name." } };
   }
   if (!params.description.trim()) {
     return { data: null, error: { message: "Description is required." } };
@@ -592,6 +645,10 @@ export async function updateCommunityDetails(
   }
   if (title.length > 21) {
     return { data: null, error: { message: "Community name must be 21 characters or fewer." } };
+  }
+  const titleAvailable = await isCommunityTitleAvailable(supabase, title, params.communityId);
+  if (!titleAvailable) {
+    return { data: null, error: { message: "A community with this name already exists. Try a different name." } };
   }
   if (!params.description.trim()) {
     return { data: null, error: { message: "Description is required." } };
