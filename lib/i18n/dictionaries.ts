@@ -210,6 +210,12 @@ export type Dictionary = {
     replies: string;
     reply: string;
     categoriesAria: string;
+    searchCommunitiesPlaceholder: string;
+    searchResultsFor: string;
+    slugChecking: string;
+    slugAvailable: string;
+    slugTaken: string;
+    slugInvalid: string;
     notJoinedYet: string;
     noFavorites: string;
     noFilterMatch: string;
@@ -732,6 +738,12 @@ const en: Dictionary = {
     replies: "replies",
     reply: "reply",
     categoriesAria: "Community categories",
+    searchCommunitiesPlaceholder: "Search communities by name or topic...",
+    searchResultsFor: 'Results for "{query}"',
+    slugChecking: "Checking availability...",
+    slugAvailable: "This link is available.",
+    slugTaken: "This link is already taken. Try something else.",
+    slugInvalid: "Link must be 3–50 characters: lowercase letters, numbers, hyphens.",
     notJoinedYet: "You haven't joined any communities yet",
     noFavorites: "No favorited communities",
     noFilterMatch: "No communities match your filter",
@@ -1253,6 +1265,12 @@ const zhCN: Dictionary = {
     replies: "条回复",
     reply: "条回复",
     categoriesAria: "社区分类",
+    searchCommunitiesPlaceholder: "按名称或主题搜索社区…",
+    searchResultsFor: '“{query}” 的搜索结果',
+    slugChecking: "正在检查可用性…",
+    slugAvailable: "该链接可以使用。",
+    slugTaken: "该链接已被占用，请换一个。",
+    slugInvalid: "链接需为 3–50 个字符：小写字母、数字或连字符。",
     notJoinedYet: "你还没有加入任何社区",
     noFavorites: "暂无收藏的社区",
     noFilterMatch: "没有符合筛选条件的社区",
