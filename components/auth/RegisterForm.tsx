@@ -13,6 +13,9 @@ type RegisterFormProps = {
   onSwitchToLogin: () => void;
 };
 
+const OPTIMISTIC_CONFIRMATION_MESSAGE =
+  "If this email is eligible for an account, please check your inbox to confirm your registration.";
+
 export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
@@ -26,6 +29,43 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => setResendCooldown((s) => Math.max(s - 1, 0)), 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  async function handleResend() {
+    setResendMessage("");
+    setIsResending(true);
+    try {
+      const res = await fetch("/api/auth/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+
+      if (res.status === 429) {
+        const retryAfter = Number(res.headers.get("Retry-After")) || 30;
+        setResendCooldown(retryAfter);
+        setResendMessage("Too many requests — please wait before trying again.");
+        return;
+      }
+
+      setResendMessage(data?.message ?? "If eligible, a new email is on its way.");
+      setResendCooldown(30);
+    } catch {
+      setResendMessage("Something went wrong. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  }
 
   useEffect(() => {
     setFormStartedAt(Date.now());
@@ -64,6 +104,18 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     setError("");
     setIsSubmitting(true);
 
+    // Optimistic UI: Supabase's signUp() call — which is what actually
+    // triggers the confirmation email — takes ~3-4s in practice because it
+    // waits on the SMTP handshake with Brevo before returning at all (this
+    // is the confirmed root cause behind BUG-015's "delayed activation
+    // email" reports; see route.ts). Making every user stare at a spinner
+    // for that long is a worse experience than just showing them the
+    // outcome we already expect, since the account + email dispatch is
+    // already happening server-side regardless of when we render this.
+    // If something genuinely goes wrong below (rate limit, breached
+    // password, server error), we roll this back and show the real error.
+    setConfirmationMessage(OPTIMISTIC_CONFIRMATION_MESSAGE);
+
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -81,19 +133,27 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       const data = await res.json();
 
       if (!res.ok) {
+        // Something actually failed — roll back to the form and show why.
+        setConfirmationMessage("");
         const fieldError = data?.details?.confirmPassword?.[0] ?? data?.details?.email?.[0];
         setError(fieldError ?? data?.error ?? "Registration failed. Please try again.");
         return;
       }
 
       if (data.requiresConfirmation) {
+        // Replace with the server's exact message in case it ever differs
+        // (e.g. a future wording change) — no-op visually in the common case.
         setConfirmationMessage(data.message);
         return;
       }
 
+      // Confirmation not required (e.g. email confirmations disabled) —
+      // skip the confirmation screen entirely and go straight in.
+      setConfirmationMessage("");
       router.push("/dashboard");
       router.refresh();
     } catch {
+      setConfirmationMessage("");
       setError("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -109,6 +169,26 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         <p className="mt-4 text-sm" style={{ color: "var(--neu-text-muted)" }}>
           {confirmationMessage}
         </p>
+
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={isResending || resendCooldown > 0}
+          className="auth-neu-link mt-4 text-sm disabled:opacity-60"
+        >
+          {isResending
+            ? "Sending..."
+            : resendCooldown > 0
+              ? `Resend available in ${resendCooldown}s`
+              : "Didn't get it? Resend confirmation email"}
+        </button>
+
+        {resendMessage && (
+          <p className="mt-2 text-xs" style={{ color: "var(--neu-text-muted)" }}>
+            {resendMessage}
+          </p>
+        )}
+
         <p className="mt-6 text-sm" style={{ color: "var(--neu-text-muted)" }}>
           <button type="button" onClick={onSwitchToLogin} className="auth-neu-link text-sm">
             Back to Sign In
