@@ -64,7 +64,6 @@ export default function SlidingAuthCard({ initialMode, redirectTo, urlError, jus
               urlError={urlError}
               justLoggedOut={justLoggedOut}
               onForgotPassword={() => setMode("reset")}
-              onSwitchToSignup={() => setMode("signup")}
             />
           </div>
           <div
@@ -174,7 +173,6 @@ export default function SlidingAuthCard({ initialMode, redirectTo, urlError, jus
                 urlError={urlError}
                 justLoggedOut={justLoggedOut}
                 onForgotPassword={() => setMode("reset")}
-                onSwitchToSignup={() => setMode("signup")}
               />
             ) : (
               <RegisterForm onSwitchToLogin={() => setMode("login")} />

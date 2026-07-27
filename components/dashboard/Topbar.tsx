@@ -45,7 +45,7 @@ export default function Topbar({ userName, avatarUrl = null, communities = [] }:
           </button>
           <Link href="/dashboard" className="inline-flex min-w-0 items-center gap-2">
             <Image
-              src="/images/logo-mark.png"
+              src="/images/logo-mark-v2.png"
               alt=""
               width={32}
               height={32}

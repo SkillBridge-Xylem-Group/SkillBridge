@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Mail } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useFormGuard } from "@/hooks/useFormGuard";
@@ -17,7 +18,6 @@ type LoginFormProps = {
   urlError?: string | null;
   justLoggedOut?: boolean;
   onForgotPassword: () => void;
-  onSwitchToSignup: () => void;
 };
 
 export default function LoginForm({
@@ -25,7 +25,6 @@ export default function LoginForm({
   urlError,
   justLoggedOut = false,
   onForgotPassword,
-  onSwitchToSignup,
 }: LoginFormProps) {
   const router = useRouter();
   const redirectTo = getSafeRedirectPath(redirectToProp);
@@ -117,10 +116,10 @@ export default function LoginForm({
 
   return (
     <div className="w-full max-w-sm">
-      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--auth-emerald-dark)", fontFamily: "var(--font-playful)" }}>
-        SkillBridge
-      </h1>
-      <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+      <div className="flex justify-center">
+        <Image src="/images/logo-mark-v2.png" alt="SkillBridge" width={64} height={64} priority className="shrink-0" />
+      </div>
+      <p className="mt-4 text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>
         Sign in to your account
       </p>
 
@@ -215,13 +214,6 @@ export default function LoginForm({
           disabled={isGoogleLoading || isSubmitting}
         />
       </div>
-
-      <p className="mt-5 text-sm" style={{ color: "var(--neu-text-muted)" }}>
-        Don&apos;t have an account?{" "}
-        <button type="button" onClick={onSwitchToSignup} className="auth-neu-link text-sm">
-          Sign Up
-        </button>
-      </p>
     </div>
   );
 }

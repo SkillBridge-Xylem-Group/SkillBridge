@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { User, Mail } from "lucide-react";
 import { isPasswordValid, PASSWORD_MAX_LENGTH } from "@/lib/auth/password";
 import NeumorphicPasswordField from "./NeumorphicPasswordField";
@@ -162,8 +163,12 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
 
   if (confirmationMessage) {
     return (
-      <div className="w-full max-w-sm text-center">
-        <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--auth-teal-dark)", fontFamily: "var(--font-playful)" }}>
+      <>
+        <div className="flex justify-center">
+          <Image src="/images/logo-mark-v2.png" alt="SkillBridge" width={56} height={56} className="shrink-0" />
+        </div>
+        <div className="w-full max-w-sm text-center">
+        <h1 className="mt-3 text-2xl font-semibold sm:text-3xl" style={{ color: "var(--auth-teal-dark)", fontFamily: "var(--font-playful)" }}>
           Check your email
         </h1>
         <p className="mt-4 text-sm" style={{ color: "var(--neu-text-muted)" }}>
@@ -194,16 +199,20 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             Back to Sign In
           </button>
         </p>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
     <div className="w-full max-w-sm">
-      <h1 className="text-2xl font-semibold sm:text-3xl" style={{ color: "var(--auth-teal-dark)", fontFamily: "var(--font-playful)" }}>
+      <div className="flex justify-center">
+        <Image src="/images/logo-mark-v2.png" alt="SkillBridge" width={56} height={56} className="shrink-0" />
+      </div>
+      <h1 className="mt-3 text-center text-2xl font-semibold sm:text-3xl" style={{ color: "var(--auth-teal-dark)", fontFamily: "var(--font-playful)" }}>
         Create Account
       </h1>
-      <p className="mt-1 text-sm" style={{ color: "var(--neu-text-muted)" }}>
+      <p className="mt-1 text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>
         Join SkillBridge and start swapping skills
       </p>
 
@@ -293,13 +302,6 @@ export default function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           disabled={isGoogleLoading || isSubmitting}
         />
       </div>
-
-      <p className="mt-5 text-sm" style={{ color: "var(--neu-text-muted)" }}>
-        Already have an account?{" "}
-        <button type="button" onClick={onSwitchToLogin} className="auth-neu-link text-sm">
-          Sign In
-        </button>
-      </p>
     </div>
   );
 }

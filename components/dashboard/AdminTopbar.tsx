@@ -31,7 +31,7 @@ export default function AdminTopbar({ userName }: AdminTopbarProps) {
           </button>
           <Link href="/dashboard/admin" className="inline-flex min-w-0 items-center gap-2">
             <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl">
-              <Image src="/images/logo-mark.png" alt="SkillBridge" fill sizes="32px" className="object-cover" />
+              <Image src="/images/logo-mark-v2.png" alt="SkillBridge" fill sizes="32px" className="object-cover" />
             </span>
             <span className="truncate text-base font-extrabold nb-heading">SkillBridge Admin</span>
           </Link>
