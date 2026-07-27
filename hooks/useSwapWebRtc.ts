@@ -110,6 +110,26 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   const offerStartedRef = useRef(false);
   const endedRef = useRef(false);
   const partnerIdRef = useRef<string | null>(null);
+  const [remoteHasVideo, setRemoteHasVideo] = useState(false);
+  const [remoteCameraEnabled, setRemoteCameraEnabled] = useState(false);
+
+  const syncRemoteTrackFlags = useCallback((stream: MediaStream | null) => {
+    const video = stream?.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
+    setRemoteHasVideo(Boolean(video));
+    setRemoteCameraEnabled(Boolean(video?.enabled && video.readyState === "live"));
+  }, []);
+
+  const watchRemoteVideoTrack = useCallback(
+    (track: MediaStreamTrack) => {
+      if (track.kind !== "video") return;
+      const sync = () => syncRemoteTrackFlags(remoteStreamRef.current);
+      track.onmute = sync;
+      track.onunmute = sync;
+      track.onended = sync;
+      sync();
+    },
+    [syncRemoteTrackFlags]
+  );
 
   const bindLocalVideo = useCallback((el: HTMLVideoElement | null) => {
     localVideoEl.current = el;
@@ -233,6 +253,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       offerStartedRef.current = false;
       remoteStreamRef.current = null;
       if (remoteVideoEl.current) remoteVideoEl.current.srcObject = null;
+      syncRemoteTrackFlags(null);
     }
 
     function ensurePeerConnection() {
@@ -262,11 +283,14 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
             if (!remote.getTracks().some((t) => t.id === track.id)) {
               remote.addTrack(track);
             }
+            if (track.kind === "video") watchRemoteVideoTrack(track);
           }
         } else if (!remote.getTracks().some((t) => t.id === event.track.id)) {
           remote.addTrack(event.track);
+          if (event.track.kind === "video") watchRemoteVideoTrack(event.track);
         }
         remoteStreamRef.current = remote;
+        syncRemoteTrackFlags(remote);
         if (remoteVideoEl.current) {
           remoteVideoEl.current.srcObject = remote;
           void remoteVideoEl.current.play().catch(() => undefined);
@@ -635,6 +659,8 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     hasMic,
     hasCamera,
     partnerPresent,
+    remoteHasVideo,
+    remoteCameraEnabled,
     messages,
     toggleMic,
     toggleCamera,
