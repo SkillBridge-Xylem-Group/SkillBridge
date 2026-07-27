@@ -23,7 +23,7 @@ export default function UserAvatar({
 
   return (
     <Avatar className={cn("shrink-0", className)}>
-      {src ? <AvatarImage src={src} alt="" /> : null}
+      {src ? <AvatarImage src={src} alt="" key={src} /> : null}
       <AvatarFallback
         className={cn("font-bold text-white", fallbackClassName)}
         style={{ background: "var(--sb-gradient)" }}
