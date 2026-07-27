@@ -8,7 +8,9 @@ export type NotificationType =
   | "level_up"
   | "forum_reply"
   | "review_prompt"
-  | "review_received";
+  | "review_received"
+  | "session_started"
+  | "session_ended";
 
 export type NotificationRow = {
   notification_id: string;
@@ -58,7 +60,10 @@ function staticLink(type: NotificationType, relatedEntityId: string | null): str
     case "swap_request":
     case "swap_response":
     case "review_prompt":
+    case "session_ended":
       return "/dashboard/swap-requests";
+    case "session_started":
+      return relatedEntityId ? `/dashboard/swap-session/${relatedEntityId}` : "/dashboard/swap-requests";
     case "level_up":
     case "review_received":
       return "/dashboard/profile";
@@ -176,6 +181,26 @@ export async function markNotificationRead(
 
 export async function markAllNotificationsRead(supabase: SupabaseClient, userId: string) {
   await supabase.from("notifications").update({ is_read: true }).eq("user_id", userId).eq("is_read", false);
+}
+
+/**
+ * Deletes via the privileged client when available: the `notifications`
+ * table's RLS only grants owners SELECT/UPDATE (see createNotification's
+ * note on security-hardening.sql), so a DELETE from the anon-key client can
+ * silently affect zero rows. The `user_id` filter still scopes this to the
+ * caller's own notifications even with RLS bypassed.
+ */
+export async function deleteNotification(supabase: SupabaseClient, userId: string, notificationId: string) {
+  const client = tryCreateSupabaseAdminClient() ?? supabase;
+  const { error } = await client
+    .from("notifications")
+    .delete()
+    .eq("notification_id", notificationId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("[notifications] delete failed:", error.message);
+  }
 }
 
 /** Clears "new message" notifications for a thread once the viewer has opened it. */

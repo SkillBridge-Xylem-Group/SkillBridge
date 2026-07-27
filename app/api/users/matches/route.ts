@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
+import { getAdminUserIds } from "@/lib/auth/isAdmin";
 import { normalizeAvatarUrl } from "@/lib/avatar";
 
 type NestedSkill = { skill_name?: string | null };
@@ -26,6 +27,9 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to load your wanted skills" }, { status: 500 });
   }
 
+  const adminIds = await getAdminUserIds(supabase);
+  const excludedIds = [...new Set([user.id, ...adminIds])];
+
   const wantedSkillIds = (wantedRows ?? []).map((r) => r.skill_id);
   let matchedUserIds: string[] = [];
 
@@ -41,7 +45,9 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to find matches" }, { status: 500 });
     }
 
-    matchedUserIds = [...new Set((offerRows ?? []).map((r) => r.user_id))];
+    matchedUserIds = [...new Set((offerRows ?? []).map((r) => r.user_id))].filter(
+      (id) => !adminIds.includes(id)
+    );
   }
 
   const selectClause = `
@@ -60,14 +66,12 @@ export async function GET() {
           .from("users")
           .select(selectClause)
           .in("id", matchedUserIds)
-          .neq("role", "admin")
           .order("trust_score", { ascending: false })
           .limit(3)
       : await supabase
           .from("users")
           .select(selectClause)
-          .neq("id", user.id)
-          .neq("role", "admin")
+          .not("id", "in", `(${excludedIds.join(",")})`)
           .gt("trust_score", 0)
           .order("trust_score", { ascending: false })
           .limit(3);

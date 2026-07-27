@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   ArrowLeft,
   Mic,
@@ -15,7 +15,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useSwapWebRtc } from "@/hooks/useSwapWebRtc";
-import { completeSessionAction } from "@/lib/actions/sessionRequests";
+import { completeSessionAction, notifySessionStartedAction } from "@/lib/actions/sessionRequests";
 import type { SwapSessionRoomData } from "@/lib/swapSession";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
@@ -92,6 +92,18 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
   const showLocalVideo = hasCamera && cameraEnabled;
   const localLabel = `${s.you}${hasMic && !micEnabled ? ` · ${s.micOff}` : ""}${hasCamera && !cameraEnabled ? ` · ${s.camOff}` : ""}`;
 
+  // Brief "Session started" toast the first time the call actually connects.
+  const [showStartedToast, setShowStartedToast] = useState(false);
+  const hasShownStartToastRef = useRef(false);
+  useEffect(() => {
+    if (connectionState !== "connected" || hasShownStartToastRef.current) return;
+    hasShownStartToastRef.current = true;
+    setShowStartedToast(true);
+    void notifySessionStartedAction(session.requestId);
+    const timer = setTimeout(() => setShowStartedToast(false), 3000);
+    return () => clearTimeout(timer);
+  }, [connectionState, session.requestId]);
+
   // The partner marked the session complete while we were still in the
   // room — let them see why the call ended, then take them back so their
   // swap-requests list reflects the now-completed status.
@@ -106,6 +118,8 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
 
   async function leave() {
     await hangUp();
+    // Show "Session ended" for a moment before navigating away.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     router.push("/dashboard/swap-requests");
   }
 
@@ -114,6 +128,7 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
       await notifySessionComplete();
       await hangUp();
       await completeSessionAction(session.requestId);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       router.push("/dashboard/swap-requests");
       router.refresh();
     });
@@ -121,6 +136,13 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
 
   return (
     <div className="flex min-h-[calc(100vh-5rem)] flex-col gap-4 pb-24 lg:pb-6">
+      {showStartedToast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          <CheckCircle2 size={16} />
+          {s.sessionStarted}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link

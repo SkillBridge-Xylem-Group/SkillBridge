@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
+import { getAdminUserIds } from "@/lib/auth/isAdmin";
 import { normalizeAvatarUrl } from "@/lib/avatar";
 
 export async function GET() {
   const { user, supabase, error: authError } = await requireActiveUser();
   if (authError) return authError;
+
+  const adminIds = await getAdminUserIds(supabase);
+  const excludedIds = [...new Set([user.id, ...adminIds])];
 
   const selectClause = `
     id,
@@ -19,8 +23,7 @@ export async function GET() {
   const { data: candidates, error: candidatesError } = await supabase
     .from("users")
     .select(selectClause)
-    .neq("id", user.id)
-    .neq("role", "admin")
+    .not("id", "in", `(${excludedIds.join(",")})`)
     .order("trust_score", { ascending: false });
 
   if (candidatesError) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { CalendarCheck, Award, MessageCircle, Repeat, MessagesSquare, Star, type LucideIcon } from "lucide-react";
+import { CalendarCheck, Award, MessageCircle, Repeat, MessagesSquare, Star, Video, PhoneOff, X, type LucideIcon } from "lucide-react";
 import type { NotificationRow, NotificationType } from "@/lib/notifications";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useLocale } from "@/components/i18n/LocaleProvider";
@@ -16,6 +16,8 @@ const ICONS: Record<NotificationType, { icon: LucideIcon; bg: string; color: str
   forum_reply: { icon: MessagesSquare, bg: "bg-sky-50", color: "text-sky-500" },
   review_prompt: { icon: Star, bg: "bg-amber-50", color: "text-amber-500" },
   review_received: { icon: Star, bg: "bg-amber-50", color: "text-amber-600" },
+  session_started: { icon: Video, bg: "bg-emerald-50", color: "text-emerald-500" },
+  session_ended: { icon: PhoneOff, bg: "bg-slate-100", color: "text-slate-500" },
 };
 
 export default function NotificationsPanel() {
@@ -33,6 +35,8 @@ export default function NotificationsPanel() {
     forum_reply: n.typeForum,
     review_prompt: n.typeReview,
     review_received: n.typeReview,
+    session_started: n.typeSessionStarted,
+    session_ended: n.typeSessionEnded,
   };
 
   async function handleClick(row: NotificationRow) {
@@ -49,6 +53,17 @@ export default function NotificationsPanel() {
       await reload();
     }
     if (row.link) router.push(row.link);
+  }
+
+  async function handleDelete(e: React.MouseEvent, row: NotificationRow) {
+    e.stopPropagation();
+    await fetch("/api/notifications", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notificationId: row.notification_id }),
+    });
+    setNotifications((prev) => prev.filter((x) => x.notification_id !== row.notification_id));
+    if (!row.is_read) setUnreadCount((c) => Math.max(0, c - 1));
   }
 
   return (
@@ -78,35 +93,49 @@ export default function NotificationsPanel() {
             const { icon: Icon, bg, color } = ICONS[row.type] ?? ICONS.message;
             const label = typeLabels[row.type] ?? typeLabels.message;
             return (
-              <button
+              <div
                 key={row.notification_id}
-                type="button"
-                onClick={() => handleClick(row)}
-                className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-slate-50 active:scale-[0.99] ${
+                className={`group flex w-full items-start gap-1 rounded-xl px-3 py-3 transition hover:bg-slate-50 ${
                   !row.is_read ? "bg-[#f3eefc]" : ""
                 }`}
               >
-                <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${bg} ${color}`}>
-                  <Icon size={16} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>{label}</p>
-                    <span className="text-[11px]" style={{ color: "var(--neu-text-muted)" }}>
-                      {formatRelativeTimeLabel(row.created_at, dictionary.common, locale)}
-                    </span>
+                <button
+                  type="button"
+                  onClick={() => handleClick(row)}
+                  className="flex min-w-0 flex-1 items-start gap-3 text-left active:scale-[0.99]"
+                >
+                  <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${bg} ${color}`}>
+                    <Icon size={16} />
                   </div>
-                  <p
-                    className="mt-0.5 line-clamp-2 text-sm leading-snug"
-                    style={{ color: "var(--neu-ink)", fontWeight: !row.is_read ? 600 : 500 }}
-                  >
-                    {row.message}
-                  </p>
-                </div>
-                {!row.is_read && (
-                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full" style={{ background: "var(--neu-indigo)" }} aria-label={dictionary.common.unread} />
-                )}
-              </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--neu-text-muted)" }}>{label}</p>
+                      <span className="text-[11px]" style={{ color: "var(--neu-text-muted)" }}>
+                        {formatRelativeTimeLabel(row.created_at, dictionary.common, locale)}
+                      </span>
+                    </div>
+                    <p
+                      className="mt-0.5 line-clamp-2 text-sm leading-snug"
+                      style={{ color: "var(--neu-ink)", fontWeight: !row.is_read ? 600 : 500 }}
+                    >
+                      {row.message}
+                    </p>
+                  </div>
+                  {!row.is_read && (
+                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full" style={{ background: "var(--neu-indigo)" }} aria-label={dictionary.common.unread} />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleDelete(e, row)}
+                  aria-label={n.deleteNotification}
+                  className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition hover:bg-slate-200"
+                  style={{ color: "var(--neu-text-muted)" }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
             );
           })
         )}

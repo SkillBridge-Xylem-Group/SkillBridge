@@ -27,3 +27,20 @@ export async function isAdminUser(supabase: SupabaseClient, userId: string): Pro
 
   return !error && !!data;
 }
+
+/**
+ * Returns the user_ids of everyone in the `admins` table, so callers can
+ * exclude admin accounts from user-facing listings (browse, matches, etc.)
+ * without relying on `users.role`, which isn't kept in sync — see the note
+ * above. Returns an empty array (rather than throwing) on query failure so
+ * callers fail open to "no admins to exclude" instead of breaking listings.
+ */
+export async function getAdminUserIds(supabase: SupabaseClient): Promise<string[]> {
+  const privileged = tryCreateSupabaseAdminClient();
+  const client = privileged ?? supabase;
+
+  const { data, error } = await client.from("admins").select("user_id");
+
+  if (error || !data) return [];
+  return data.map((row) => row.user_id as string);
+}
