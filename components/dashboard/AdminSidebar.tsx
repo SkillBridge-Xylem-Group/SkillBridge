@@ -39,7 +39,7 @@ export default function AdminSidebar() {
         <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2`}>
           <Link href="/dashboard/admin" className="flex min-w-0 items-center gap-2.5">
             <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl">
-              <Image src="/images/logo-mark.png" alt="SkillBridge" fill sizes="36px" className="object-cover" priority />
+              <Image src="/images/logo-mark-v2.png" alt="SkillBridge" fill sizes="36px" className="object-cover" priority />
             </span>
             {!collapsed && (
               <span className="truncate text-lg font-extrabold nb-heading">SkillBridge</span>

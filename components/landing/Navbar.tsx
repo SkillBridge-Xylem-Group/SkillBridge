@@ -16,7 +16,7 @@ export default function Navbar() {
           className="flex items-center gap-2.5 text-[22px] font-bold"
           style={{ fontFamily: "var(--font-playful)", color: "var(--neu-ink)" }}
         >
-          <Image src="/images/logo-mark.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0" />
+          <Image src="/images/logo-mark-v2.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0" />
           SkillBridge
         </Link>
 

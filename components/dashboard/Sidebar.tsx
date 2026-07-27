@@ -58,7 +58,7 @@ export default function Sidebar({ communities = [] }: SidebarProps) {
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-4">
         <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2`}>
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
-            <Image src="/images/logo-mark.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0" />
+            <Image src="/images/logo-mark-v2.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0" />
             {!collapsed && (
               <span className="truncate text-lg font-extrabold nb-heading">SkillBridge</span>
             )}

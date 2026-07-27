@@ -10,7 +10,7 @@ export default function AuthLogo({ variant = "dark", size = 56 }: AuthLogoProps)
   return (
     <Link href="/" className="inline-flex items-center gap-2">
       <Image
-        src="/images/logo-mark.png"
+        src="/images/logo-mark-v2.png"
         alt=""
         width={size}
         height={size}

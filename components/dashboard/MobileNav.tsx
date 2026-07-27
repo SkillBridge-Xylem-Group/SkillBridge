@@ -63,7 +63,7 @@ export function MobileNavDrawer({ open, onClose, communities = [] }: MobileNavDr
         <div className="flex items-center justify-between px-5 py-5">
           <Link href="/dashboard" onClick={onClose} className="inline-flex items-center gap-2">
             <Image
-              src="/images/logo-mark.png"
+              src="/images/logo-mark-v2.png"
               alt=""
               width={40}
               height={40}
