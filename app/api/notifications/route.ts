@@ -6,6 +6,7 @@ import {
   getUnreadMessageNotificationCount,
   markAllNotificationsRead,
   markNotificationRead,
+  deleteNotification,
 } from "@/lib/notifications";
 
 export async function GET() {
@@ -32,6 +33,21 @@ export async function PATCH(req: NextRequest) {
   } else {
     await markAllNotificationsRead(supabase, user.id);
   }
+
+  return NextResponse.json({ success: true });
+}
+
+export async function DELETE(req: NextRequest) {
+  const { user, supabase, error: authError } = await requireActiveUser();
+  if (authError) return authError;
+
+  const body = await req.json().catch(() => ({}));
+
+  if (typeof body?.notificationId !== "string") {
+    return NextResponse.json({ error: "notificationId is required" }, { status: 400 });
+  }
+
+  await deleteNotification(supabase, user.id, body.notificationId);
 
   return NextResponse.json({ success: true });
 }

@@ -104,6 +104,28 @@ export async function respondToRequestAction(requestId: string, status: "accepte
   return { success: true };
 }
 
+export async function notifySessionStartedAction(requestId: string) {
+  const session = await requireActiveServerUser();
+  if (!session.ok) return { error: session.error };
+  const { user, supabase } = session;
+
+  const request = await assertParticipant(supabase, requestId, user.id);
+  if (!request) return { error: "You can't update this session." };
+
+  const partnerId = request.requester_id === user.id ? request.receiver_id : request.requester_id;
+  const { data: partnerRow } = await supabase.from("users").select("fullname").eq("id", partnerId).maybeSingle();
+
+  await createNotification(supabase, {
+    userId: user.id,
+    type: "session_started",
+    message: `Your session with ${partnerRow?.fullname ?? "your partner"} has started`,
+    relatedEntityType: "session_request",
+    relatedEntityId: requestId,
+  });
+
+  return { success: true };
+}
+
 export async function completeSessionAction(requestId: string) {
   const session = await requireActiveServerUser();
   if (!session.ok) return { error: session.error };
@@ -133,6 +155,20 @@ export async function completeSessionAction(requestId: string) {
     ]);
 
     await Promise.all([
+      createNotification(supabase, {
+        userId: full.requester_id,
+        type: "session_ended",
+        message: `Your session with ${receiverRow?.fullname ?? "your partner"} has ended`,
+        relatedEntityType: "session_request",
+        relatedEntityId: requestId,
+      }),
+      createNotification(supabase, {
+        userId: full.receiver_id,
+        type: "session_ended",
+        message: `Your session with ${requesterRow?.fullname ?? "your partner"} has ended`,
+        relatedEntityType: "session_request",
+        relatedEntityId: requestId,
+      }),
       createNotification(supabase, {
         userId: full.requester_id,
         type: "review_prompt",

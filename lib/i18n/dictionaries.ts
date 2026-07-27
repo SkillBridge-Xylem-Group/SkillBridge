@@ -170,10 +170,13 @@ export type Dictionary = {
     typeLevelUp: string;
     typeForum: string;
     typeReview: string;
+    typeSessionStarted: string;
+    typeSessionEnded: string;
     markAllRead: string;
     empty: string;
     emptyHint: string;
     viewSwapRequests: string;
+    deleteNotification: string;
   };
   forum: {
     latest: string;
@@ -481,6 +484,7 @@ export type Dictionary = {
     prevMonth: string;
     nextMonth: string;
     scheduledLegend: string;
+    sessionStarted: string;
     statusJoining: string;
     statusPartnerJoinedConnecting: string;
     statusWaitingPartner: string;
@@ -697,10 +701,13 @@ const en: Dictionary = {
     typeLevelUp: "Level up",
     typeForum: "Forum",
     typeReview: "Review",
+    typeSessionStarted: "Session started",
+    typeSessionEnded: "Session ended",
     markAllRead: "Mark all read",
     empty: "No notifications yet",
     emptyHint: "Swap requests and messages will show up here.",
     viewSwapRequests: "View swap requests",
+    deleteNotification: "Delete notification",
   },
   forum: {
     latest: "Latest",
@@ -1012,13 +1019,14 @@ const en: Dictionary = {
     prevMonth: "Previous month",
     nextMonth: "Next month",
     scheduledLegend: "Skill swap session scheduled",
+    sessionStarted: "Session started",
     statusJoining: "Joining session room…",
     statusPartnerJoinedConnecting: "Partner joined — connecting…",
     statusWaitingPartner: "Waiting for your partner to join…",
     statusConnectingPeer: "Connecting to your partner…",
     statusConnected: "Connected — you are live",
     statusFailed: "Connection failed. Ask your partner to rejoin, or try again.",
-    statusEnded: "Call ended",
+    statusEnded: "Session ended",
     backToRequests: "Back to requests",
     roomTitle: "Skill Swap Session",
     withLabel: "with",
@@ -1225,10 +1233,13 @@ const zhCN: Dictionary = {
     typeLevelUp: "升级",
     typeForum: "论坛",
     typeReview: "评价",
+    typeSessionStarted: "会话已开始",
+    typeSessionEnded: "会话已结束",
     markAllRead: "全部标为已读",
     empty: "暂无通知",
     emptyHint: "交换请求和消息会出现在这里。",
     viewSwapRequests: "查看交换请求",
+    deleteNotification: "删除通知",
   },
   forum: {
     latest: "最新",
@@ -1536,13 +1547,14 @@ const zhCN: Dictionary = {
     prevMonth: "上个月",
     nextMonth: "下个月",
     scheduledLegend: "已安排的技能交换会话",
+    sessionStarted: "会话已开始",
     statusJoining: "正在加入会话房间…",
     statusPartnerJoinedConnecting: "对方已加入 — 正在连接…",
     statusWaitingPartner: "等待对方加入…",
     statusConnectingPeer: "正在连接对方…",
     statusConnected: "已连接 — 你正在实时通话中",
     statusFailed: "连接失败。请让对方重新加入，或再试一次。",
-    statusEnded: "通话已结束",
+    statusEnded: "会话已结束",
     backToRequests: "返回请求列表",
     roomTitle: "技能交换会话",
     withLabel: "与",

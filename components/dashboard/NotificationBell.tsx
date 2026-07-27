@@ -10,6 +10,9 @@ import {
   Repeat,
   MessagesSquare,
   Star,
+  Video,
+  PhoneOff,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import type { NotificationRow, NotificationType } from "@/lib/notifications";
@@ -31,6 +34,8 @@ const TYPE_ICONS: Record<NotificationType, { icon: LucideIcon; tone: string }> =
   forum_reply: { icon: MessagesSquare, tone: "bg-sky-50 text-sky-600" },
   review_prompt: { icon: Star, tone: "bg-amber-50 text-amber-600" },
   review_received: { icon: Star, tone: "bg-amber-50 text-amber-600" },
+  session_started: { icon: Video, tone: "bg-emerald-50 text-emerald-600" },
+  session_ended: { icon: PhoneOff, tone: "bg-slate-100 text-slate-600" },
 };
 
 export default function NotificationBell({ notifications, unreadCount, onReload }: NotificationBellProps) {
@@ -49,6 +54,8 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
     forum_reply: n.typeForum,
     review_prompt: n.typeReview,
     review_received: n.typeReview,
+    session_started: n.typeSessionStarted,
+    session_ended: n.typeSessionEnded,
   };
 
   useEffect(() => {
@@ -77,6 +84,16 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
+    });
+    await onReload();
+  }
+
+  async function handleDeleteNotification(e: React.MouseEvent, notificationId: string) {
+    e.stopPropagation();
+    await fetch("/api/notifications", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notificationId }),
     });
     await onReload();
   }
@@ -138,46 +155,59 @@ export default function NotificationBell({ notifications, unreadCount, onReload 
                 const meta = TYPE_ICONS[row.type] ?? TYPE_ICONS.message;
                 const Icon = meta.icon;
                 return (
-                  <button
+                  <div
                     key={row.notification_id}
-                    type="button"
-                    onClick={() => handleOpenNotification(row)}
-                    className={`flex w-full items-start gap-3 px-3.5 py-3 text-left transition hover:bg-slate-50 active:bg-slate-100/80 ${
+                    className={`group flex w-full items-start gap-1 px-3.5 py-3 transition hover:bg-slate-50 active:bg-slate-100/80 ${
                       !row.is_read ? "bg-[var(--sb-emerald-light)]/40" : ""
                     }`}
                   >
-                    <div
-                      className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${meta.tone}`}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenNotification(row)}
+                      className="flex min-w-0 flex-1 items-start gap-3 text-left"
                     >
-                      <Icon size={17} />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                          {typeLabels[row.type] ?? n.typeMessage}
-                        </p>
-                        <span className="shrink-0 text-[11px] text-slate-400">
-                          {formatRelativeTimeLabel(row.created_at, dictionary.common, locale)}
-                        </span>
-                      </div>
-                      <p
-                        className={`mt-0.5 line-clamp-2 text-sm leading-snug ${
-                          !row.is_read ? "font-semibold text-slate-900" : "font-medium text-slate-700"
-                        }`}
+                      <div
+                        className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${meta.tone}`}
                       >
-                        {row.message}
-                      </p>
-                    </div>
+                        <Icon size={17} />
+                      </div>
 
-                    {!row.is_read && (
-                      <span
-                        className="mt-2 h-2 w-2 shrink-0 rounded-full"
-                        style={{ background: "var(--sb-emerald)" }}
-                        aria-label={dictionary.common.unread}
-                      />
-                    )}
-                  </button>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            {typeLabels[row.type] ?? n.typeMessage}
+                          </p>
+                          <span className="shrink-0 text-[11px] text-slate-400">
+                            {formatRelativeTimeLabel(row.created_at, dictionary.common, locale)}
+                          </span>
+                        </div>
+                        <p
+                          className={`mt-0.5 line-clamp-2 text-sm leading-snug ${
+                            !row.is_read ? "font-semibold text-slate-900" : "font-medium text-slate-700"
+                          }`}
+                        >
+                          {row.message}
+                        </p>
+                      </div>
+
+                      {!row.is_read && (
+                        <span
+                          className="mt-2 h-2 w-2 shrink-0 rounded-full"
+                          style={{ background: "var(--sb-emerald)" }}
+                          aria-label={dictionary.common.unread}
+                        />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteNotification(e, row.notification_id)}
+                      aria-label={n.deleteNotification}
+                      className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-300 transition hover:bg-slate-200 hover:text-slate-600"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                 );
               })
             )}
