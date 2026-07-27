@@ -9,7 +9,8 @@ type SignalPayload =
   | { type: "offer"; from: string; sdp: RTCSessionDescriptionInit }
   | { type: "answer"; from: string; sdp: RTCSessionDescriptionInit }
   | { type: "ice"; from: string; candidate: RTCIceCandidateInit }
-  | { type: "hangup"; from: string };
+  | { type: "hangup"; from: string }
+  | { type: "session-complete"; from: string };
 
 export type ChatAttachment = {
   name: string;
@@ -95,6 +96,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   const [partnerPresent, setPartnerPresent] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [mediaBusy, setMediaBusy] = useState(false);
+  const [partnerCompletedSession, setPartnerCompletedSession] = useState(false);
 
   const localVideoEl = useRef<HTMLVideoElement | null>(null);
   const remoteVideoEl = useRef<HTMLVideoElement | null>(null);
@@ -335,6 +337,14 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
 
     async function handleSignal(payload: SignalPayload) {
       if (payload.from === userId || endedRef.current) return;
+
+      if (payload.type === "session-complete") {
+        endedRef.current = true;
+        setPartnerCompletedSession(true);
+        resetPeer();
+        setConnectionState("ended");
+        return;
+      }
 
       if (payload.type === "hangup") {
         resetPeer();
@@ -603,6 +613,17 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     [requestId, sendChat, userId]
   );
 
+  // Distinct from hangUp() — tells the partner the session was marked
+  // complete (not just that this side disconnected), so their room shows
+  // a clear "session complete" state instead of "waiting to reconnect".
+  const notifySessionComplete = useCallback(async () => {
+    await channelRef.current?.send({
+      type: "broadcast",
+      event: "signal",
+      payload: { type: "session-complete", from: userId } satisfies SignalPayload,
+    });
+  }, [userId]);
+
   const hangUp = useCallback(async () => {
     endedRef.current = true;
     setConnectionState("ended");
@@ -647,5 +668,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     sendChat,
     sendChatFile,
     hangUp,
+    notifySessionComplete,
+    partnerCompletedSession,
   };
 }

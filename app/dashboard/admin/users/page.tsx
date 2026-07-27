@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { tryCreateSupabaseAdminClient } from "@/lib/supabase/admin";
 import SuspendToggleButton from "@/components/admin/SuspendToggleButton";
+import ActivationActions from "@/components/admin/ActivationActions";
 
 export const metadata: Metadata = {
   title: "Users | Admin | SkillBridge",
@@ -10,6 +12,36 @@ export const metadata: Metadata = {
 type PageProps = {
   searchParams: Promise<{ q?: string }>;
 };
+
+/**
+ * email_confirmed_at lives only in Supabase's internal auth.users table, never
+ * synced into the public users table this page otherwise reads from. Build a
+ * lookup (email -> confirmed?) via the Admin API so we can show activation
+ * status without touching the public schema.
+ */
+async function loadConfirmationMap(): Promise<Map<string, boolean> | null> {
+  const admin = tryCreateSupabaseAdminClient();
+  if (!admin) return null;
+
+  const map = new Map<string, boolean>();
+  let page = 1;
+  const perPage = 200;
+
+  // Paginate through all auth users — small user bases will finish in one page.
+  while (true) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error || !data) break;
+
+    for (const u of data.users) {
+      if (u.email) map.set(u.email.toLowerCase(), Boolean(u.email_confirmed_at));
+    }
+
+    if (data.users.length < perPage) break;
+    page += 1;
+  }
+
+  return map;
+}
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
   const { q } = await searchParams;
@@ -29,7 +61,10 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     query = query.or(`fullname.ilike.%${term}%,email.ilike.%${term}%`);
   }
 
-  const { data: users, error } = await query;
+  const [{ data: users, error }, confirmationMap] = await Promise.all([
+    query,
+    loadConfirmationMap(),
+  ]);
   const count = users?.length ?? 0;
 
   return (
@@ -80,38 +115,60 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
               <th className="px-4 py-3">Level</th>
               <th className="px-4 py-3">Joined</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Activation</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
-            {(users ?? []).map((u) => (
-              <tr key={u.id} className="border-b border-slate-50 last:border-0">
-                <td className="px-4 py-3 font-semibold text-slate-900">{u.fullname}</td>
-                <td className="px-4 py-3 text-slate-500">{u.email}</td>
-                <td className="px-4 py-3 text-slate-500">{u.trust_score ?? 0}</td>
-                <td className="px-4 py-3 text-slate-500">{u.level}</td>
-                <td className="px-4 py-3 text-slate-500">
-                  {new Date(u.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3">
-                  {u.is_suspended ? (
-                    <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">
-                      Suspended
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
-                      Active
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <SuspendToggleButton userId={u.id} isSuspended={u.is_suspended} />
-                </td>
-              </tr>
-            ))}
+            {(users ?? []).map((u) => {
+              const confirmed = confirmationMap?.get(u.email.toLowerCase());
+              const isPending = confirmed === false;
+
+              return (
+                <tr key={u.id} className="border-b border-slate-50 last:border-0">
+                  <td className="px-4 py-3 font-semibold text-slate-900">{u.fullname}</td>
+                  <td className="px-4 py-3 text-slate-500">{u.email}</td>
+                  <td className="px-4 py-3 text-slate-500">{u.trust_score ?? 0}</td>
+                  <td className="px-4 py-3 text-slate-500">{u.level}</td>
+                  <td className="px-4 py-3 text-slate-500">
+                    {new Date(u.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    {u.is_suspended ? (
+                      <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">
+                        Suspended
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
+                        Active
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {confirmed === undefined ? (
+                      <span className="text-xs text-slate-400">Unknown</span>
+                    ) : isPending ? (
+                      <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-600">
+                        Pending
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
+                        Confirmed
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col items-end gap-2">
+                      <SuspendToggleButton userId={u.id} isSuspended={u.is_suspended} />
+                      {isPending && <ActivationActions email={u.email} />}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
             {count === 0 && !error && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                <td colSpan={8} className="px-4 py-10 text-center text-slate-400">
                   No users found.
                 </td>
               </tr>

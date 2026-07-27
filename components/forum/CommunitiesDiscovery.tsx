@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Search } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { COMMUNITY_CATEGORIES, COMMUNITY_TOPICS } from "@/lib/forumCommunities";
 import type { WantedSkillRef } from "@/lib/forumCommunityRecommendations";
@@ -246,6 +246,7 @@ export default function CommunitiesDiscovery({
   const { locale, dictionary } = useLocale();
   const f = dictionary.forum;
   const [category, setCategory] = useState(initialCategory);
+  const [query, setQuery] = useState("");
   const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [createTopics, setCreateTopics] = useState<string[]>([]);
   const [communities, setCommunities] = useState(initialCommunities);
@@ -295,6 +296,32 @@ export default function CommunitiesDiscovery({
     return [ALL, ...withCommunities, ...without, ...extras];
   }, [communities, countsByCategory]);
 
+  // Free-text search across name, description, and category — takes priority over the
+  // category tabs below so it always searches the full set of communities, not just
+  // whichever tab happens to be selected.
+  // Free-text search — matches on the community NAME only, so searching
+  // "General" finds the community literally named General, not every
+  // community that happens to share its category or mention the word
+  // somewhere in a description.
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return null;
+
+    function matchRank(c: ForumCommunity): number {
+      const title = c.title.toLowerCase();
+      if (title === q) return 0; // exact name match
+      if (title.startsWith(q)) return 1; // name starts with query
+      if (title.includes(q)) return 2; // name contains query
+      return -1; // no match — not shown
+    }
+
+    return communities
+      .map((c) => ({ c, rank: matchRank(c) }))
+      .filter((x) => x.rank !== -1)
+      .sort((a, b) => a.rank - b.rank || a.c.title.localeCompare(b.c.title))
+      .map((x) => x.c);
+  }, [communities, query]);
+
   // When a specific category is selected, keep it simple: one section, sorted by activity.
   const categoryFiltered = useMemo(() => {
     if (category === ALL) return [];
@@ -327,6 +354,24 @@ export default function CommunitiesDiscovery({
 
   return (
     <div className="space-y-8">
+      <div className="relative w-full rounded-full bg-white transition" style={{ boxShadow: "var(--sb-shadow-sm)" }}>
+        <Search
+          size={16}
+          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2"
+          style={{ color: "var(--sb-muted)" }}
+        />
+        <input
+          type="text"
+          id="discover-communities-search"
+          name="discover-communities-search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={f.searchCommunitiesPlaceholder}
+          className="w-full rounded-full border-none bg-transparent py-3 pl-10 pr-4 text-sm outline-none"
+          style={{ color: "var(--sb-ink)" }}
+        />
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div
           className="flex max-w-full gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -341,7 +386,14 @@ export default function CommunitiesDiscovery({
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setCategory(cat)}
+                onClick={(e) => {
+                  setCategory(cat);
+                  e.currentTarget.scrollIntoView({
+                    behavior: "smooth",
+                    inline: "center",
+                    block: "nearest",
+                  });
+                }}
                 className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
                   active
                     ? "bg-slate-900 text-white"
@@ -364,7 +416,22 @@ export default function CommunitiesDiscovery({
         </button>
       </div>
 
-      {category !== ALL ? (
+      {searchResults !== null ? (
+        searchResults.length > 0 ? (
+          <CommunitySection
+            title={interpolate(f.searchResultsFor, { query: query.trim() })}
+            communities={searchResults}
+            viewerId={viewerId}
+            initialCount={9}
+            onJoinedChange={onJoinedChange}
+          />
+        ) : (
+          <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
+            <p className="text-sm font-semibold text-slate-700">{f.noFilterMatch}</p>
+            <p className="mt-1 text-sm text-slate-500">{f.tryDifferentFilter}</p>
+          </div>
+        )
+      ) : category !== ALL ? (
         categoryFiltered.length > 0 ? (
           <CommunitySection
             title={categoryDisplay}

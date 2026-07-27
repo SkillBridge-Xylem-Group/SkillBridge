@@ -4,6 +4,7 @@ import { securityHeaders } from "./lib/security/headers";
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [{ hostname: "images.unsplash.com" }],
+    qualities: [75, 100],
   },
   poweredByHeader: false,
   devIndicators: false,

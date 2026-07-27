@@ -39,6 +39,12 @@ export const registerSchema = z
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 
+export const resendConfirmationSchema = z.object({
+  email: z.string().trim().toLowerCase().max(254, "Email is too long").email("Invalid email address"),
+});
+
+export type ResendConfirmationInput = z.infer<typeof resendConfirmationSchema>;
+
 export const loginSchema = z.object({
   email: z
     .string()
