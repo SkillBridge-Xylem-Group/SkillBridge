@@ -8,5 +8,7 @@ import { isAllowedAvatarUrl } from "@/lib/security";
 export function normalizeAvatarUrl(url: string | null | undefined): string | null {
   if (!url?.trim()) return null;
   const trimmed = url.trim();
-  return isAllowedAvatarUrl(trimmed) ? trimmed : null;
+  const withoutQuery = trimmed.split(/[?#]/)[0] ?? trimmed;
+  if (!isAllowedAvatarUrl(withoutQuery)) return null;
+  return trimmed;
 }

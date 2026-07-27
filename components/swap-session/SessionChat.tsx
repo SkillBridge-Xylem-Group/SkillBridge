@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FileText, Paperclip, Send } from "lucide-react";
 import EmojiPicker from "@/components/messages/EmojiPicker";
+import UserAvatar from "@/components/ui/UserAvatar";
 import type { ChatMessage } from "@/hooks/useSwapWebRtc";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
@@ -11,6 +12,9 @@ type Props = {
   messages: ChatMessage[];
   userId: string;
   partnerName: string;
+  partnerAvatarUrl: string | null;
+  viewerName: string;
+  viewerAvatarUrl: string | null;
   onSend: (text: string) => Promise<boolean>;
   onSendFile: (file: File, caption?: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   disabled?: boolean;
@@ -26,6 +30,9 @@ export default function SessionChat({
   messages,
   userId,
   partnerName,
+  partnerAvatarUrl,
+  viewerName,
+  viewerAvatarUrl,
   onSend,
   onSendFile,
   disabled,
@@ -78,15 +85,18 @@ export default function SessionChat({
   return (
     <div className="flex h-full min-h-[420px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:min-h-0">
       <div className="border-b border-slate-100 px-4 py-3">
-        <h2 className="text-base font-extrabold text-slate-900">{s.sessionChatTitle}</h2>
-        <p className="text-xs text-slate-500">{interpolate(s.messageWhileSwap, { name: partnerName })}</p>
+        <div className="flex items-center gap-2.5">
+          <UserAvatar name={partnerName} avatarUrl={partnerAvatarUrl} className="h-9 w-9 text-xs" />
+          <div>
+            <h2 className="text-base font-extrabold text-slate-900">{s.sessionChatTitle}</h2>
+            <p className="text-xs text-slate-500">{interpolate(s.messageWhileSwap, { name: partnerName })}</p>
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
-          <p className="px-1 py-8 text-center text-sm text-slate-400">
-            {s.noMessagesYet}
-          </p>
+          <p className="px-1 py-8 text-center text-sm text-slate-400">{s.noMessagesYet}</p>
         ) : (
           messages.map((m) => {
             const mine = m.from === userId;
@@ -94,9 +104,16 @@ export default function SessionChat({
             const isImage = Boolean(attachment?.mime.startsWith("image/"));
 
             return (
-              <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+              <div key={m.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                {!mine && (
+                  <UserAvatar
+                    name={partnerName}
+                    avatarUrl={partnerAvatarUrl}
+                    className="mb-5 h-8 w-8 shrink-0 text-[10px]"
+                  />
+                )}
                 <div
-                  className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm ${
+                  className={`max-w-[78%] rounded-2xl px-3 py-2 text-sm ${
                     mine ? "bg-brand text-white" : "bg-slate-100 text-slate-800"
                   }`}
                 >
@@ -149,6 +166,13 @@ export default function SessionChat({
                     {new Date(m.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                   </p>
                 </div>
+                {mine && (
+                  <UserAvatar
+                    name={viewerName}
+                    avatarUrl={viewerAvatarUrl}
+                    className="mb-5 h-8 w-8 shrink-0 text-[10px]"
+                  />
+                )}
               </div>
             );
           })
@@ -179,9 +203,7 @@ export default function SessionChat({
           >
             <Paperclip size={18} />
           </button>
-          <EmojiPicker
-            onSelect={(emoji) => setDraft((prev) => `${prev}${emoji}`)}
-          />
+          <EmojiPicker onSelect={(emoji) => setDraft((prev) => `${prev}${emoji}`)} />
           <input
             type="text"
             value={draft}

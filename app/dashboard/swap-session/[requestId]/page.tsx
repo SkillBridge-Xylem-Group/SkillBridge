@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
-import { getRequestUser } from "@/lib/dashboardShell";
+import { getDashboardShellData, getRequestUser } from "@/lib/dashboardShell";
 import SwapSessionRoom from "@/components/swap-session/SwapSessionRoom";
 import { getSwapSessionForUser } from "@/lib/swapSession";
 
@@ -17,16 +17,19 @@ export default async function SwapSessionPage({ params }: PageProps) {
   const { supabase, user } = await getRequestUser();
   if (!user) redirect("/login");
 
-  const session = await getSwapSessionForUser(supabase, requestId, user.id);
+  const [session, shell] = await Promise.all([
+    getSwapSessionForUser(supabase, requestId, user.id),
+    getDashboardShellData(),
+  ]);
+
   if (!session) notFound();
 
-  const { data: viewerRow } = await supabase
-    .from("users")
-    .select("fullname")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const viewerName = viewerRow?.fullname ?? "You";
-
-  return <SwapSessionRoom session={session} userId={user.id} viewerName={viewerName} />;
+  return (
+    <SwapSessionRoom
+      session={session}
+      userId={user.id}
+      viewerName={shell.userName || "You"}
+      viewerAvatarUrl={shell.avatarUrl}
+    />
+  );
 }

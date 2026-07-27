@@ -20,11 +20,14 @@ import type { SwapSessionRoomData } from "@/lib/swapSession";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import SessionChat from "./SessionChat";
+import ParticipantVideoTile from "./ParticipantVideoTile";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 type Props = {
   session: SwapSessionRoomData;
   userId: string;
   viewerName: string;
+  viewerAvatarUrl: string | null;
 };
 
 function statusLabel(
@@ -50,7 +53,7 @@ function statusLabel(
   }
 }
 
-export default function SwapSessionRoom({ session, userId, viewerName }: Props) {
+export default function SwapSessionRoom({ session, userId, viewerName, viewerAvatarUrl }: Props) {
   const router = useRouter();
   const { dictionary } = useLocale();
   const s = dictionary.swapSession;
@@ -68,6 +71,8 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
     hasMic,
     hasCamera,
     partnerPresent,
+    remoteHasVideo,
+    remoteCameraEnabled,
     messages,
     toggleMic,
     toggleCamera,
@@ -80,6 +85,10 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
   const topic = session.topic?.skill_name ?? s.defaultTopic;
   const label = statusLabel(connectionState, partnerPresent, s);
   const roomOpen = connectionState !== "ended";
+  const showRemoteVideo =
+    connectionState === "connected" && remoteHasVideo && remoteCameraEnabled;
+  const showLocalVideo = hasCamera && cameraEnabled;
+  const localLabel = `${s.you}${hasMic && !micEnabled ? ` · ${s.micOff}` : ""}${hasCamera && !cameraEnabled ? ` · ${s.camOff}` : ""}`;
 
   async function leave() {
     await hangUp();
@@ -107,10 +116,19 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
             {s.backToRequests}
           </Link>
           <h1 className="text-2xl font-extrabold text-slate-900">{s.roomTitle}</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            {topic}
-            {session.topic?.category ? ` · ${session.topic.category}` : ""} {s.withLabel}{" "}
-            <span className="font-semibold text-slate-800">{session.partner.fullname}</span>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+            <span>
+              {topic}
+              {session.topic?.category ? ` · ${session.topic.category}` : ""} {s.withLabel}
+            </span>
+            <span className="inline-flex items-center gap-2 font-semibold text-slate-800">
+              <UserAvatar
+                name={session.partner.fullname}
+                avatarUrl={session.partner.avatar_url}
+                className="h-7 w-7 text-[10px]"
+              />
+              {session.partner.fullname}
+            </span>
           </p>
         </div>
         {(connectionState === "connected" ||
@@ -155,70 +173,42 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
       <div className="grid flex-1 grid-cols-1 gap-4 xl:grid-cols-[minmax(260px,34%)_minmax(0,66%)]">
         <div className="flex min-w-0 flex-col gap-3">
           <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
-            <div className="relative aspect-video overflow-hidden rounded-2xl bg-slate-900 shadow-sm xl:aspect-auto xl:min-h-[150px] xl:max-h-[200px]">
-              <video
-                ref={bindRemoteVideo}
-                autoPlay
-                playsInline
-                className="h-full w-full object-cover"
-              />
-              {connectionState !== "connected" && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-slate-900/90 px-4 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
-                    {session.partner.fullname
-                      .split(" ")
-                      .filter(Boolean)
-                      .slice(0, 2)
-                      .map((p) => p.charAt(0).toUpperCase())
-                      .join("")}
-                  </div>
-                  <p className="text-xs font-semibold text-white">{session.partner.fullname}</p>
-                  <p className="text-[11px] text-slate-300">
-                    {partnerPresent ? s.connecting : s.waitingForThemToJoin}
-                  </p>
-                </div>
-              )}
-              <span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white">
-                {session.partner.fullname}
-              </span>
-            </div>
+            <ParticipantVideoTile
+              name={session.partner.fullname}
+              avatarUrl={session.partner.avatar_url}
+              label={session.partner.fullname}
+              bindVideo={bindRemoteVideo}
+              showVideo={showRemoteVideo}
+              overlay={
+                <p className="text-[11px] text-slate-300">
+                  {partnerPresent ? s.connecting : s.waitingForThemToJoin}
+                </p>
+              }
+            />
 
-            <div className="relative aspect-video overflow-hidden rounded-2xl bg-slate-800 shadow-sm xl:aspect-auto xl:min-h-[120px] xl:max-h-[160px]">
-              <video
-                ref={bindLocalVideo}
-                autoPlay
-                playsInline
-                muted
-                className={`h-full w-full object-cover ${cameraEnabled && hasCamera ? "" : "opacity-0"}`}
-              />
-              {(!hasCamera || !cameraEnabled) && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
-                    {viewerName
-                      .split(" ")
-                      .filter(Boolean)
-                      .slice(0, 2)
-                      .map((p) => p.charAt(0).toUpperCase())
-                      .join("") || "You"}
-                  </div>
-                  {!mediaReady && (
-                    <button
-                      type="button"
-                      disabled={mediaBusy}
-                      onClick={() => void enableDevices()}
-                      className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-white/25 disabled:opacity-50"
-                    >
-                      {mediaBusy ? s.requesting : s.enableCameraMic}
-                    </button>
-                  )}
-                </div>
-              )}
-              <span className="absolute bottom-2 left-2 rounded-md bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white">
-                {s.you}
-                {hasMic && !micEnabled ? ` · ${s.micOff}` : ""}
-                {hasCamera && !cameraEnabled ? ` · ${s.camOff}` : ""}
-              </span>
-            </div>
+            <ParticipantVideoTile
+              name={viewerName}
+              avatarUrl={viewerAvatarUrl}
+              label={localLabel}
+              bindVideo={bindLocalVideo}
+              showVideo={showLocalVideo}
+              muted
+              compact
+              tileClassName="bg-slate-800"
+              avatarClassName="h-11 w-11 text-sm"
+              overlay={
+                !mediaReady ? (
+                  <button
+                    type="button"
+                    disabled={mediaBusy}
+                    onClick={() => void enableDevices()}
+                    className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-white/25 disabled:opacity-50"
+                  >
+                    {mediaBusy ? s.requesting : s.enableCameraMic}
+                  </button>
+                ) : null
+              }
+            />
           </div>
 
           <div className="sticky bottom-16 z-10 flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur lg:static lg:bottom-auto">
@@ -292,6 +282,9 @@ export default function SwapSessionRoom({ session, userId, viewerName }: Props) 
             messages={messages}
             userId={userId}
             partnerName={session.partner.fullname}
+            partnerAvatarUrl={session.partner.avatar_url}
+            viewerAvatarUrl={viewerAvatarUrl}
+            viewerName={viewerName}
             onSend={sendChat}
             onSendFile={sendChatFile}
             disabled={!roomOpen}
