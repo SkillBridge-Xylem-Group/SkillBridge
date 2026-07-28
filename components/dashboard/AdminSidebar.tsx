@@ -9,7 +9,6 @@ import {
   ChevronRight,
   MessagesSquare,
   Repeat2,
-  Bell,
   type LucideIcon,
 } from "lucide-react";
 import { ADMIN_NAV_ITEMS, isAdminNavActive } from "@/lib/admin-nav";
@@ -37,12 +36,6 @@ const TOP_NAV_ITEMS: TopNavItem[] = [
     label: "Skill Swaps",
     icon: Repeat2,
     isActive: (p) => p.startsWith("/dashboard/swap-requests"),
-  },
-  {
-    href: "/dashboard/admin/notifications",
-    label: "Notifications",
-    icon: Bell,
-    isActive: (p) => p.startsWith("/dashboard/admin/notifications"),
   },
 ];
 
@@ -126,7 +119,7 @@ export default function AdminSidebar() {
           </button>
         )}
 
-        {/* ---------- GROUP 1: Community Forum, Skill Swaps, Notifications ---------- */}
+        {/* ---------- GROUP 1: Community Forum, Skill Swaps ---------- */}
         <nav className={`mt-6 space-y-1.5 ${collapsed ? "px-0" : ""}`}>
           {TOP_NAV_ITEMS.map((item) => (
             <NavLink

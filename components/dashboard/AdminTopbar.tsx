@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { ADMIN_NAV_ITEMS, isAdminNavActive } from "@/lib/admin-nav";
 import AdminUserMenu from "./AdminUserMenu";
+import NotificationBell from "./NotificationBell";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 type AdminTopbarProps = {
   userName: string;
@@ -15,6 +17,7 @@ type AdminTopbarProps = {
 export default function AdminTopbar({ userName }: AdminTopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { notifications, unreadCount, reload } = useRealtimeNotifications();
 
   return (
     <div className="sticky top-0 z-30 flex shrink-0 flex-col bg-white lg:mb-2 lg:bg-transparent">
@@ -37,7 +40,10 @@ export default function AdminTopbar({ userName }: AdminTopbarProps) {
           </Link>
         </div>
 
-        <AdminUserMenu name={userName} />
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <NotificationBell notifications={notifications} unreadCount={unreadCount} onReload={reload} />
+          <AdminUserMenu name={userName} />
+        </div>
       </div>
 
       {menuOpen && (
