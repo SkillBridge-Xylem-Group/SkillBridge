@@ -197,20 +197,16 @@ function randomSlugSuffix(): string {
 /**
  * The display name (title) is intentionally NOT required to be unique —
  * "Web Development" can exist many times over. The slug is the real unique
- * identifier: when it collides (typically because two communities normalize
- * to the same base slug from the same name), a random numeric suffix is
- * appended so both communities still get distinct URLs, e.g.
- * `web-development-83107` and `web-development-40922`.
+ * identifier, and every new community gets a random numeric suffix appended
+ * unconditionally (not just on a collision) so the URL scheme stays
+ * consistent across every community, e.g. `web-development-83107` and
+ * `web-development-40922` rather than one plain and one suffixed.
  */
 export async function ensureUniqueCommunitySlug(
   supabase: SupabaseClient,
   baseSlug: string,
   excludeCommunityId?: string
 ): Promise<string> {
-  if (await isCommunitySlugAvailable(supabase, baseSlug, excludeCommunityId)) {
-    return baseSlug;
-  }
-
   const trimmedBase = baseSlug.slice(0, 50 - 6).replace(/-+$/, "");
   for (let attempt = 0; attempt < 8; attempt++) {
     const candidate = `${trimmedBase}-${randomSlugSuffix()}`;

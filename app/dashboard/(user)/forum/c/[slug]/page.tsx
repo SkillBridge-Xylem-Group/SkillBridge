@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { getRequestUser } from "@/lib/dashboardShell";
 import { getForumQuestions } from "@/lib/forum";
 import { getCommunityBySlug } from "@/lib/forumCommunities";
@@ -55,6 +57,14 @@ export default async function SubforumPage({ params, searchParams }: PageProps) 
 
   return (
     <div className="min-w-0 space-y-4">
+      <Link
+        href="/dashboard/forum"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800"
+      >
+        <ArrowLeft size={16} />
+        Back to Communities
+      </Link>
+
       <CommunityPageHeader community={community} isOwner={isOwner} />
 
       {canParticipate ? (
