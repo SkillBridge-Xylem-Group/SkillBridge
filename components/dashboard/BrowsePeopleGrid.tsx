@@ -1,10 +1,15 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { Search, Star } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Filter, Search, Star, X } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { interpolate } from "@/lib/i18n/interpolate";
+import { DEFAULT_SKILLS } from "@/lib/defaultSkills";
+
+const ALL_SKILL_CATEGORIES = [...new Set(DEFAULT_SKILLS.map((s) => s.category))].sort((a, b) =>
+  a.localeCompare(b)
+);
 
 type Person = {
   id: string;
@@ -39,6 +44,16 @@ export default function BrowsePeopleGrid() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState(ALL);
   const [sortBy, setSortBy] = useState<SortOption>("rating");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     async function loadPeople() {
@@ -58,11 +73,7 @@ export default function BrowsePeopleGrid() {
     loadPeople();
   }, []);
 
-  const categoryOptions = useMemo(() => {
-    const unique = new Set<string>();
-    people.forEach((p) => p.categories.forEach((c) => unique.add(c)));
-    return [ALL, ...Array.from(unique).sort()];
-  }, [people]);
+  const categoryOptions = useMemo(() => [ALL, ...ALL_SKILL_CATEGORIES], []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -86,7 +97,11 @@ export default function BrowsePeopleGrid() {
   return (
     <div className="mt-2">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1 rounded-full bg-white transition" style={{ boxShadow: "var(--sb-shadow-sm)" }}>
+        <div
+          ref={filterRef}
+          className="relative min-w-0 flex-1 rounded-full bg-white transition"
+          style={{ boxShadow: "var(--sb-shadow-sm)" }}
+        >
           <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--sb-muted)" }} />
           <input
             type="text"
@@ -95,25 +110,45 @@ export default function BrowsePeopleGrid() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={b.searchPlaceholder}
-            className="w-full rounded-full border-none bg-transparent py-3 pl-10 pr-4 text-sm outline-none"
+            className="w-full rounded-full border-none bg-transparent py-3 pl-10 pr-11 text-sm outline-none"
             style={{ color: "var(--sb-ink)" }}
           />
+          <button
+            type="button"
+            onClick={() => setFilterOpen((o) => !o)}
+            aria-label={b.allCategories}
+            aria-expanded={filterOpen}
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full hover:bg-slate-100"
+          >
+            <Filter size={16} className={category !== ALL ? "text-slate-900" : "text-slate-400"} />
+          </button>
+
+          {filterOpen ? (
+            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 max-h-80 w-56 overflow-y-auto rounded-2xl border border-slate-200 bg-white py-1.5 shadow-lg">
+              {categoryOptions.map((c) => {
+                const active = category === c;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => {
+                      setCategory(c);
+                      setFilterOpen(false);
+                    }}
+                    className={`block w-full px-4 py-2 text-left text-sm ${
+                      active ? "bg-slate-100 font-semibold" : "font-medium hover:bg-slate-50"
+                    }`}
+                    style={{ color: "var(--sb-ink)" }}
+                  >
+                    {c === ALL ? b.allCategories : c}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            id="browse-people-category"
-            name="browse-people-category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="min-w-[9.5rem] flex-1 rounded-full border-none bg-white px-4 py-3 text-sm font-bold sm:flex-none sm:w-48"
-            style={{ color: "var(--sb-ink)", boxShadow: "var(--sb-shadow-sm)" }}
-          >
-            {categoryOptions.map((c) => (
-              <option key={c} value={c}>{c === ALL ? b.allCategories : c}</option>
-            ))}
-          </select>
-
           <select
             id="browse-people-sort"
             name="browse-people-sort"
@@ -128,6 +163,22 @@ export default function BrowsePeopleGrid() {
           </select>
         </div>
       </div>
+
+      {category !== ALL ? (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 py-1.5 pl-3.5 pr-2 text-sm font-semibold text-slate-700">
+            {category}
+            <button
+              type="button"
+              onClick={() => setCategory(ALL)}
+              aria-label={dictionary.common.remove}
+              className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-slate-200"
+            >
+              <X size={12} />
+            </button>
+          </span>
+        </div>
+      ) : null}
 
       {loading && <p className="mt-6 text-sm" style={{ color: "var(--sb-muted)" }}>{b.loadingPeople}</p>}
       {!loading && error && <p className="mt-6 text-sm text-red-500">{b.loadFailed}</p>}
