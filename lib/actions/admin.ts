@@ -222,24 +222,36 @@ type BadgeInput = {
 
 export async function createBadgeAction(input: BadgeInput) {
   "use server";
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("badges").insert(input);
+  const auth = await requireAdminServerAction();
+  if (!auth.ok) return { error: auth.error };
+
+  const admin = tryCreateSupabaseAdminClient();
+  const db = admin ?? auth.supabase;
+  const { error } = await db.from("badges").insert(input);
   if (error) return { error: error.message };
   return { success: true };
 }
 
 export async function updateBadgeAction(id: string, input: Partial<BadgeInput>) {
   "use server";
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("badges").update(input).eq("id", id);
+  const auth = await requireAdminServerAction();
+  if (!auth.ok) return { error: auth.error };
+
+  const admin = tryCreateSupabaseAdminClient();
+  const db = admin ?? auth.supabase;
+  const { error } = await db.from("badges").update(input).eq("id", id);
   if (error) return { error: error.message };
   return { success: true };
 }
 
 export async function deleteBadgeAction(id: string) {
   "use server";
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("badges").update({ is_active: false }).eq("id", id);
+  const auth = await requireAdminServerAction();
+  if (!auth.ok) return { error: auth.error };
+
+  const admin = tryCreateSupabaseAdminClient();
+  const db = admin ?? auth.supabase;
+  const { error } = await db.from("badges").update({ is_active: false }).eq("id", id);
   if (error) return { error: error.message };
   return { success: true };
 }
