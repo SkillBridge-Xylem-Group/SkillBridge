@@ -1,4 +1,4 @@
-import { createHash, createHmac, timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 const RECOVERY_COOKIE = "sb-pw-recovery";
 const CHANNEL_TTL_MS = 2 * 60 * 60 * 1000; // 2h
@@ -70,8 +70,12 @@ export function verifySwapChannelToken(requestId: string, token: string | undefi
   }
 }
 
-export function swapChannelName(requestId: string, token: string): string {
-  const digest = createHash("sha256").update(`${requestId}:${token}`).digest("hex").slice(0, 24);
+/** Shared Realtime topic for both session participants (obfuscated, not guessable from request id alone). */
+export function swapChannelName(requestId: string): string {
+  const digest = createHmac("sha256", secret())
+    .update(`swap-channel:${requestId}`)
+    .digest("hex")
+    .slice(0, 24);
   return `swap-session:${requestId}:${digest}`;
 }
 
