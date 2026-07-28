@@ -91,6 +91,10 @@ export type BadgeStats = {
   skillsOfferedCount: number;
   skillsWantedCount: number;
   memberSinceDays: number;
+  /** Real count of completed swap sessions (as requester or receiver) — do not derive this from XP, see note below. */
+  sessionsCompletedCount: number;
+  discussionsCount: number;
+  answersCount: number;
 };
 
 type BadgeRow = {
@@ -120,8 +124,12 @@ export type EvaluatedBadge = {
   progressPct: number;
 };
 
-// FR-009: 1 XP per completed teaching session, so experiencePoints doubles
-// as the session counter for the sessions_completed metric.
+// NOTE: sessions_completed used to just return stats.experiencePoints, back
+// when completing a session was the only XP source (so XP and session count
+// were the same number). Now that XP also comes from reviews/onboarding/forum
+// activity, that shortcut would let a chatty forum user unlock "Swap Legend"
+// without ever completing a swap — so this uses a real, independently-counted
+// value (sessionsCompletedCount) instead.
 function computeMetricValue(metric: string, stats: BadgeStats): number {
   switch (metric) {
     case "skills_offered_count":
@@ -129,7 +137,7 @@ function computeMetricValue(metric: string, stats: BadgeStats): number {
     case "offered_and_wanted":
       return (stats.skillsOfferedCount > 0 ? 1 : 0) + (stats.skillsWantedCount > 0 ? 1 : 0);
     case "sessions_completed":
-      return stats.experiencePoints;
+      return stats.sessionsCompletedCount;
     case "review_count":
       return stats.reviewCount;
     case "level":
@@ -140,6 +148,10 @@ function computeMetricValue(metric: string, stats: BadgeStats): number {
     }
     case "member_days":
       return stats.memberSinceDays;
+    case "discussions_count":
+      return stats.discussionsCount;
+    case "answers_count":
+      return stats.answersCount;
     default:
       return 0;
   }

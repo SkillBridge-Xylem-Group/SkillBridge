@@ -27,6 +27,7 @@ import {
 } from "@/lib/forumCommunities";
 import { composeReportReason, isReportReasonKey } from "@/lib/forumReportReasons";
 import { createReport } from "@/lib/reports";
+import { awardForumPostXp, awardForumAnswerXp } from "@/lib/gamification";
 
 async function requireQuestionParticipation(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
@@ -106,6 +107,8 @@ export async function createQuestionAction(
     subforumSlug,
   });
   if (error) return { error: error.message };
+
+  await awardForumPostXp(supabase, user.id);
 
   revalidatePath("/dashboard/forum");
   revalidatePath(forumSubforumPath(subforumSlug));
@@ -394,6 +397,8 @@ export async function createAnswerAction(
     parentAnswerId: parentAnswerId ?? null,
   });
   if (error) return { error: error.message };
+
+  await awardForumAnswerXp(supabase, user.id);
 
   const { data: authorRow } = await supabase.from("users").select("fullname").eq("id", user.id).maybeSingle();
   const authorName = authorRow?.fullname ?? "Someone";

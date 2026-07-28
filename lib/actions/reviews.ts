@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireActiveServerUser } from "@/lib/auth/requireActiveServerUser";
 import { createSessionReview } from "@/lib/reviews";
 import { createNotification } from "@/lib/notifications";
+import { awardReviewReceivedXp } from "@/lib/gamification";
 
 export async function submitSessionReviewAction(params: {
   sessionRequestId: string;
@@ -24,6 +25,8 @@ export async function submitSessionReviewAction(params: {
   });
 
   if (error) return { error };
+
+  await awardReviewReceivedXp(supabase, params.reviewedUserId, params.rating);
 
   const { data: reviewerRow } = await supabase.from("users").select("fullname").eq("id", user.id).maybeSingle();
   await createNotification(supabase, {
