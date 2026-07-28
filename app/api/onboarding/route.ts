@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { onboardingSchema } from "@/lib/onboarding/validation";
 import { deriveNameFromEmail } from "@/lib/deriveName";
 import { isUsernameAvailable, validateUsernameFormat } from "@/lib/username";
+import { awardOnboardingCompletionXp } from "@/lib/gamification";
 
 type SupabaseClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
@@ -71,6 +72,10 @@ export async function POST(request: Request) {
   }
 
   const { data: existing } = await supabase.from("users").select("id").eq("id", user.id).maybeSingle();
+  // A row can only ever be inserted once for this id (primary key), so this
+  // flag is a reliable one-time guard for the onboarding-completion XP bonus
+  // below — it can't fire again on a later profile edit through this route.
+  const isFirstOnboarding = !existing;
 
   if (existing) {
     const { error: userError } = await supabase
@@ -146,6 +151,10 @@ export async function POST(request: Request) {
         ? String((err as { message: unknown }).message)
         : "Failed to save skills";
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+
+  if (isFirstOnboarding) {
+    await awardOnboardingCompletionXp(supabase, user.id);
   }
 
   return NextResponse.json({ message: "Onboarding saved", username: format.username });

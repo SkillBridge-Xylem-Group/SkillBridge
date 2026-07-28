@@ -55,11 +55,28 @@ export default async function ProfilePage() {
       .formatToParts(new Date())
       .find((part) => part.type === "timeZoneName")?.value ?? profile.timezone;
 
-  const [offered, wanted, skillCatalog, { reviews, trustScore, reviewCount }] = await Promise.all([
+  const [
+    offered,
+    wanted,
+    skillCatalog,
+    { reviews, trustScore, reviewCount },
+    { count: sessionsCompletedCount },
+    { count: discussionsCount },
+    { count: answersCount },
+  ] = await Promise.all([
     getUserSkills(supabase, "user_skill_offered", user.id),
     getUserSkills(supabase, "user_skill_wanted", user.id),
     getFullSkillCatalog(supabase),
     getUserReviews(supabase, user.id),
+    // Real count, not derived from XP — see the note in lib/badges.ts on why
+    // sessions_completed can't just reuse experience_points anymore.
+    supabase
+      .from("session_requests")
+      .select("request_id", { count: "exact", head: true })
+      .eq("status", "completed")
+      .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`),
+    supabase.from("forum_questions").select("question_id", { count: "exact", head: true }).eq("user_id", user.id),
+    supabase.from("forum_answers").select("answer_id", { count: "exact", head: true }).eq("user_id", user.id),
   ]);
 
   const badges = await syncUserBadges(supabase, user.id, {
@@ -70,6 +87,9 @@ export default async function ProfilePage() {
     skillsOfferedCount: offered.length,
     skillsWantedCount: wanted.length,
     memberSinceDays,
+    sessionsCompletedCount: sessionsCompletedCount ?? 0,
+    discussionsCount: discussionsCount ?? 0,
+    answersCount: answersCount ?? 0,
   });
 
   return (
