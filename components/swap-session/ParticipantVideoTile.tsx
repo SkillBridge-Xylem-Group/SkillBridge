@@ -40,7 +40,7 @@ export default function ParticipantVideoTile({
         autoPlay
         playsInline
         muted={muted ?? !showVideo}
-        className={`h-full w-full object-cover ${showVideo ? "opacity-100" : "opacity-0"}`}
+        className={`h-full w-full object-cover transform-gpu ${showVideo ? "opacity-100" : "opacity-0"}`}
       />
       {!showVideo && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-slate-900/90 px-4 text-center">
