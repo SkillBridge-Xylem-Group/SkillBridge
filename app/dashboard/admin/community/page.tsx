@@ -1,29 +1,66 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getForumQuestions } from "@/lib/forum";
 import { listCommunities } from "@/lib/forumCommunities";
-import AdminDeleteQuestionButton from "@/components/admin/AdminDeleteQuestionButton";
-import AdminDeleteCommunityButton from "@/components/admin/AdminDeleteCommunityButton";
+import CommunityManagementTabs from "@/components/admin/CommunityManagementTabs";
 
 export const metadata: Metadata = {
   title: "Community | Admin | SkillBridge",
 };
 
 type PageProps = {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; tab?: string }>;
 };
 
 export default async function AdminCommunityPage({ searchParams }: PageProps) {
-  const { q } = await searchParams;
+  const { q, tab } = await searchParams;
   const term = q?.trim();
+  const activeTab = tab === "questions" || tab === "answers" ? tab : "communities";
 
   const supabase = await createSupabaseServerClient();
 
-  const [questions, allCommunities] = await Promise.all([
+  const [questions, allCommunities, answersResult] = await Promise.all([
     getForumQuestions(supabase, { search: term, limit: 100 }),
     listCommunities(supabase),
+    supabase
+      .from("forum_answers")
+      .select("answer_id, content, question_id, user_id, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100),
   ]);
+
+  const rawAnswers = answersResult.data ?? [];
+
+  const answerUserIds = [...new Set(rawAnswers.map((a) => a.user_id))];
+  const answerQuestionIds = [...new Set(rawAnswers.map((a) => a.question_id))];
+
+  const [{ data: answerUsers }, { data: answerQuestions }] = await Promise.all([
+    answerUserIds.length
+      ? supabase.from("users").select("id, fullname").in("id", answerUserIds)
+      : Promise.resolve({ data: [] as { id: string; fullname: string }[] }),
+    answerQuestionIds.length
+      ? supabase.from("forum_questions").select("question_id, title").in("question_id", answerQuestionIds)
+      : Promise.resolve({ data: [] as { question_id: string; title: string }[] }),
+  ]);
+
+  const answerUserMap = new Map((answerUsers ?? []).map((u) => [u.id, u.fullname]));
+  const answerQuestionMap = new Map((answerQuestions ?? []).map((q) => [q.question_id, q.title]));
+
+  const answers = rawAnswers
+    .filter((a) =>
+      term
+        ? a.content.toLowerCase().includes(term.toLowerCase()) ||
+          (answerQuestionMap.get(a.question_id) ?? "").toLowerCase().includes(term.toLowerCase())
+        : true
+    )
+    .map((a) => ({
+      answer_id: a.answer_id,
+      content: a.content,
+      created_at: a.created_at,
+      authorName: answerUserMap.get(a.user_id) ?? "Unknown",
+      questionTitle: answerQuestionMap.get(a.question_id) ?? "Unknown question",
+      questionId: a.question_id,
+    }));
 
   const communities = term
     ? allCommunities.filter(
@@ -37,134 +74,20 @@ export default async function AdminCommunityPage({ searchParams }: PageProps) {
   return (
     <div className="p-6 md:p-10">
       <h1 className="text-2xl font-semibold text-gray-900">Community</h1>
-      <p className="mt-1 text-sm text-gray-500">Browse questions and communities across the platform.</p>
+      <p className="mt-1 text-sm text-gray-500">Browse communities, questions, and answers across the platform.</p>
 
-      <form method="GET" className="mt-6 flex flex-wrap gap-2">
-        <input
-          type="text"
-          name="q"
-          defaultValue={term ?? ""}
-          placeholder="Search questions by title or content"
-          className="w-full max-w-sm rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+      {/* White card container, matching the Settings page reference */}
+      <div
+        className="mt-6 rounded-[24px] bg-white p-6 md:p-8"
+        style={{ boxShadow: "var(--sb-shadow-sm)" }}
+      >
+        <CommunityManagementTabs
+          activeTab={activeTab}
+          searchTerm={term ?? ""}
+          questions={questions}
+          communities={communities}
+          answers={answers}
         />
-        <button
-          type="submit"
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-        >
-          Search
-        </button>
-        {term && (
-          <Link
-            href="/dashboard/admin/community"
-            className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100"
-          >
-            Clear
-          </Link>
-        )}
-      </form>
-
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-400">
-        Questions ({questions.length})
-        {term ? ` matching "${term}"` : ""}
-      </h2>
-
-      <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-100 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Author</th>
-              <th className="px-4 py-3">Community</th>
-              <th className="px-4 py-3">Answers</th>
-              <th className="px-4 py-3">Posted</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {questions.map((q) => (
-              <tr key={q.question_id} className="border-b border-slate-50 last:border-0">
-                <td className="max-w-xs truncate px-4 py-3 font-semibold text-slate-900">
-  <Link
-    href={`/dashboard/forum/${q.question_id}`}
-    className="hover:text-teal-700 hover:underline"
-  >
-    {q.title}
-  </Link>
-</td>
-                <td className="px-4 py-3 text-slate-500">{q.author.fullname}</td>
-                <td className="px-4 py-3">
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                    {q.subforum_slug}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-slate-500">{q.answer_count}</td>
-                <td className="px-4 py-3 text-slate-500">
-                  {new Date(q.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3">
-                  <AdminDeleteQuestionButton questionId={q.question_id} title={q.title} />
-                </td>
-              </tr>
-            ))}
-            {questions.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
-                  No questions found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <h2 className="mt-10 text-sm font-semibold uppercase tracking-wide text-slate-400">
-        Communities ({communities.length})
-        {term ? ` matching "${term}"` : ""}
-      </h2>
-
-      <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-100 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            <tr>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3">Members</th>
-              <th className="px-4 py-3">Posts</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {communities.map((c) => (
-              <tr key={c.id} className="border-b border-slate-50 last:border-0">
-                <td className="px-4 py-3 font-semibold text-slate-900">
-  <Link
-    href={`/dashboard/forum/c/${c.slug}`}
-    className="hover:text-teal-700 hover:underline"
-  >
-    {c.title}
-  </Link>
-</td>
-                <td className="px-4 py-3 text-slate-500">{c.category}</td>
-                <td className="px-4 py-3 text-slate-500">{c.member_count}</td>
-                <td className="px-4 py-3 text-slate-500">{c.post_count}</td>
-                <td className="px-4 py-3">
-                  <AdminDeleteCommunityButton
-                    communityId={c.id}
-                    title={c.title}
-                    isOfficial={c.is_official}
-                  />
-                </td>
-              </tr>
-            ))}
-            {communities.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
-                  No communities found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
       </div>
     </div>
   );

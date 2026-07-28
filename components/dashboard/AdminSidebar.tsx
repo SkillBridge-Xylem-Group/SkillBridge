@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import {
   ChevronLeft,
   ChevronRight,
-  Home,
   MessagesSquare,
   Repeat2,
   Bell,
@@ -24,8 +23,9 @@ type TopNavItem = {
   isActive: (pathname: string) => boolean;
 };
 
+// "Dashboard" removed — it pointed to the regular user /dashboard page,
+// which shows personal profile stats that don't apply to admin accounts.
 const TOP_NAV_ITEMS: TopNavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: Home, isActive: (p) => p === "/dashboard" },
   {
     href: "/dashboard/forum",
     label: "Community Forum",
@@ -126,6 +126,7 @@ export default function AdminSidebar() {
           </button>
         )}
 
+        {/* ---------- GROUP 1: Community Forum, Skill Swaps, Notifications ---------- */}
         <nav className={`mt-6 space-y-1.5 ${collapsed ? "px-0" : ""}`}>
           {TOP_NAV_ITEMS.map((item) => (
             <NavLink
@@ -138,6 +139,7 @@ export default function AdminSidebar() {
           ))}
         </nav>
 
+        {/* ---------- Divider ---------- */}
         <div className="mt-6 h-px bg-slate-100" />
         {!collapsed && (
           <p className="mt-4 pl-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -145,6 +147,7 @@ export default function AdminSidebar() {
           </p>
         )}
 
+        {/* ---------- GROUP 2: Admin Dashboard, Users, Community Management, Reports, Badges ---------- */}
         <nav className={`mt-3 space-y-1.5 ${collapsed ? "px-0" : ""}`}>
           {ADMIN_NAV_ITEMS.map((item) => (
             <NavLink
