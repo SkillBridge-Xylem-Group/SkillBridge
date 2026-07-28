@@ -4,6 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadSessionChatFile } from "@/lib/swapSessionChatUpload";
+import {
+  AUDIO_CAPTURE,
+  buildIceServers,
+  preferHardwareFriendlyCodecs,
+  tagVideoTrackForDetail,
+  tuneVideoSender,
+  VIDEO_CAPTURE,
+} from "@/lib/webrtc/config";
 
 type SignalPayload =
   | { type: "offer"; from: string; sdp: RTCSessionDescriptionInit }
@@ -31,10 +39,7 @@ export type ChatMessage = {
 
 export type ConnectionState = "connecting" | "waiting" | "connecting-peer" | "connected" | "failed" | "ended";
 
-const ICE_SERVERS: RTCIceServer[] = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-];
+const RENEGOTIATE_DEBOUNCE_MS = 350;
 
 type Options = {
   requestId: string;
@@ -66,14 +71,15 @@ async function acquireMedia(): Promise<{ stream: MediaStream; warning: string | 
 
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: AUDIO_CAPTURE,
+      video: VIDEO_CAPTURE,
     });
+    stream.getVideoTracks().forEach(tagVideoTrackForDetail);
     return { stream, warning: null };
   } catch (videoErr) {
     // Fall back to audio-only so mic still works when camera is blocked/missing.
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: AUDIO_CAPTURE, video: false });
       return {
         stream,
         warning: "Camera unavailable — microphone is on. You can still chat in text.",
@@ -184,6 +190,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       if (videoTransceiverRef.current && videoTrack && videoTransceiverRef.current.direction === "recvonly") {
         videoTransceiverRef.current.direction = "sendrecv";
       }
+      if (videoTrack) void tuneVideoSender(videoSenderRef.current);
     } else if (videoTrack) {
       const sender = pc.addTrack(videoTrack, stream);
       videoSenderRef.current = sender;
@@ -207,6 +214,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
         prev.getTracks().forEach((t) => t.stop());
       }
       localStreamRef.current = stream;
+      stream.getVideoTracks().forEach(tagVideoTrackForDetail);
       syncLocalPreview();
       syncTrackFlags(stream);
       setMediaError(null);
@@ -237,6 +245,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   useEffect(() => {
     let cancelled = false;
     let channel: RealtimeChannel | null = null;
+    let renegotiateTimer: ReturnType<typeof setTimeout> | null = null;
     endedRef.current = false;
     offerStartedRef.current = false;
 
@@ -299,13 +308,18 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     function ensurePeerConnection() {
       if (pcRef.current) return pcRef.current;
 
-      const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+      const pc = new RTCPeerConnection({
+        iceServers: buildIceServers(),
+        bundlePolicy: "max-bundle",
+        iceCandidatePoolSize: 10,
+      });
       pcRef.current = pc;
 
       // Always negotiate audio/video slots so both sides can send and receive,
       // even if getUserMedia is still pending or camera was temporarily unavailable.
       const videoTx = pc.addTransceiver("video", { direction: "sendrecv" });
       const audioTx = pc.addTransceiver("audio", { direction: "sendrecv" });
+      preferHardwareFriendlyCodecs(videoTx);
       videoTransceiverRef.current = videoTx;
       audioTransceiverRef.current = audioTx;
       videoSenderRef.current = videoTx.sender;
@@ -315,7 +329,10 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       if (local) {
         const videoTrack = local.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
         const audioTrack = local.getAudioTracks().find((t) => t.readyState !== "ended") ?? null;
-        if (videoTrack) void videoTx.sender.replaceTrack(videoTrack);
+        if (videoTrack) {
+          void videoTx.sender.replaceTrack(videoTrack);
+          void tuneVideoSender(videoTx.sender);
+        }
         if (audioTrack) void audioTx.sender.replaceTrack(audioTrack);
       }
 
@@ -328,7 +345,11 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
 
       const scheduleRenegotiate = () => {
         if (!partnerIdRef.current || endedRef.current) return;
-        void renegotiate();
+        if (renegotiateTimer) clearTimeout(renegotiateTimer);
+        renegotiateTimer = setTimeout(() => {
+          renegotiateTimer = null;
+          void renegotiate();
+        }, RENEGOTIATE_DEBOUNCE_MS);
       };
 
       pc.onnegotiationneeded = () => {
@@ -376,8 +397,10 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       pc.onconnectionstatechange = () => {
         if (endedRef.current) return;
         const state = pc.connectionState;
-        if (state === "connected") setConnectionState("connected");
-        else if (state === "failed") setConnectionState("failed");
+        if (state === "connected") {
+          setConnectionState("connected");
+          void tuneVideoSender(videoSenderRef.current);
+        } else if (state === "failed") setConnectionState("failed");
         else if (state === "disconnected") setConnectionState("waiting");
       };
 
@@ -439,10 +462,12 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
             await sendSignal({ type: "answer", from: userId, sdp: pc.localDescription });
           }
           offerStartedRef.current = true;
+          void tuneVideoSender(videoSenderRef.current);
         } else if (payload.type === "answer") {
           if (pc.signalingState === "have-local-offer") {
             await pc.setRemoteDescription(payload.sdp);
             await flushPendingIce(pc);
+            void tuneVideoSender(videoSenderRef.current);
           }
         } else if (payload.type === "ice") {
           if (!pc.remoteDescription) {
@@ -571,6 +596,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
 
     return () => {
       cancelled = true;
+      if (renegotiateTimer) clearTimeout(renegotiateTimer);
       endedRef.current = true;
       void channelRef.current?.send({
         type: "broadcast",
@@ -619,11 +645,12 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     setMediaBusy(true);
     try {
       const videoOnly = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: VIDEO_CAPTURE,
         audio: false,
       });
       const videoTrack = videoOnly.getVideoTracks()[0];
       if (!videoTrack) throw new Error("No video track");
+      tagVideoTrackForDetail(videoTrack);
 
       if (stream) {
         const stale = stream.getVideoTracks();
