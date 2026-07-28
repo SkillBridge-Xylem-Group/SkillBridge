@@ -1,10 +1,10 @@
 import { type ReactNode } from "react";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
-import AdminLayout from "@/components/dashboard/AdminLayout";
 
+// Chrome (AdminLayout) is now applied once, at the root dashboard layout —
+// this nested layout's only job is the access guard so non-admins still
+// get redirected before anything under /dashboard/admin/* renders.
 export default async function AdminRouteLayout({ children }: { children: ReactNode }) {
-  // Redirects non-admins before anything below this ever runs or renders.
   await requireAdmin();
-
-  return <AdminLayout>{children}</AdminLayout>;
+  return children;
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Loader2, Search, Star } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { toggleJoinCommunityAction } from "@/lib/actions/forum";
@@ -43,6 +43,7 @@ export default function ManageCommunities({
   viewerId,
 }: ManageCommunitiesProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { dictionary } = useLocale();
   const f = dictionary.forum;
   const [communities, setCommunities] = useState(initial);
@@ -52,6 +53,12 @@ export default function ManageCommunities({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [leaveTarget, setLeaveTarget] = useState<ForumCommunity | null>(null);
   const [error, setError] = useState("");
+
+  // Stay inside the admin chrome when this component is rendered under
+  // /dashboard/admin/* — otherwise "Discover communities" would take an
+  // admin viewing this page straight back to the regular user layout.
+  const isAdminContext = pathname.startsWith("/dashboard/admin");
+  const discoverHref = isAdminContext ? "/dashboard/admin/forum" : "/dashboard/forum";
 
   useEffect(() => {
     setCommunities(initial);
@@ -168,8 +175,9 @@ export default function ManageCommunities({
               </p>
               {joined.length === 0 ? (
                 <Link
-                  href="/dashboard/forum"
-                  className="mt-5 inline-flex rounded-full bg-brand px-5 py-2 text-sm font-bold text-white hover:bg-brand-dark"
+                  href={discoverHref}
+                  className="mt-5 inline-flex rounded-full px-5 py-2 text-sm font-bold text-white transition hover:opacity-90"
+                  style={{ background: "var(--sb-gradient)" }}
                 >
                   {f.discoverCta}
                 </Link>

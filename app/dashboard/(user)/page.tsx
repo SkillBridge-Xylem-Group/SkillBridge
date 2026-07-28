@@ -35,9 +35,11 @@ export default async function DashboardPage() {
     isAdminUser(supabase, user.id),
   ]);
 
-  if (isAdmin) {
-    redirect("/dashboard/admin");
-  }
+  // NOTE: intentionally no `if (isAdmin) redirect("/dashboard/admin")` here.
+  // Admins reach this same page via the "Dashboard" link in the admin
+  // sidebar — the root layout (app/dashboard/layout.tsx) already gives them
+  // the admin chrome around it based on role, not the URL. Redirecting here
+  // would just bounce them straight back to Admin Overview.
 
   const weekAgoIso = new Date(Date.now() - ONE_WEEK_MS).toISOString();
 
@@ -71,7 +73,10 @@ export default async function DashboardPage() {
     getUserReviews(supabase, user.id),
   ]);
 
-  const showOnboarding = !profile?.bio && (offeredCount ?? 0) === 0 && (wantedCount ?? 0) === 0;
+  // Admins keep an empty profile by design — no bio/skills to fill in, so
+  // never surface the "build your profile" onboarding modal to them.
+  const showOnboarding =
+    !isAdmin && !profile?.bio && (offeredCount ?? 0) === 0 && (wantedCount ?? 0) === 0;
   const skillsByCategory = showOnboarding ? await getSkillsByCategory(supabase) : {};
 
   // Derive connection + skill-swap stats from session_requests — a "connection"
