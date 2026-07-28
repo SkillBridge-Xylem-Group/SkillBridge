@@ -88,7 +88,9 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
   const label = partnerCompletedSession ? s.partnerCompletedSession : statusLabel(connectionState, partnerPresent, s);
   const roomOpen = connectionState !== "ended";
   const showRemoteVideo =
-    connectionState === "connected" && remoteHasVideo && remoteCameraEnabled;
+    (connectionState === "connected" || connectionState === "connecting-peer") &&
+    remoteHasVideo &&
+    remoteCameraEnabled;
   const showLocalVideo = hasCamera && cameraEnabled;
   const localLabel = `${s.you}${hasMic && !micEnabled ? ` · ${s.micOff}` : ""}${hasCamera && !cameraEnabled ? ` · ${s.camOff}` : ""}`;
 
@@ -218,7 +220,11 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
               showVideo={showRemoteVideo}
               overlay={
                 <p className="text-[11px] text-slate-300">
-                  {partnerPresent ? s.connecting : s.waitingForThemToJoin}
+                  {!partnerPresent
+                    ? s.waitingForThemToJoin
+                    : connectionState === "connected" && !remoteCameraEnabled
+                      ? s.camOff
+                      : s.connecting}
                 </p>
               }
             />

@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireActiveUser } from "@/lib/auth/requireActiveUser";
-import {
-  signSwapChannelToken,
-  swapChannelName,
-  swapChannelTtlMs,
-} from "@/lib/security";
+import { swapChannelName, swapChannelTtlMs } from "@/lib/security";
 
 type RouteParams = { params: Promise<{ requestId: string }> };
 
@@ -40,9 +36,8 @@ export async function POST(_req: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Session is not joinable." }, { status: 403 });
   }
 
+  const channel = swapChannelName(requestId);
   const expiresAt = Date.now() + swapChannelTtlMs();
-  const token = signSwapChannelToken(requestId, expiresAt);
-  const channel = swapChannelName(requestId, token);
 
-  return NextResponse.json({ channel, token, expiresAt });
+  return NextResponse.json({ channel, expiresAt });
 }
