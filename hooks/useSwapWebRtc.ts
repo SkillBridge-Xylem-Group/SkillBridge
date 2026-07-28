@@ -110,13 +110,15 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   const offerStartedRef = useRef(false);
   const endedRef = useRef(false);
   const partnerIdRef = useRef<string | null>(null);
+  const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
+  const renegotiateRef = useRef<(() => Promise<void>) | null>(null);
   const [remoteHasVideo, setRemoteHasVideo] = useState(false);
   const [remoteCameraEnabled, setRemoteCameraEnabled] = useState(false);
 
   const syncRemoteTrackFlags = useCallback((stream: MediaStream | null) => {
     const video = stream?.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
     setRemoteHasVideo(Boolean(video));
-    setRemoteCameraEnabled(Boolean(video?.enabled && video.readyState === "live"));
+    setRemoteCameraEnabled(Boolean(video && video.readyState === "live" && !video.muted));
   }, []);
 
   const watchRemoteVideoTrack = useCallback(
@@ -192,12 +194,11 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       setMediaWarning(warning);
       pushTracksToPeer(stream);
 
-      // Renegotiate if we already have a peer and just gained media.
-      if (pcRef.current && partnerIdRef.current && userId < partnerIdRef.current) {
-        offerStartedRef.current = false;
+      if (pcRef.current?.remoteDescription && partnerIdRef.current) {
+        void renegotiateRef.current?.();
       }
     },
-    [pushTracksToPeer, syncLocalPreview, syncTrackFlags, userId]
+    [pushTracksToPeer, syncLocalPreview, syncTrackFlags]
   );
 
   const enableDevices = useCallback(async () => {
@@ -205,27 +206,6 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     try {
       const { stream, warning } = await acquireMedia();
       applyLocalStream(stream, warning);
-
-      const pc = pcRef.current;
-      if (pc && partnerIdRef.current) {
-        if (userId < partnerIdRef.current) {
-          offerStartedRef.current = false;
-          makingOfferRef.current = true;
-          try {
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            if (pc.localDescription) {
-              await channelRef.current?.send({
-                type: "broadcast",
-                event: "signal",
-                payload: { type: "offer", from: userId, sdp: pc.localDescription } satisfies SignalPayload,
-              });
-            }
-          } finally {
-            makingOfferRef.current = false;
-          }
-        }
-      }
     } catch (err) {
       console.error("[swap-webrtc] enableDevices failed:", err);
       setMediaError(mediaErrorMessage(err));
@@ -233,7 +213,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     } finally {
       setMediaBusy(false);
     }
-  }, [applyLocalStream, syncTrackFlags, userId]);
+  }, [applyLocalStream, syncTrackFlags]);
 
   useEffect(() => {
     let cancelled = false;
@@ -251,10 +231,47 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       pcRef.current?.close();
       pcRef.current = null;
       offerStartedRef.current = false;
+      pendingIceRef.current = [];
       remoteStreamRef.current = null;
       if (remoteVideoEl.current) remoteVideoEl.current.srcObject = null;
       syncRemoteTrackFlags(null);
     }
+
+    async function flushPendingIce(pc: RTCPeerConnection) {
+      if (!pc.remoteDescription) return;
+      const pending = pendingIceRef.current;
+      pendingIceRef.current = [];
+      for (const candidate of pending) {
+        try {
+          await pc.addIceCandidate(candidate);
+        } catch (err) {
+          console.warn("[swap-webrtc] queued ice candidate failed:", err);
+        }
+      }
+    }
+
+    async function renegotiate() {
+      if (endedRef.current || makingOfferRef.current) return;
+      const pc = pcRef.current;
+      if (!pc || !partnerIdRef.current || !pc.remoteDescription) return;
+      if (pc.signalingState !== "stable") return;
+
+      try {
+        makingOfferRef.current = true;
+        setConnectionState("connecting-peer");
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        if (pc.localDescription) {
+          await sendSignal({ type: "offer", from: userId, sdp: pc.localDescription });
+        }
+      } catch (err) {
+        console.error("[swap-webrtc] renegotiate failed:", err);
+      } finally {
+        makingOfferRef.current = false;
+      }
+    }
+
+    renegotiateRef.current = renegotiate;
 
     function ensurePeerConnection() {
       if (pcRef.current) return pcRef.current;
@@ -364,14 +381,20 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
           await pc.setRemoteDescription(payload.sdp);
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
+          await flushPendingIce(pc);
           if (pc.localDescription) {
             await sendSignal({ type: "answer", from: userId, sdp: pc.localDescription });
           }
         } else if (payload.type === "answer") {
           if (pc.signalingState === "have-local-offer") {
             await pc.setRemoteDescription(payload.sdp);
+            await flushPendingIce(pc);
           }
         } else if (payload.type === "ice") {
+          if (!pc.remoteDescription) {
+            pendingIceRef.current.push(payload.candidate);
+            return;
+          }
           try {
             await pc.addIceCandidate(payload.candidate);
           } catch (err) {
@@ -509,7 +532,9 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
         const supabase = createSupabaseBrowserClient();
         void supabase.removeChannel(channel);
       }
+      pendingIceRef.current = [];
       channelRef.current = null;
+      renegotiateRef.current = null;
     };
     // applyLocalStream is stable enough via refs; omit to avoid reconnect loops.
     // eslint-disable-next-line react-hooks/exhaustive-deps
