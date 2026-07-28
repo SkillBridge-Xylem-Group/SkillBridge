@@ -129,7 +129,7 @@ export default function AdminLoginForm() {
     <div className="auth-neu-page flex min-h-screen items-center justify-center p-4 sm:p-6">
       <div className="auth-neu-card-mobile w-full max-w-sm rounded-[32px] p-8 sm:p-10">
         <div className="flex justify-center">
-          <Image src="/images/logo-mark.png" alt="SkillBridge" width={64} height={64} priority className="shrink-0" />
+          <Image src="/images/logo-mark-v2.png" alt="SkillBridge" width={64} height={64} priority className="shrink-0" />
         </div>
         <p className="mt-4 text-center text-sm" style={{ color: "var(--neu-text-muted)" }}>
           {mfaChallenge ? "Two-factor verification" : "Sign in to your account"}
