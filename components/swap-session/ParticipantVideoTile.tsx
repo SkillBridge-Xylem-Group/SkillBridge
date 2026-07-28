@@ -39,7 +39,7 @@ export default function ParticipantVideoTile({
         ref={bindVideo}
         autoPlay
         playsInline
-        muted={muted ?? !showVideo}
+        muted
         className={`h-full w-full object-cover transform-gpu ${showVideo ? "opacity-100" : "opacity-0"}`}
       />
       {!showVideo && (
