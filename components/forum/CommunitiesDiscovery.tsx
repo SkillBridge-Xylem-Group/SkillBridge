@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Search } from "lucide-react";
+import { Filter, Loader2, Plus, Search, X } from "lucide-react";
 import type { ForumCommunity } from "@/lib/forumCommunities";
 import { COMMUNITY_CATEGORIES, COMMUNITY_TOPICS } from "@/lib/forumCommunities";
 import type { WantedSkillRef } from "@/lib/forumCommunityRecommendations";
@@ -250,6 +250,16 @@ export default function CommunitiesDiscovery({
   const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [createTopics, setCreateTopics] = useState<string[]>([]);
   const [communities, setCommunities] = useState(initialCommunities);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     setCommunities(initialCommunities);
@@ -354,56 +364,59 @@ export default function CommunitiesDiscovery({
 
   return (
     <div className="space-y-8">
-      <div className="relative w-full rounded-full bg-white transition" style={{ boxShadow: "var(--sb-shadow-sm)" }}>
-        <Search
-          size={16}
-          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2"
-          style={{ color: "var(--sb-muted)" }}
-        />
-        <input
-          type="text"
-          id="discover-communities-search"
-          name="discover-communities-search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={f.searchCommunitiesPlaceholder}
-          className="w-full rounded-full border-none bg-transparent py-3 pl-10 pr-4 text-sm outline-none"
-          style={{ color: "var(--sb-ink)" }}
-        />
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div
-          className="flex max-w-full gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          role="tablist"
-          aria-label={f.categoriesAria}
+          ref={filterRef}
+          className="relative min-w-0 flex-1 rounded-full bg-white transition"
+          style={{ boxShadow: "var(--sb-shadow-sm)" }}
         >
-          {categoryChips.map((cat) => {
-            const active = category === cat;
-            return (
-              <button
-                key={cat}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={(e) => {
-                  setCategory(cat);
-                  e.currentTarget.scrollIntoView({
-                    behavior: "smooth",
-                    inline: "center",
-                    block: "nearest",
-                  });
-                }}
-                className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
-                  active
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {categoryLabel(locale, cat)}
-              </button>
-            );
-          })}
+          <Search
+            size={16}
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2"
+            style={{ color: "var(--sb-muted)" }}
+          />
+          <input
+            type="text"
+            id="discover-communities-search"
+            name="discover-communities-search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={f.searchCommunitiesPlaceholder}
+            className="w-full rounded-full border-none bg-transparent py-3 pl-10 pr-11 text-sm outline-none"
+            style={{ color: "var(--sb-ink)" }}
+          />
+          <button
+            type="button"
+            onClick={() => setFilterOpen((o) => !o)}
+            aria-label={f.categoriesAria}
+            aria-expanded={filterOpen}
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full hover:bg-slate-100"
+          >
+            <Filter size={16} className={category !== ALL ? "text-slate-900" : "text-slate-400"} />
+          </button>
+
+          {filterOpen ? (
+            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 max-h-80 w-56 overflow-y-auto rounded-2xl border border-slate-200 bg-white py-1.5 shadow-lg">
+              {categoryChips.map((cat) => {
+                const active = category === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      setCategory(cat);
+                      setFilterOpen(false);
+                    }}
+                    className={`block w-full px-4 py-2 text-left text-sm ${
+                      active ? "bg-slate-100 font-semibold text-slate-900" : "font-medium text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {categoryLabel(locale, cat)}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
 
         <button
@@ -415,6 +428,24 @@ export default function CommunitiesDiscovery({
           {f.createCommunity}
         </button>
       </div>
+
+      {category !== ALL ? (
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 py-1.5 pl-3.5 pr-2 text-sm font-semibold text-slate-700"
+          >
+            {categoryLabel(locale, category)}
+            <button
+              type="button"
+              onClick={() => setCategory(ALL)}
+              aria-label={dictionary.common.remove}
+              className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-slate-200"
+            >
+              <X size={12} />
+            </button>
+          </span>
+        </div>
+      ) : null}
 
       {searchResults !== null ? (
         searchResults.length > 0 ? (

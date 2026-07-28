@@ -190,24 +190,35 @@ export async function isCommunitySlugAvailable(
   return false;
 }
 
-/** Case-insensitive check so "Study Group" and "study group" can't coexist. */
-export async function isCommunityTitleAvailable(
+function randomSlugSuffix(): string {
+  return Math.floor(10000 + Math.random() * 90000).toString();
+}
+
+/**
+ * The display name (title) is intentionally NOT required to be unique —
+ * "Web Development" can exist many times over. The slug is the real unique
+ * identifier: when it collides (typically because two communities normalize
+ * to the same base slug from the same name), a random numeric suffix is
+ * appended so both communities still get distinct URLs, e.g.
+ * `web-development-83107` and `web-development-40922`.
+ */
+export async function ensureUniqueCommunitySlug(
   supabase: SupabaseClient,
-  title: string,
+  baseSlug: string,
   excludeCommunityId?: string
-): Promise<boolean> {
-  const normalized = title.trim();
-  if (!normalized) return false;
+): Promise<string> {
+  if (await isCommunitySlugAvailable(supabase, baseSlug, excludeCommunityId)) {
+    return baseSlug;
+  }
 
-  const { data } = await supabase
-    .from("forum_communities")
-    .select("id")
-    .ilike("title", normalized)
-    .maybeSingle();
-
-  if (!data) return true;
-  if (excludeCommunityId && data.id === excludeCommunityId) return true;
-  return false;
+  const trimmedBase = baseSlug.slice(0, 50 - 6).replace(/-+$/, "");
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const candidate = `${trimmedBase}-${randomSlugSuffix()}`;
+    if (await isCommunitySlugAvailable(supabase, candidate, excludeCommunityId)) {
+      return candidate;
+    }
+  }
+  return `${trimmedBase}-${Date.now()}`.slice(0, 50);
 }
 
 function fallbackCommunities(): ForumCommunity[] {
@@ -453,16 +464,9 @@ export async function createCommunity(
     accentColor?: CommunityAccentColor | string;
   }
 ) {
-  const slug = normalizeCommunitySlug(params.slug);
-  if (!isValidCommunitySlug(slug)) {
+  const requestedSlug = normalizeCommunitySlug(params.slug);
+  if (!isValidCommunitySlug(requestedSlug)) {
     return { data: null, error: { message: "Slug must be 3–50 characters: lowercase letters, numbers, hyphens." } };
-  }
-  if (RESERVED_COMMUNITY_SLUGS.has(slug)) {
-    return { data: null, error: { message: "That community name/URL is already taken." } };
-  }
-  const slugAvailable = await isCommunitySlugAvailable(supabase, slug);
-  if (!slugAvailable) {
-    return { data: null, error: { message: "That community name/URL is already taken." } };
   }
   if (!params.title.trim() || params.title.trim().length < 3) {
     return { data: null, error: { message: "Community name must be at least 3 characters." } };
@@ -470,13 +474,15 @@ export async function createCommunity(
   if (params.title.trim().length > 21) {
     return { data: null, error: { message: "Community name must be 21 characters or fewer." } };
   }
-  const titleAvailable = await isCommunityTitleAvailable(supabase, params.title);
-  if (!titleAvailable) {
-    return { data: null, error: { message: "A community with this name already exists. Try a different name." } };
-  }
   if (!params.description.trim()) {
     return { data: null, error: { message: "Description is required." } };
   }
+
+  // Names aren't unique — "Web Development" can exist many times over. The
+  // slug is what has to be unique, so a collision (including with a reserved
+  // static slug like "general") gets a random numeric suffix instead of
+  // rejecting the whole submission.
+  const slug = await ensureUniqueCommunitySlug(supabase, requestedSlug);
 
   const category = normalizeCommunityCategory(params.category);
 
@@ -645,10 +651,6 @@ export async function updateCommunityDetails(
   }
   if (title.length > 21) {
     return { data: null, error: { message: "Community name must be 21 characters or fewer." } };
-  }
-  const titleAvailable = await isCommunityTitleAvailable(supabase, title, params.communityId);
-  if (!titleAvailable) {
-    return { data: null, error: { message: "A community with this name already exists. Try a different name." } };
   }
   if (!params.description.trim()) {
     return { data: null, error: { message: "Description is required." } };
