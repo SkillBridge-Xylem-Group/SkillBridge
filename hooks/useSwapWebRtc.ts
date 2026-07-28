@@ -7,7 +7,6 @@ import { uploadSessionChatFile } from "@/lib/swapSessionChatUpload";
 import {
   AUDIO_CAPTURE,
   buildIceServers,
-  preferHardwareFriendlyCodecs,
   tagVideoTrackForDetail,
   tuneVideoSender,
   VIDEO_CAPTURE,
@@ -20,11 +19,16 @@ type SignalPayload =
   | { type: "hangup"; from: string }
   | { type: "session-complete"; from: string };
 
+type MediaStatePayload = {
+  from: string;
+  camera: boolean;
+  mic: boolean;
+};
+
 export type ChatAttachment = {
   name: string;
   mime: string;
   size: number;
-  /** Signed Storage URL (or legacy data URL). */
   url: string;
 };
 
@@ -39,8 +43,6 @@ export type ChatMessage = {
 
 export type ConnectionState = "connecting" | "waiting" | "connecting-peer" | "connected" | "failed" | "ended";
 
-const RENEGOTIATE_DEBOUNCE_MS = 350;
-
 type Options = {
   requestId: string;
   userId: string;
@@ -49,19 +51,19 @@ type Options = {
 
 function mediaErrorMessage(err: unknown): string {
   if (!window.isSecureContext) {
-    return "Camera and microphone need a secure page (https or localhost). Open the app via https or http://localhost.";
+    return "Camera and microphone need a secure page (https or localhost).";
   }
   const name = err && typeof err === "object" && "name" in err ? String((err as { name: string }).name) : "";
   if (name === "NotAllowedError" || name === "PermissionDeniedError") {
-    return "Permission denied. Allow camera and microphone for this site in your browser settings, then tap Enable devices.";
+    return "Permission denied. Allow camera and microphone, then click Enable devices.";
   }
   if (name === "NotFoundError" || name === "DevicesNotFoundError") {
     return "No camera or microphone was found on this device.";
   }
   if (name === "NotReadableError" || name === "TrackStartError") {
-    return "Camera or microphone is already in use by another app. Close it and try again.";
+    return "Camera or microphone is in use by another app.";
   }
-  return "Could not access camera or microphone. Check browser permissions and try again.";
+  return "Could not access camera or microphone.";
 }
 
 async function acquireMedia(): Promise<{ stream: MediaStream; warning: string | null }> {
@@ -76,18 +78,17 @@ async function acquireMedia(): Promise<{ stream: MediaStream; warning: string | 
     });
     stream.getVideoTracks().forEach(tagVideoTrackForDetail);
     return { stream, warning: null };
-  } catch (videoErr) {
-    // Fall back to audio-only so mic still works when camera is blocked/missing.
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: AUDIO_CAPTURE, video: false });
-      return {
-        stream,
-        warning: "Camera unavailable — microphone is on. You can still chat in text.",
-      };
-    } catch {
-      throw videoErr;
-    }
+  } catch {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: AUDIO_CAPTURE, video: false });
+    return {
+      stream,
+      warning: "Camera unavailable — microphone is on. You can still chat in text.",
+    };
   }
+}
+
+function liveVideoTrack(stream: MediaStream | null): MediaStreamTrack | null {
+  return stream?.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
 }
 
 export function useSwapWebRtc({ requestId, userId, userName }: Options) {
@@ -100,12 +101,16 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   const [hasCamera, setHasCamera] = useState(false);
   const [mediaReady, setMediaReady] = useState(false);
   const [partnerPresent, setPartnerPresent] = useState(false);
+  const [partnerCameraOn, setPartnerCameraOn] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [partnerCompletedSession, setPartnerCompletedSession] = useState(false);
+  const [remoteHasVideo, setRemoteHasVideo] = useState(false);
+  const [remoteCameraEnabled, setRemoteCameraEnabled] = useState(false);
 
   const localVideoEl = useRef<HTMLVideoElement | null>(null);
   const remoteVideoEl = useRef<HTMLVideoElement | null>(null);
+  const remoteAudioEl = useRef<HTMLAudioElement | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -118,18 +123,24 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   const partnerIdRef = useRef<string | null>(null);
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
   const renegotiateRef = useRef<(() => Promise<void>) | null>(null);
-  const videoSenderRef = useRef<RTCRtpSender | null>(null);
-  const audioSenderRef = useRef<RTCRtpSender | null>(null);
-  const videoTransceiverRef = useRef<RTCRtpTransceiver | null>(null);
-  const audioTransceiverRef = useRef<RTCRtpTransceiver | null>(null);
-  const [remoteHasVideo, setRemoteHasVideo] = useState(false);
-  const [remoteCameraEnabled, setRemoteCameraEnabled] = useState(false);
+  const broadcastMediaStateRef = useRef<((camera: boolean, mic: boolean) => void) | null>(null);
+
+  const attachRemotePlayback = useCallback((stream: MediaStream) => {
+    remoteStreamRef.current = stream;
+    if (remoteVideoEl.current) {
+      remoteVideoEl.current.srcObject = stream;
+      void remoteVideoEl.current.play().catch(() => undefined);
+    }
+    if (remoteAudioEl.current) {
+      remoteAudioEl.current.srcObject = stream;
+      void remoteAudioEl.current.play().catch(() => undefined);
+    }
+  }, []);
 
   const syncRemoteTrackFlags = useCallback((stream: MediaStream | null) => {
-    const video = stream?.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
+    const video = liveVideoTrack(stream);
     setRemoteHasVideo(Boolean(video));
-    // Remote `enabled` mirrors the sender; `muted` can stay true until the first frame arrives.
-    setRemoteCameraEnabled(Boolean(video && video.readyState === "live" && video.enabled));
+    setRemoteCameraEnabled(Boolean(video && video.readyState === "live" && video.enabled && !video.muted));
   }, []);
 
   const watchRemoteVideoTrack = useCallback(
@@ -137,7 +148,10 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       if (track.kind !== "video") return;
       const sync = () => syncRemoteTrackFlags(remoteStreamRef.current);
       track.onmute = sync;
-      track.onunmute = sync;
+      track.onunmute = () => {
+        sync();
+        void remoteVideoEl.current?.play().catch(() => undefined);
+      };
       track.onended = sync;
       sync();
     },
@@ -152,8 +166,20 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     }
   }, []);
 
-  const bindRemoteVideo = useCallback((el: HTMLVideoElement | null) => {
-    remoteVideoEl.current = el;
+  const bindRemoteVideo = useCallback(
+    (el: HTMLVideoElement | null) => {
+      remoteVideoEl.current = el;
+      if (el && remoteStreamRef.current) {
+        el.srcObject = remoteStreamRef.current;
+        el.muted = true;
+        void el.play().catch(() => undefined);
+      }
+    },
+    []
+  );
+
+  const bindRemoteAudio = useCallback((el: HTMLAudioElement | null) => {
+    remoteAudioEl.current = el;
     if (el && remoteStreamRef.current) {
       el.srcObject = remoteStreamRef.current;
       void el.play().catch(() => undefined);
@@ -163,7 +189,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   const syncLocalPreview = useCallback(() => {
     const el = localVideoEl.current;
     const stream = localStreamRef.current;
-    if (!el) return;
+    if (!el || !stream) return;
     if (el.srcObject !== stream) el.srcObject = stream;
     void el.play().catch(() => undefined);
   }, []);
@@ -178,54 +204,47 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     setMediaReady(Boolean(audio || video));
   }, []);
 
-  const pushTracksToPeer = useCallback((stream: MediaStream) => {
+  const syncSenders = useCallback((stream: MediaStream) => {
     const pc = pcRef.current;
-    if (!pc) return;
+    if (!pc) return false;
 
-    const videoTrack = stream.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
-    const audioTrack = stream.getAudioTracks().find((t) => t.readyState !== "ended") ?? null;
-
-    if (videoSenderRef.current) {
-      void videoSenderRef.current.replaceTrack(videoTrack);
-      if (videoTransceiverRef.current && videoTrack && videoTransceiverRef.current.direction === "recvonly") {
-        videoTransceiverRef.current.direction = "sendrecv";
+    let changed = false;
+    for (const track of stream.getTracks()) {
+      const sender = pc.getSenders().find((s) => s.track?.kind === track.kind);
+      if (!sender) {
+        pc.addTrack(track, stream);
+        changed = true;
+      } else if (sender.track?.id !== track.id) {
+        void sender.replaceTrack(track);
+        changed = true;
       }
-      if (videoTrack) void tuneVideoSender(videoSenderRef.current);
-    } else if (videoTrack) {
-      const sender = pc.addTrack(videoTrack, stream);
-      videoSenderRef.current = sender;
+      if (track.kind === "video") void tuneVideoSender(sender ?? pc.getSenders().find((s) => s.track?.kind === "video") ?? null);
     }
-
-    if (audioSenderRef.current) {
-      void audioSenderRef.current.replaceTrack(audioTrack);
-      if (audioTransceiverRef.current && audioTrack && audioTransceiverRef.current.direction === "recvonly") {
-        audioTransceiverRef.current.direction = "sendrecv";
-      }
-    } else if (audioTrack) {
-      const sender = pc.addTrack(audioTrack, stream);
-      audioSenderRef.current = sender;
-    }
+    return changed;
   }, []);
 
   const applyLocalStream = useCallback(
     (stream: MediaStream, warning: string | null) => {
       const prev = localStreamRef.current;
-      if (prev && prev !== stream) {
-        prev.getTracks().forEach((t) => t.stop());
-      }
+      if (prev && prev !== stream) prev.getTracks().forEach((t) => t.stop());
+
       localStreamRef.current = stream;
       stream.getVideoTracks().forEach(tagVideoTrackForDetail);
       syncLocalPreview();
       syncTrackFlags(stream);
       setMediaError(null);
       setMediaWarning(warning);
-      pushTracksToPeer(stream);
 
-      if (pcRef.current?.remoteDescription && partnerIdRef.current) {
+      const audio = stream.getAudioTracks()[0];
+      const video = stream.getVideoTracks()[0];
+      broadcastMediaStateRef.current?.(Boolean(video?.enabled), Boolean(audio?.enabled));
+
+      const changed = syncSenders(stream);
+      if (changed && pcRef.current?.remoteDescription && partnerIdRef.current) {
         void renegotiateRef.current?.();
       }
     },
-    [pushTracksToPeer, syncLocalPreview, syncTrackFlags]
+    [syncLocalPreview, syncSenders, syncTrackFlags]
   );
 
   const enableDevices = useCallback(async () => {
@@ -245,27 +264,30 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   useEffect(() => {
     let cancelled = false;
     let channel: RealtimeChannel | null = null;
-    let renegotiateTimer: ReturnType<typeof setTimeout> | null = null;
     endedRef.current = false;
     offerStartedRef.current = false;
 
     async function sendSignal(payload: SignalPayload) {
-      const ch = channelRef.current;
-      if (!ch) return;
-      await ch.send({ type: "broadcast", event: "signal", payload });
+      await channelRef.current?.send({ type: "broadcast", event: "signal", payload });
     }
+
+    function broadcastMediaState(camera: boolean, mic: boolean) {
+      void channelRef.current?.send({
+        type: "broadcast",
+        event: "media-state",
+        payload: { from: userId, camera, mic } satisfies MediaStatePayload,
+      });
+    }
+    broadcastMediaStateRef.current = broadcastMediaState;
 
     function resetPeer() {
       pcRef.current?.close();
       pcRef.current = null;
       offerStartedRef.current = false;
       pendingIceRef.current = [];
-      videoSenderRef.current = null;
-      audioSenderRef.current = null;
-      videoTransceiverRef.current = null;
-      audioTransceiverRef.current = null;
       remoteStreamRef.current = null;
       if (remoteVideoEl.current) remoteVideoEl.current.srcObject = null;
+      if (remoteAudioEl.current) remoteAudioEl.current.srcObject = null;
       syncRemoteTrackFlags(null);
     }
 
@@ -277,7 +299,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
         try {
           await pc.addIceCandidate(candidate);
         } catch (err) {
-          console.warn("[swap-webrtc] queued ice candidate failed:", err);
+          console.warn("[swap-webrtc] queued ice failed:", err);
         }
       }
     }
@@ -285,8 +307,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     async function renegotiate() {
       if (endedRef.current || makingOfferRef.current) return;
       const pc = pcRef.current;
-      if (!pc || !partnerIdRef.current || !pc.remoteDescription) return;
-      if (pc.signalingState !== "stable") return;
+      if (!pc || !partnerIdRef.current || !pc.remoteDescription || pc.signalingState !== "stable") return;
 
       try {
         makingOfferRef.current = true;
@@ -302,7 +323,6 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
         makingOfferRef.current = false;
       }
     }
-
     renegotiateRef.current = renegotiate;
 
     function ensurePeerConnection() {
@@ -311,81 +331,20 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       const pc = new RTCPeerConnection({
         iceServers: buildIceServers(),
         bundlePolicy: "max-bundle",
-        iceCandidatePoolSize: 10,
       });
       pcRef.current = pc;
 
-      // Always negotiate audio/video slots so both sides can send and receive,
-      // even if getUserMedia is still pending or camera was temporarily unavailable.
-      const videoTx = pc.addTransceiver("video", { direction: "sendrecv" });
-      const audioTx = pc.addTransceiver("audio", { direction: "sendrecv" });
-      preferHardwareFriendlyCodecs(videoTx);
-      videoTransceiverRef.current = videoTx;
-      audioTransceiverRef.current = audioTx;
-      videoSenderRef.current = videoTx.sender;
-      audioSenderRef.current = audioTx.sender;
-
-      const local = localStreamRef.current;
-      if (local) {
-        const videoTrack = local.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
-        const audioTrack = local.getAudioTracks().find((t) => t.readyState !== "ended") ?? null;
-        if (videoTrack) {
-          void videoTx.sender.replaceTrack(videoTrack);
-          void tuneVideoSender(videoTx.sender);
-        }
-        if (audioTrack) void audioTx.sender.replaceTrack(audioTrack);
-      }
-
       const remote = new MediaStream();
-      remoteStreamRef.current = remote;
-      if (remoteVideoEl.current) {
-        remoteVideoEl.current.srcObject = remote;
-        void remoteVideoEl.current.play().catch(() => undefined);
-      }
-
-      const scheduleRenegotiate = () => {
-        if (!partnerIdRef.current || endedRef.current) return;
-        if (renegotiateTimer) clearTimeout(renegotiateTimer);
-        renegotiateTimer = setTimeout(() => {
-          renegotiateTimer = null;
-          void renegotiate();
-        }, RENEGOTIATE_DEBOUNCE_MS);
-      };
-
-      pc.onnegotiationneeded = () => {
-        if (!offerStartedRef.current) return;
-        scheduleRenegotiate();
-      };
+      attachRemotePlayback(remote);
 
       pc.ontrack = (event) => {
-        const inbound = event.streams[0];
-        if (inbound) {
-          for (const track of inbound.getTracks()) {
-            if (!remote.getTracks().some((t) => t.id === track.id)) {
-              remote.addTrack(track);
-            }
-            if (track.kind === "video") watchRemoteVideoTrack(track);
-          }
-        } else if (!remote.getTracks().some((t) => t.id === event.track.id)) {
-          remote.addTrack(event.track);
-          if (event.track.kind === "video") watchRemoteVideoTrack(event.track);
+        const tracks = event.streams[0]?.getTracks() ?? [event.track];
+        for (const track of tracks) {
+          if (!remote.getTracks().some((t) => t.id === track.id)) remote.addTrack(track);
+          if (track.kind === "video") watchRemoteVideoTrack(track);
         }
-        remoteStreamRef.current = remote;
+        attachRemotePlayback(remote);
         syncRemoteTrackFlags(remote);
-        if (remoteVideoEl.current) {
-          remoteVideoEl.current.srcObject = remote;
-          void remoteVideoEl.current.play().catch(() => undefined);
-        }
-        // Retry play when the first video frame arrives (autoplay can fail before then).
-        const videoTrack = remote.getVideoTracks().find((t) => t.readyState !== "ended");
-        if (videoTrack) {
-          const retryPlay = () => {
-            void remoteVideoEl.current?.play().catch(() => undefined);
-            syncRemoteTrackFlags(remote);
-          };
-          videoTrack.onunmute = retryPlay;
-          if (!videoTrack.muted) retryPlay();
-        }
         setConnectionState("connected");
       };
 
@@ -399,10 +358,17 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
         const state = pc.connectionState;
         if (state === "connected") {
           setConnectionState("connected");
-          void tuneVideoSender(videoSenderRef.current);
-        } else if (state === "failed") setConnectionState("failed");
-        else if (state === "disconnected") setConnectionState("waiting");
+          const videoSender = pc.getSenders().find((s) => s.track?.kind === "video") ?? null;
+          void tuneVideoSender(videoSender);
+        } else if (state === "failed") {
+          setConnectionState("failed");
+        } else if (state === "disconnected") {
+          setConnectionState("waiting");
+        }
       };
+
+      const local = localStreamRef.current;
+      if (local) syncSenders(local);
 
       return pc;
     }
@@ -462,12 +428,10 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
             await sendSignal({ type: "answer", from: userId, sdp: pc.localDescription });
           }
           offerStartedRef.current = true;
-          void tuneVideoSender(videoSenderRef.current);
         } else if (payload.type === "answer") {
           if (pc.signalingState === "have-local-offer") {
             await pc.setRemoteDescription(payload.sdp);
             await flushPendingIce(pc);
-            void tuneVideoSender(videoSenderRef.current);
           }
         } else if (payload.type === "ice") {
           if (!pc.remoteDescription) {
@@ -481,7 +445,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
           }
         }
       } catch (err) {
-        console.error("[swap-webrtc] signal handling failed:", err);
+        console.error("[swap-webrtc] signal failed:", err);
         setConnectionState("failed");
       }
     }
@@ -489,7 +453,6 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     async function start() {
       setConnectionState("connecting");
 
-      // Media first (best effort) — room still opens if devices fail.
       try {
         const { stream, warning } = await acquireMedia();
         if (cancelled) {
@@ -502,10 +465,6 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
         if (!cancelled) {
           setMediaError(mediaErrorMessage(err));
           setMediaReady(false);
-          setHasMic(false);
-          setHasCamera(false);
-          setMicEnabled(false);
-          setCameraEnabled(false);
         }
       }
 
@@ -515,26 +474,23 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       if (!channelRes.ok) {
         if (!cancelled) {
           setConnectionState("failed");
-          setMediaError("Could not authorize this session channel. Refresh and try again.");
+          setMediaError("Could not join session. Refresh and try again.");
         }
         return;
       }
-      const channelPayload = (await channelRes.json()) as { channel?: string };
-      const channelTopic = channelPayload.channel;
+
+      const { channel: channelTopic } = (await channelRes.json()) as { channel?: string };
       if (!channelTopic) {
         if (!cancelled) {
           setConnectionState("failed");
-          setMediaError("Could not authorize this session channel. Refresh and try again.");
+          setMediaError("Could not join session. Refresh and try again.");
         }
         return;
       }
 
       const supabase = createSupabaseBrowserClient();
       channel = supabase.channel(channelTopic, {
-        config: {
-          broadcast: { self: false },
-          presence: { key: userId },
-        },
+        config: { broadcast: { self: false }, presence: { key: userId } },
       });
       channelRef.current = channel;
 
@@ -548,21 +504,25 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
         setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
       });
 
+      channel.on("broadcast", { event: "media-state" }, ({ payload }) => {
+        const state = payload as MediaStatePayload;
+        if (!state?.from || state.from === userId) return;
+        setPartnerCameraOn(state.camera);
+      });
+
       channel.on("presence", { event: "sync" }, () => {
         if (endedRef.current) return;
-        const state = channel?.presenceState() ?? {};
-        const peers = Object.keys(state);
-        const others = peers.filter((id) => id !== userId);
-        setPartnerPresent(others.length > 0);
+        const peers = Object.keys(channel?.presenceState() ?? {}).filter((id) => id !== userId);
+        setPartnerPresent(peers.length > 0);
 
-        if (others.length === 0) {
+        if (peers.length === 0) {
           partnerIdRef.current = null;
           resetPeer();
           setConnectionState("waiting");
           return;
         }
 
-        const partnerId = others[0];
+        const partnerId = peers[0];
         partnerIdRef.current = partnerId;
         isPoliteRef.current = userId > partnerId;
 
@@ -581,14 +541,18 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       });
 
       if (cancelled) return;
-
       if (status !== "SUBSCRIBED") {
-        setMediaError((prev) => prev ?? "Could not join the session room. Check your connection and try again.");
+        setMediaError((prev) => prev ?? "Could not join session room.");
         setConnectionState("failed");
         return;
       }
 
       await channel.track({ userId, joinedAt: Date.now() });
+      const local = localStreamRef.current;
+      broadcastMediaState(
+        Boolean(local?.getVideoTracks()[0]?.enabled),
+        Boolean(local?.getAudioTracks()[0]?.enabled)
+      );
       setConnectionState("waiting");
     }
 
@@ -596,8 +560,8 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
 
     return () => {
       cancelled = true;
-      if (renegotiateTimer) clearTimeout(renegotiateTimer);
       endedRef.current = true;
+      broadcastMediaStateRef.current = null;
       void channelRef.current?.send({
         type: "broadcast",
         event: "signal",
@@ -608,15 +572,11 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
       remoteStreamRef.current = null;
-      if (channel) {
-        const supabase = createSupabaseBrowserClient();
-        void supabase.removeChannel(channel);
-      }
+      if (channel) void createSupabaseBrowserClient().removeChannel(channel);
       pendingIceRef.current = [];
       channelRef.current = null;
       renegotiateRef.current = null;
     };
-    // applyLocalStream is stable enough via refs; omit to avoid reconnect loops.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestId, userId]);
 
@@ -628,6 +588,8 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     }
     track.enabled = !track.enabled;
     setMicEnabled(track.enabled);
+    const camOn = Boolean(localStreamRef.current?.getVideoTracks()[0]?.enabled);
+    broadcastMediaStateRef.current?.(camOn, track.enabled);
   }, [enableDevices]);
 
   const toggleCamera = useCallback(async () => {
@@ -638,68 +600,55 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       track.enabled = !track.enabled;
       setCameraEnabled(track.enabled);
       syncLocalPreview();
+      const micOn = Boolean(localStreamRef.current?.getAudioTracks()[0]?.enabled);
+      broadcastMediaStateRef.current?.(track.enabled, micOn);
       return;
     }
 
-    // No live camera track — request one and merge into the current stream.
     setMediaBusy(true);
     try {
-      const videoOnly = await navigator.mediaDevices.getUserMedia({
-        video: VIDEO_CAPTURE,
-        audio: false,
-      });
+      const videoOnly = await navigator.mediaDevices.getUserMedia({ video: VIDEO_CAPTURE, audio: false });
       const videoTrack = videoOnly.getVideoTracks()[0];
       if (!videoTrack) throw new Error("No video track");
       tagVideoTrackForDetail(videoTrack);
 
       if (stream) {
-        const stale = stream.getVideoTracks();
-        for (const t of stale) {
+        stream.getVideoTracks().forEach((t) => {
           stream.removeTrack(t);
           t.stop();
-        }
+        });
         stream.addTrack(videoTrack);
         applyLocalStream(stream, null);
       } else {
         applyLocalStream(videoOnly, null);
       }
     } catch (err) {
-      console.error("[swap-webrtc] camera enable failed:", err);
+      console.error("[swap-webrtc] camera failed:", err);
       setMediaError(mediaErrorMessage(err));
     } finally {
       setMediaBusy(false);
     }
   }, [applyLocalStream, syncLocalPreview]);
 
-  const publishChat = useCallback(
-    async (msg: ChatMessage) => {
-      if (!channelRef.current) return false;
-      setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
-      await channelRef.current.send({
-        type: "broadcast",
-        event: "chat",
-        payload: msg,
-      });
-      return true;
-    },
-    []
-  );
+  const publishChat = useCallback(async (msg: ChatMessage) => {
+    if (!channelRef.current) return false;
+    setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+    await channelRef.current.send({ type: "broadcast", event: "chat", payload: msg });
+    return true;
+  }, []);
 
   const sendChat = useCallback(
     async (text: string, attachment?: ChatAttachment) => {
       const trimmed = text.trim();
       if ((!trimmed && !attachment) || !channelRef.current) return false;
-
-      const msg: ChatMessage = {
+      return publishChat({
         id: `${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         from: userId,
         fromName: userName,
         text: trimmed.slice(0, 2000),
         at: Date.now(),
         attachment,
-      };
-
-      return publishChat(msg);
+      });
     },
     [publishChat, userId, userName]
   );
@@ -707,21 +656,14 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   const sendChatFile = useCallback(
     async (file: File, caption = "") => {
       if (!channelRef.current) return { ok: false as const, error: "Chat is not connected." };
-
       const uploaded = await uploadSessionChatFile({ requestId, userId, file });
       if (!uploaded.ok) return uploaded;
-
       const ok = await sendChat(caption, uploaded.attachment);
-      return ok
-        ? { ok: true as const }
-        : { ok: false as const, error: "Could not send the file. Try again." };
+      return ok ? { ok: true as const } : { ok: false as const, error: "Could not send file." };
     },
     [requestId, sendChat, userId]
   );
 
-  // Distinct from hangUp() — tells the partner the session was marked
-  // complete (not just that this side disconnected), so their room shows
-  // a clear "session complete" state instead of "waiting to reconnect".
   const notifySessionComplete = useCallback(async () => {
     await channelRef.current?.send({
       type: "broadcast",
@@ -745,6 +687,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     remoteStreamRef.current = null;
     if (localVideoEl.current) localVideoEl.current.srcObject = null;
     if (remoteVideoEl.current) remoteVideoEl.current.srcObject = null;
+    if (remoteAudioEl.current) remoteAudioEl.current.srcObject = null;
     setMediaReady(false);
     setHasMic(false);
     setHasCamera(false);
@@ -755,6 +698,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   return {
     bindLocalVideo,
     bindRemoteVideo,
+    bindRemoteAudio,
     connectionState,
     mediaError,
     mediaWarning,
@@ -765,6 +709,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     hasMic,
     hasCamera,
     partnerPresent,
+    partnerCameraOn,
     remoteHasVideo,
     remoteCameraEnabled,
     messages,

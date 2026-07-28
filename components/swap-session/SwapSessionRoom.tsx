@@ -71,6 +71,7 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
     hasMic,
     hasCamera,
     partnerPresent,
+    partnerCameraOn,
     remoteHasVideo,
     remoteCameraEnabled,
     messages,
@@ -82,13 +83,15 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
     hangUp,
     notifySessionComplete,
     partnerCompletedSession,
+    bindRemoteAudio,
   } = useSwapWebRtc({ requestId: session.requestId, userId, userName: viewerName });
 
   const topic = session.topic?.skill_name ?? s.defaultTopic;
   const label = partnerCompletedSession ? s.partnerCompletedSession : statusLabel(connectionState, partnerPresent, s);
   const roomOpen = connectionState !== "ended";
-  const showRemoteVideo =
-    connectionState === "connected" && remoteHasVideo && remoteCameraEnabled;
+  const partnerShowingVideo =
+    connectionState === "connected" && partnerCameraOn && remoteHasVideo && remoteCameraEnabled;
+  const showRemoteVideo = partnerShowingVideo;
   const showLocalVideo = hasCamera && cameraEnabled;
   const localLabel = `${s.you}${hasMic && !micEnabled ? ` · ${s.micOff}` : ""}${hasCamera && !cameraEnabled ? ` · ${s.camOff}` : ""}`;
 
@@ -136,6 +139,8 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
 
   return (
     <div className="flex min-h-[calc(100vh-5rem)] flex-col gap-4 pb-24 lg:pb-6">
+      {/* Remote audio plays through a hidden element; video element stays muted for smooth autoplay. */}
+      <audio ref={bindRemoteAudio} autoPlay playsInline className="sr-only" />
       {showStartedToast && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
           <CheckCircle2 size={16} />
@@ -220,9 +225,11 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
                 <p className="text-[11px] text-slate-300">
                   {!partnerPresent
                     ? s.waitingForThemToJoin
-                    : connectionState === "connected" && !remoteCameraEnabled
+                    : connectionState === "connected" && !partnerCameraOn
                       ? s.camOff
-                      : s.connecting}
+                      : connectionState === "connected" && partnerCameraOn && !remoteHasVideo
+                        ? s.connecting
+                        : s.connecting}
                 </p>
               }
             />
