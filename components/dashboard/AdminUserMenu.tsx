@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, User, LogOut } from "lucide-react";
 import { signOutEverywhere } from "@/lib/auth/sign-out";
 import UserAvatar from "@/components/ui/UserAvatar";
 
@@ -56,6 +57,15 @@ export default function AdminUserMenu({ name }: AdminUserMenuProps) {
           role="menu"
           className="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-2xl border border-slate-100 bg-white py-2 shadow-xl"
         >
+          <Link
+            href="/dashboard/profile"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50"
+            style={{ color: "var(--sb-ink)" }}
+          >
+            <User size={16} />
+            Profile
+          </Link>
           <button
             type="button"
             onClick={handleLogout}

@@ -7,6 +7,7 @@ import RecentMessages from "@/components/dashboard/RecentMessages";
 import OnboardingGate from "@/components/onboarding/OnboardingGate";
 import { getSkillsByCategory } from "@/lib/skillCatalog";
 import { isAdminUser } from "@/lib/auth/isAdmin";
+
 export const metadata: Metadata = {
   title: "Dashboard | SkillBridge",
 };
@@ -16,20 +17,19 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, isAdmin] = await Promise.all([
-    supabase.from("users").select("bio, fullname").eq("id", user.id).maybeSingle(),
+    supabase.from("users").select("bio").eq("id", user.id).maybeSingle(),
     isAdminUser(supabase, user.id),
   ]);
-
-  if (isAdmin) {
-    redirect("/dashboard/admin");
-  }
 
   const [{ count: offeredCount }, { count: wantedCount }] = await Promise.all([
     supabase.from("user_skill_offered").select("id", { count: "exact", head: true }).eq("user_id", user.id),
     supabase.from("user_skill_wanted").select("id", { count: "exact", head: true }).eq("user_id", user.id),
   ]);
 
-  const showOnboarding = !profile?.bio && (offeredCount ?? 0) === 0 && (wantedCount ?? 0) === 0;
+  // Admins keep an empty profile by design — no bio/skills to fill in, so
+  // never surface the "build your profile" onboarding modal to them.
+  const showOnboarding =
+    !isAdmin && !profile?.bio && (offeredCount ?? 0) === 0 && (wantedCount ?? 0) === 0;
   const skillsByCategory = showOnboarding ? await getSkillsByCategory(supabase) : {};
 
   return (
