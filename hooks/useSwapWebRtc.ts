@@ -112,13 +112,18 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
   const partnerIdRef = useRef<string | null>(null);
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
   const renegotiateRef = useRef<(() => Promise<void>) | null>(null);
+  const videoSenderRef = useRef<RTCRtpSender | null>(null);
+  const audioSenderRef = useRef<RTCRtpSender | null>(null);
+  const videoTransceiverRef = useRef<RTCRtpTransceiver | null>(null);
+  const audioTransceiverRef = useRef<RTCRtpTransceiver | null>(null);
   const [remoteHasVideo, setRemoteHasVideo] = useState(false);
   const [remoteCameraEnabled, setRemoteCameraEnabled] = useState(false);
 
   const syncRemoteTrackFlags = useCallback((stream: MediaStream | null) => {
     const video = stream?.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
     setRemoteHasVideo(Boolean(video));
-    setRemoteCameraEnabled(Boolean(video && video.readyState === "live" && !video.muted));
+    // Remote `enabled` mirrors the sender; `muted` can stay true until the first frame arrives.
+    setRemoteCameraEnabled(Boolean(video && video.readyState === "live" && video.enabled));
   }, []);
 
   const watchRemoteVideoTrack = useCallback(
@@ -171,13 +176,27 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     const pc = pcRef.current;
     if (!pc) return;
 
-    for (const track of stream.getTracks()) {
-      const sender = pc.getSenders().find((s) => s.track?.kind === track.kind);
-      if (sender) {
-        void sender.replaceTrack(track);
-      } else {
-        pc.addTrack(track, stream);
+    const videoTrack = stream.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
+    const audioTrack = stream.getAudioTracks().find((t) => t.readyState !== "ended") ?? null;
+
+    if (videoSenderRef.current) {
+      void videoSenderRef.current.replaceTrack(videoTrack);
+      if (videoTransceiverRef.current && videoTrack && videoTransceiverRef.current.direction === "recvonly") {
+        videoTransceiverRef.current.direction = "sendrecv";
       }
+    } else if (videoTrack) {
+      const sender = pc.addTrack(videoTrack, stream);
+      videoSenderRef.current = sender;
+    }
+
+    if (audioSenderRef.current) {
+      void audioSenderRef.current.replaceTrack(audioTrack);
+      if (audioTransceiverRef.current && audioTrack && audioTransceiverRef.current.direction === "recvonly") {
+        audioTransceiverRef.current.direction = "sendrecv";
+      }
+    } else if (audioTrack) {
+      const sender = pc.addTrack(audioTrack, stream);
+      audioSenderRef.current = sender;
     }
   }, []);
 
@@ -232,6 +251,10 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       pcRef.current = null;
       offerStartedRef.current = false;
       pendingIceRef.current = [];
+      videoSenderRef.current = null;
+      audioSenderRef.current = null;
+      videoTransceiverRef.current = null;
+      audioTransceiverRef.current = null;
       remoteStreamRef.current = null;
       if (remoteVideoEl.current) remoteVideoEl.current.srcObject = null;
       syncRemoteTrackFlags(null);
@@ -279,11 +302,21 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
       const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
       pcRef.current = pc;
 
+      // Always negotiate audio/video slots so both sides can send and receive,
+      // even if getUserMedia is still pending or camera was temporarily unavailable.
+      const videoTx = pc.addTransceiver("video", { direction: "sendrecv" });
+      const audioTx = pc.addTransceiver("audio", { direction: "sendrecv" });
+      videoTransceiverRef.current = videoTx;
+      audioTransceiverRef.current = audioTx;
+      videoSenderRef.current = videoTx.sender;
+      audioSenderRef.current = audioTx.sender;
+
       const local = localStreamRef.current;
       if (local) {
-        for (const track of local.getTracks()) {
-          pc.addTrack(track, local);
-        }
+        const videoTrack = local.getVideoTracks().find((t) => t.readyState !== "ended") ?? null;
+        const audioTrack = local.getAudioTracks().find((t) => t.readyState !== "ended") ?? null;
+        if (videoTrack) void videoTx.sender.replaceTrack(videoTrack);
+        if (audioTrack) void audioTx.sender.replaceTrack(audioTrack);
       }
 
       const remote = new MediaStream();
@@ -292,6 +325,16 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
         remoteVideoEl.current.srcObject = remote;
         void remoteVideoEl.current.play().catch(() => undefined);
       }
+
+      const scheduleRenegotiate = () => {
+        if (!partnerIdRef.current || endedRef.current) return;
+        void renegotiate();
+      };
+
+      pc.onnegotiationneeded = () => {
+        if (!offerStartedRef.current) return;
+        scheduleRenegotiate();
+      };
 
       pc.ontrack = (event) => {
         const inbound = event.streams[0];
@@ -311,6 +354,16 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
         if (remoteVideoEl.current) {
           remoteVideoEl.current.srcObject = remote;
           void remoteVideoEl.current.play().catch(() => undefined);
+        }
+        // Retry play when the first video frame arrives (autoplay can fail before then).
+        const videoTrack = remote.getVideoTracks().find((t) => t.readyState !== "ended");
+        if (videoTrack) {
+          const retryPlay = () => {
+            void remoteVideoEl.current?.play().catch(() => undefined);
+            syncRemoteTrackFlags(remote);
+          };
+          videoTrack.onunmute = retryPlay;
+          if (!videoTrack.muted) retryPlay();
         }
         setConnectionState("connected");
       };
@@ -332,11 +385,11 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
     }
 
     async function makeOffer() {
-      if (offerStartedRef.current || endedRef.current) return;
+      if (offerStartedRef.current || endedRef.current || makingOfferRef.current) return;
       offerStartedRef.current = true;
+      makingOfferRef.current = true;
       const pc = ensurePeerConnection();
       try {
-        makingOfferRef.current = true;
         setConnectionState("connecting-peer");
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -385,6 +438,7 @@ export function useSwapWebRtc({ requestId, userId, userName }: Options) {
           if (pc.localDescription) {
             await sendSignal({ type: "answer", from: userId, sdp: pc.localDescription });
           }
+          offerStartedRef.current = true;
         } else if (payload.type === "answer") {
           if (pc.signalingState === "have-local-offer") {
             await pc.setRemoteDescription(payload.sdp);
