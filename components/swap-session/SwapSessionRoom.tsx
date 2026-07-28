@@ -88,9 +88,7 @@ export default function SwapSessionRoom({ session, userId, viewerName, viewerAva
   const label = partnerCompletedSession ? s.partnerCompletedSession : statusLabel(connectionState, partnerPresent, s);
   const roomOpen = connectionState !== "ended";
   const showRemoteVideo =
-    (connectionState === "connected" || connectionState === "connecting-peer") &&
-    remoteHasVideo &&
-    remoteCameraEnabled;
+    connectionState === "connected" && remoteHasVideo && remoteCameraEnabled;
   const showLocalVideo = hasCamera && cameraEnabled;
   const localLabel = `${s.you}${hasMic && !micEnabled ? ` · ${s.micOff}` : ""}${hasCamera && !cameraEnabled ? ` · ${s.camOff}` : ""}`;
 
