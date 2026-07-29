@@ -616,10 +616,10 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
               </div>
 
               <div
-                className="max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white"
+                className="max-w-sm rounded-3xl border border-slate-200 bg-white"
                 style={{ boxShadow: "var(--sb-shadow-sm)" }}
               >
-                <div className="relative aspect-[16/7] w-full overflow-hidden">
+                <div className="relative aspect-[16/7] w-full overflow-hidden rounded-t-3xl">
                   {bannerPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={bannerPreview} alt="" className="h-full w-full object-cover" />
@@ -634,7 +634,7 @@ export default function CreateCommunityModal({ onClose, initialTopics = [] }: Cr
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white via-white/25 to-transparent" />
                 </div>
                 <div className="px-4 pb-4">
-                  <div className="-mt-7 mb-2 flex items-end gap-3">
+                  <div className="relative z-10 -mt-7 mb-2 flex items-end gap-3">
                     {iconPreview ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={iconPreview} alt="" className="h-12 w-12 rounded-full object-cover ring-4 ring-white" />
