@@ -2,14 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const avatars = [
-  { emoji: "🧑🏽‍🎨", bg: "var(--neu-coral)" },
-  { emoji: "👩🏻‍💻", bg: "var(--neu-teal)" },
-  { emoji: "🧑🏻‍🏫", bg: "var(--neu-yellow)" },
-  { emoji: "👨🏿‍🎤", bg: "var(--neu-purple)" },
-  { emoji: "👩🏽‍🍳", bg: "var(--neu-orange)" },
-];
-
 const heading = "Join SkillBridge";
 const confettiColors = ["var(--neu-yellow)", "var(--neu-coral)", "var(--neu-teal)", "var(--neu-purple)", "var(--neu-indigo)", "var(--neu-orange)", "#fff"];
 
@@ -39,12 +31,11 @@ export default function JoinSection() {
   useEffect(() => {
     if (!active || firedConfetti.current) return;
     firedConfetti.current = true;
-    const avatarsDuration = avatars.length * 120 + 500;
     const headingDuration = heading.length * 35 + 450;
 
     const timer = setTimeout(() => {
       fireConfetti(headingRef.current);
-    }, avatarsDuration + headingDuration);
+    }, 500 + headingDuration);
 
     return () => clearTimeout(timer);
   }, [active]);
@@ -71,35 +62,9 @@ export default function JoinSection() {
       </div>
 
       <div className="relative z-[2] mx-auto max-w-[620px]">
-        <span
-          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-bold uppercase tracking-wide"
-          style={{ background: "#fff", border: "2.5px solid var(--neu-ink)", boxShadow: "4px 4px 0 var(--neu-ink)", color: "var(--neu-ink)" }}
-        >
-          🚀 Join now
-        </span>
-
-        <div className="mt-6 flex justify-center gap-4">
-          {avatars.map((a, i) => (
-            <span
-              key={i}
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-full text-2xl transition-all duration-500 ease-[cubic-bezier(0.3,1.4,0.4,1)]"
-              style={{
-                background: a.bg,
-                border: "2.5px solid var(--neu-ink)",
-                boxShadow: "0 4px 0 var(--neu-ink)",
-                opacity: active ? 1 : 0,
-                transform: active ? "scale(1) translateY(0)" : "scale(0.3) translateY(20px)",
-                transitionDelay: `${i * 120}ms`,
-              }}
-            >
-              {a.emoji}
-            </span>
-          ))}
-        </div>
-
         <h2
           ref={headingRef}
-          className="mt-6 text-[32px] font-extrabold tracking-tight sm:text-[46px]"
+          className="text-[32px] font-extrabold tracking-tight sm:text-[46px]"
           style={{ fontFamily: "var(--font-playful)", color: "var(--neu-ink)", perspective: "600px" }}
         >
           {[...heading].map((ch, i) => (
@@ -110,7 +75,7 @@ export default function JoinSection() {
                 opacity: active ? 1 : 0,
                 transform: active ? "rotateX(0deg) translateY(0)" : "rotateX(90deg) translateY(6px)",
                 transformOrigin: "50% 100%",
-                transitionDelay: `${avatars.length * 120 + 500 + i * 35}ms`,
+                transitionDelay: `${500 + i * 35}ms`,
               }}
             >
               {ch === " " ? " " : ch}

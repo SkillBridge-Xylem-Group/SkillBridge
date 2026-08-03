@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Reveal from "./Reveal";
+import ShowcaseDashboardPreview from "./ShowcaseDashboardPreview";
 
 export default function Showcase() {
   const statRef = useRef<HTMLDivElement>(null);
@@ -74,24 +75,8 @@ export default function Showcase() {
                 🔒 skillbridge.my.id
               </div>
             </div>
-            <div
-              id="browser-content"
-              className="relative min-h-[280px] sm:min-h-[320px]"
-              style={{ background: "linear-gradient(160deg,#fff,#f0fdf4)" }}
-            >
-              <div className="p-7">
-                <div className="mb-5 flex items-center gap-3">
-                  <div className="landing-skeleton h-[38px] w-[38px] shrink-0 rounded-full" />
-                  <div className="landing-skeleton h-3.5 w-[30%] rounded-[10px]" />
-                </div>
-                <div className="landing-skeleton mb-4 h-3.5 w-[45%] rounded-[10px]" />
-                <div className="grid grid-cols-2 gap-3.5">
-                  <div className="landing-skeleton h-16 rounded-[10px]" />
-                  <div className="landing-skeleton h-16 rounded-[10px]" />
-                  <div className="landing-skeleton h-16 rounded-[10px]" />
-                  <div className="landing-skeleton h-16 rounded-[10px]" />
-                </div>
-              </div>
+            <div id="browser-content" className="relative overflow-hidden">
+              <ShowcaseDashboardPreview />
             </div>
           </div>
         </Reveal>
