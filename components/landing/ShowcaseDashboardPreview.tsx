@@ -12,9 +12,9 @@ import {
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", active: true },
-  { icon: Search, label: "Browse" },
-  { icon: Repeat, label: "Swaps" },
-  { icon: MessageSquare, label: "Forum" },
+  { icon: Search, label: "Browse", active: false },
+  { icon: Repeat, label: "Swaps", active: false },
+  { icon: MessageSquare, label: "Forum", active: false },
 ] as const;
 
 const STATS = [
