@@ -1,7 +1,6 @@
 import Hero from "@/components/landing/Hero";
 import Showcase from "@/components/landing/Showcase";
 import HowItWorks from "@/components/landing/HowItWorks";
-import SkillsMarquee from "@/components/landing/SkillsMarquee";
 import JoinSection from "@/components/landing/JoinSection";
 import Footer from "@/components/landing/Footer";
 
@@ -18,7 +17,6 @@ export default function Home() {
       <Hero />
       <Showcase />
       <HowItWorks />
-      <SkillsMarquee />
       <JoinSection />
       <Footer />
     </main>

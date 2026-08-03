@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { useRef } from "react";
 import Navbar from "./Navbar";
-import ScatteredIcons from "./ScatteredIcons";
 
 const KINETIC_RADIUS = 90;
 
@@ -36,7 +35,6 @@ export default function Hero() {
 
   return (
     <header className="relative flex min-h-screen flex-col">
-      <ScatteredIcons />
       <Navbar />
 
       <div className="flex flex-1 flex-col justify-center px-6 pb-10 pt-16 sm:px-8">
